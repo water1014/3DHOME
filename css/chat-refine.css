@@ -331,3 +331,35 @@ html.dark #pg-chat .chat-search { background:var(--page-bg, #19191c); }
 #pg-chat .cal-day.selected::after { background:var(--on-dark); }
 #pg-chat .cal-blank { min-height:2rem; }
 #pg-chat .chat-calendar-reset { display:block; margin:.35rem auto 0; border:0; background:transparent; color:var(--ink-3); font:.48rem var(--serif); }
+
+
+/* Chat-only conversation switcher and window manager */
+#pg-chat .chat-window-switch {display:flex;align-items:center;gap:.55rem;padding:.35rem var(--page-pad) .58rem;border-bottom:1px solid var(--line);}
+#pg-chat .chat-window-switch>button:first-child {display:flex;align-items:center;gap:.48rem;min-width:0;flex:1;text-align:left;padding:.48rem .68rem;border:1px solid var(--glass-brd);border-radius:.8rem;background:var(--glass-strong);color:var(--ink);}
+#pg-chat .chat-window-kicker {color:var(--ink-3);font:.4rem var(--mono);letter-spacing:.1em;}
+#pg-chat #chat-window-current {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:.66rem var(--serif);font-weight:500;}
+#pg-chat .chat-window-chevron {margin-left:auto;color:var(--ink-3);font-size:.9rem;}
+#pg-chat #chat-window-new {flex:0 0 2.2rem;width:2.2rem;height:2.2rem;border:1px solid var(--glass-brd);border-radius:50%;background:transparent;color:var(--ink-2);font-size:1.1rem;}
+#pg-chat .chat-window-sheet {display:none;position:absolute;z-index:45;inset:0;}
+#pg-chat .chat-window-sheet.show {display:block;}
+#pg-chat .chat-window-backdrop {position:absolute;inset:0;background:rgba(20,24,30,.28);backdrop-filter:blur(3px);}
+#pg-chat .chat-window-panel {position:absolute;left:0;right:0;bottom:0;max-height:min(78%,42rem);overflow:auto;padding:1rem var(--page-pad) calc(1rem + env(safe-area-inset-bottom));border-radius:1.25rem 1.25rem 0 0;border:1px solid var(--glass-brd);background:var(--page-bg);box-shadow:0 -1rem 3rem rgba(0,0,0,.12);animation:chatPrefIn .2s ease-out both;}
+#pg-chat .chat-window-sheet-head {display:flex;justify-content:space-between;align-items:flex-start;padding:.1rem .1rem .75rem;}
+#pg-chat .chat-window-sheet-head small {color:var(--ink-3);font:.4rem var(--mono);letter-spacing:.14em;}
+#pg-chat .chat-window-sheet-head h3 {margin:.22rem 0;color:var(--ink);font:500 1rem var(--serif);}
+#pg-chat .chat-window-sheet-head p {margin:0;color:var(--ink-3);font:.55rem var(--serif);}
+#pg-chat .chat-window-sheet-head>button {width:1.8rem;height:1.8rem;border:1px solid var(--line);border-radius:50%;background:transparent;color:var(--ink-2);font-size:1.1rem;}
+#pg-chat .chat-window-group-title {padding:.55rem .1rem .3rem;color:var(--ink-3);font:.42rem var(--mono);letter-spacing:.1em;}
+#pg-chat .chat-window-item {padding:.55rem .6rem;margin:.28rem 0;border:1px solid var(--line);border-radius:.78rem;background:var(--glass-strong);}
+#pg-chat .chat-window-item.current {border-color:var(--ink-3);}
+#pg-chat .chat-window-open {display:flex;align-items:center;gap:.55rem;width:100%;padding:0;border:0;background:transparent;color:var(--ink);text-align:left;}
+#pg-chat .chat-window-symbol {display:grid;place-items:center;width:2rem;height:2rem;flex:0 0 2rem;border:1px solid var(--line);border-radius:50%;color:var(--ink-2);}
+#pg-chat .chat-window-copy {display:flex;flex-direction:column;gap:.15rem;min-width:0;flex:1;}
+#pg-chat .chat-window-copy b {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:.64rem var(--serif);font-weight:500;}
+#pg-chat .chat-window-copy small {color:var(--ink-3);font:.42rem var(--mono);}
+#pg-chat .chat-window-check {color:var(--ink-3);font:.48rem var(--serif);}
+#pg-chat .chat-window-actions {display:flex;gap:.35rem;justify-content:flex-end;padding-top:.45rem;margin-top:.42rem;border-top:1px solid var(--line);}
+#pg-chat .chat-window-actions button {padding:.25rem .48rem;border:1px solid var(--line);border-radius:2rem;background:transparent;color:var(--ink-3);font:.46rem var(--serif);}
+#pg-chat .chat-window-actions button.danger {color:#a36c6c;}
+#pg-chat .chat-window-create {display:block;width:100%;margin-top:.65rem;padding:.65rem;border:1px dashed var(--ink-3);border-radius:.7rem;background:transparent;color:var(--ink-2);font:.6rem var(--serif);}
+@media (min-width:600px) {#pg-chat .chat-window-panel {left:50%;right:auto;width:min(34rem,92%);transform:translateX(-50%);bottom:1rem;border-radius:1.25rem;}}
