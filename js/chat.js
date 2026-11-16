@@ -451,72 +451,138 @@ async function aiReply(text) {
     else win.messages = msgs;
     save('chatWindows');
   };
+  const finish = () => {
+    aiTyping = false; aiReplyWindowId = null;
+    if (currentChannel === replyWindowId) $('c-typing')?.classList.remove('show');
+  };
+  const readReasoning = message => {
+    const value = message?.reasoning_content ?? message?.reasoning ?? message?.analysis ??
+      message?.reasoning_summary ?? message?.reasoningSummary ?? message?.thinking_summary ??
+      message?.thinking ?? message?.summary ?? message?.reasoning_details;
+    if (value == null || value === '') return '';
+    return typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+  };
   const body = $('c-body');
   $('c-typing').classList.add('show');
   body.scrollTop = body.scrollHeight;
+  let answer = null, msgIdx = -1, reply = '', reasoning = '';
+  const toolMap = {};
+  const ensureAnswer = () => {
+    if (answer) return;
+    const msgs = replyMessages();
+    msgIdx = msgs.length;
+    answer = { who:'ta', text:'', t:Date.now() };
+    msgs.push(answer); saveReplyMessages(msgs);
+  };
+  const paint = () => {
+    if (currentChannel === replyWindowId) {
+      renderMsgs();
+      const scroller = $('c-body'); if (scroller) scroller.scrollTop = scroller.scrollHeight;
+    }
+  };
+  const applyChunk = chunk => {
+    const choice = chunk?.choices?.[0] || {};
+    const delta = choice.delta || choice.message || chunk?.message || {};
+    const nextReasoning = readReasoning(delta);
+    if (nextReasoning) reasoning += nextReasoning;
+    const content = delta.content;
+    if (typeof content === 'string') reply += content;
+    else if (Array.isArray(content)) reply += content.map(p => typeof p === 'string' ? p : (p?.text || '')).join('');
+    const calls = delta.tool_calls || delta.toolCalls;
+    if (Array.isArray(calls)) calls.forEach((call, i) => {
+      const key = call.index ?? i;
+      const old = toolMap[key] || {};
+      const fn = call.function || {};
+      toolMap[key] = {
+        ...old, ...call,
+        function: { ...(old.function || {}), ...fn,
+          name: (old.function?.name || '') + (fn.name || ''),
+          arguments: (old.function?.arguments || '') + (fn.arguments || '') }
+      };
+    });
+    if (reply || reasoning || Object.keys(toolMap).length) {
+      ensureAnswer();
+      answer.text = reply;
+      if (reasoning) answer.reasoningSummary = reasoning;
+      if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
+      const msgs = replyMessages(); if (msgs[msgIdx]) msgs[msgIdx] = answer;
+      saveReplyMessages(msgs); paint();
+    }
+  };
   try {
     const history = replyMessages().filter(m => !m._typing).slice(-40).map(m => ({
       role: m.who === 'ta' ? 'assistant' : 'user',
       content: String(m.text || (m.type === 'image' ? '[发送了一张图片]' : m.type === 'voice' ? '[发送了一段语音]' : ''))
     })).filter(m => m.content);
     const response = await fetch(S.aiUrl || 'https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.aiKey },
-      body: JSON.stringify({
-        model: S.aiModel || 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: '你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' },
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.aiKey},
+      body:JSON.stringify({
+        model:S.aiModel || 'gpt-4o-mini',
+        messages:[
+          {role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。'},
           ...history
         ],
-        stream: false
+        stream:true
       })
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error?.message || data.message || ('API 请求失败（HTTP ' + response.status + '）'));
-    const choice = data.choices?.[0];
-    const message = choice?.message || data.message || {};
-    let reply = message.content;
-    if (Array.isArray(reply)) reply = reply.map(part => typeof part === 'string' ? part : (part.text || '')).join('');
-    if (typeof reply !== 'string' || !reply.trim()) {
-      if (Array.isArray(message.tool_calls) && message.tool_calls.length) reply = '模型请求调用工具，但当前聊天页还没有配置对应的工具执行器。';
-      else throw new Error('接口已返回，但没有可显示的文字回复。请检查模型与接口兼容性。');
+    if (!response.ok) {
+      const errData = await response.json().catch(()=>({}));
+      throw new Error(errData.error?.message || errData.message || ('API 请求失败（HTTP '+response.status+'）'));
     }
-    const reasoningSummary = message.reasoning_summary || message.thinking_summary || message.summary || null;
-    const toolCalls = message.tool_calls || data.tool_calls || [];
-    $('c-typing').classList.remove('show');
-    const msgs = replyMessages();
-    const msgIdx = msgs.length;
-    const answer = { who: 'ta', text: '', t: Date.now() };
-    if (reasoningSummary) answer.reasoningSummary = typeof reasoningSummary === 'string' ? reasoningSummary : JSON.stringify(reasoningSummary);
-    if (Array.isArray(toolCalls) && toolCalls.length) answer.toolCalls = toolCalls;
-    msgs.push(answer);
-    saveReplyMessages(msgs);
-    if (currentChannel === replyWindowId) renderMsgs();
-    let idx = 0;
-    clearInterval(typeWriterTimer);
-    typeWriterTimer = setInterval(() => {
-      idx = Math.min(idx + 2, reply.length);
-      const live = replyMessages();
-      if (live[msgIdx]) {
-        live[msgIdx].text = reply.slice(0, idx);
-        saveReplyMessages(live);
-        if (currentChannel === replyWindowId) {
-          renderMsgs();
-          const scroller = $('c-body');
-          scroller.scrollTop = scroller.scrollHeight;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/event-stream') && response.body?.getReader) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      const consume = raw => {
+        const lines = raw.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const payload = trimmed.slice(5).trim();
+          if (!payload || payload === '[DONE]') continue;
+          try { applyChunk(JSON.parse(payload)); } catch (err) { if (err instanceof SyntaxError) continue; throw err; }
         }
+      };
+      while (true) {
+        const {value,done} = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value,{stream:true});
+        const events = buffer.split(/\r?\n\r?\n/);
+        buffer = events.pop() || '';
+        events.forEach(consume);
       }
-      if (idx >= reply.length) {
-        clearInterval(typeWriterTimer);
-        aiTyping = false;
-        aiReplyWindowId = null;
-        $('c-typing')?.classList.remove('show');
+      buffer += decoder.decode();
+      if (buffer.trim()) consume(buffer);
+    } else {
+      const data = await response.json().catch(()=>({}));
+      const choice = data.choices?.[0] || {};
+      const message = choice.message || data.message || {};
+      const reasoningText = readReasoning(message);
+      if (reasoningText) reasoning += reasoningText;
+      let content = message.content ?? choice.text ?? data.output_text ?? '';
+      if (Array.isArray(content)) content = content.map(p=>typeof p==='string'?p:(p?.text||'')).join('');
+      if (typeof content === 'string') reply = content;
+      if (Array.isArray(message.tool_calls)) message.tool_calls.forEach((call,i)=>toolMap[call.index??i]=call);
+      if (reasoning || reply || Object.keys(toolMap).length) {
+        ensureAnswer(); answer.text=reply;
+        if (reasoning) answer.reasoningSummary=reasoning;
+        if (Object.keys(toolMap).length) answer.toolCalls=Object.values(toolMap);
+        const msgs=replyMessages(); if(msgs[msgIdx])msgs[msgIdx]=answer;
+        saveReplyMessages(msgs); paint();
       }
-    }, 22);
+    }
+    if (!reply.trim() && !Object.keys(toolMap).length) throw new Error('接口已连接，但没有返回文字内容。请确认模型支持 Chat Completions。');
+    if (!answer) ensureAnswer();
+    answer.text = reply || '模型请求调用工具，但当前聊天页还没有配置对应的工具执行器。';
+    if (reasoning) answer.reasoningSummary = reasoning;
+    if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
+    const finalMsgs=replyMessages(); if(finalMsgs[msgIdx])finalMsgs[msgIdx]=answer;
+    saveReplyMessages(finalMsgs); paint();
+    finish();
   } catch (err) {
-    $('c-typing').classList.remove('show');
-    aiTyping = false;
-    aiReplyWindowId = null;
+    finish();
     toast(err.message || '连接失败，请检查 API 设置');
   }
 }
