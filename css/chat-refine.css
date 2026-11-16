@@ -784,3 +784,25 @@ html.dark #pg-chat .input-bar .tool-panel .tp-btn svg {
 #pg-chat .msg.me .msg-meta-stack { margin-left:0; margin-right:.08rem; }
 #pg-chat .msg.ta .msg-time { align-self:flex-start; }
 #pg-chat .msg.me .msg-time { align-self:flex-end; }
+
+/* Keep the reasoning disclosure compact while retaining readable text. */
+#pg-chat .reasoning-meta {
+  font-size:.62rem;
+  line-height:1.5;
+}
+#pg-chat .reasoning-meta summary {
+  min-height:1.55rem;
+  gap:.32rem;
+  font-size:.62rem;
+  line-height:1.35;
+}
+#pg-chat .reasoning-meta .meta-mark { font-size:.7rem; }
+#pg-chat .reasoning-meta summary::after { font-size:.62rem; }
+#pg-chat .reasoning-meta .meta-content {
+  max-width:min(76vw,24rem);
+  max-height:min(30vh,13rem);
+  padding:.46rem .56rem;
+  margin-top:.2rem;
+  font-size:.62rem;
+  line-height:1.6;
+}
