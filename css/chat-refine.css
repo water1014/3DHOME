@@ -613,3 +613,40 @@ html.dark #pg-chat .emoji-panel { background:#292d34; border-color:rgba(255,255,
 }
 #pg-chat .send-btn.is-stop svg { width:.78rem; height:.78rem; }
 html.dark #pg-chat .send-btn.is-stop { background:#3b4654; color:#fff; }
+
+
+/* Reasoning text: comfortable reading size and stronger contrast on mobile. */
+#pg-chat .reasoning-meta {
+  color:var(--ink-2);
+  font:500 .72rem/1.65 var(--serif);
+}
+#pg-chat .reasoning-meta summary {
+  min-height:1.9rem;
+  gap:.42rem;
+  opacity:1;
+  color:var(--ink-2);
+  font:600 .72rem/1.5 var(--serif);
+}
+#pg-chat .reasoning-meta .meta-mark {
+  font-size:.82rem;
+  opacity:1;
+}
+#pg-chat .reasoning-meta summary::after { font-size:.72rem; opacity:.8; }
+#pg-chat .reasoning-meta .meta-content {
+  max-width:min(82vw,28rem);
+  max-height: min(38vh,18rem);
+  padding:.62rem .72rem;
+  margin-top:.3rem;
+  border-left:2px solid var(--ink-3);
+  border-radius:0 .55rem .55rem 0;
+  background:rgba(235,239,244,.88);
+  color:#303946;
+  font:400 .72rem/1.75 var(--serif);
+  letter-spacing:.005em;
+  opacity:1;
+}
+html.dark #pg-chat .reasoning-meta .meta-content {
+  background:rgba(48,53,62,.96);
+  color:#eef1f5;
+  border-left-color:#9aa9bb;
+}
