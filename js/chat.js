@@ -114,6 +114,12 @@ function build() {
         <button type="button" data-pref="bubble" data-value="off">无背景</button>
       </div>
       <p class="chat-pref-note">思考过程与工具调用会收在消息下方，点击即可展开。</p>
+      <div class="chat-pref-section">
+        <span class="chat-pref-label">会话管理</span>
+        <button type="button" class="chat-pref-action" data-chat-action="clear">
+          <span>清空当前频道</span><small>删除此频道的全部消息</small>
+        </button>
+      </div>
     </div>
 
     <div class="chat-body" id="c-body"></div>
@@ -164,10 +170,6 @@ function build() {
         <button class="tp-btn" data-tool="image">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           <span>图片</span>
-        </button>
-        <button class="tp-btn" data-tool="clear">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          <span>清空</span>
         </button>
       </div>
     </div>
@@ -537,7 +539,6 @@ function bindEvents() {
       if (t === 'heart') openHeart();
       else if (t === 'pat') sendPat();
       else if (t === 'image') sendImage();
-      else if (t === 'clear') clearChat();
     };
   });
 
@@ -592,6 +593,11 @@ function bindEvents() {
       renderMsgs();
     };
   });
+  $('chat-pref').querySelector('[data-chat-action="clear"]').onclick = () => {
+    $('chat-pref').classList.remove('show');
+    $('ch-menu').setAttribute('aria-expanded', 'false');
+    clearChat();
+  };
 }
 
 window.Chat = { build };
