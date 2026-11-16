@@ -34,11 +34,12 @@ function getChatWindows() {
       id: 'legacy_' + c.key, title: c.label, messages: Array.isArray(legacy[c.key]) ? legacy[c.key] : [],
       createdAt: Date.now() - (CHANNELS.length - i) * 1000, updatedAt: Date.now(), archived: false, legacyKey: c.key
     }));
-    save('chatWindows');
   }
   S.chatWindows = S.chatWindows.filter(w => w && w.id);
   // Legacy channels remain stored in their original key to avoid duplicating large image data.
-  S.chatWindows.forEach(w => { if (w.legacyKey && w.messages) delete w.messages; });
+  let cleanedLegacy = false;
+  S.chatWindows.forEach(w => { if (w.legacyKey && w.messages) { delete w.messages; cleanedLegacy = true; } });
+  if (cleanedLegacy || !localStorage.getItem('xw_chatWindows')) save('chatWindows');
   if (!S.chatWindows.some(w => w.id === currentChannel && !w.archived)) { currentChannel = (S.chatWindows.find(w => !w.archived) || S.chatWindows[0]).id; localStorage.setItem('xw_chatCurrentWindowId', currentChannel); }
   return S.chatWindows;
 }
