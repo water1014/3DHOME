@@ -199,7 +199,7 @@ function build() {
       <div class="chat-media-filters" id="chat-media-filters" aria-label="按内容类型查找">
         <button type="button" class="on" data-search-type="all">全部</button><button type="button" data-search-type="image">图片</button><button type="button" data-search-type="video">视频</button><button type="button" data-search-type="file">文件</button><button type="button" data-search-type="sticker">表情</button>
       </div>
-      <div class="chat-date-tools"><button type="button" id="chat-calendar-toggle">⌑ 按日期查找</button><span id="chat-date-label">不限日期</span><button type="button" id="chat-media-library-toggle">▦ 媒体库</button></div>
+      <div class="chat-date-tools"><button type="button" id="chat-calendar-toggle">⌑ 按日期查找</button><span id="chat-date-label">不限日期</span><button type="button" id="chat-media-library-toggle">▦ 媒体库</button><button type="button" id="chat-media-favorites-toggle">♡ 收藏</button></div>
       <div class="chat-calendar" id="chat-calendar" hidden>
         <div class="chat-calendar-head"><button type="button" id="chat-cal-prev" aria-label="上个月">‹</button><b id="chat-cal-title"></b><button type="button" id="chat-cal-next" aria-label="下个月">›</button></div>
         <div class="chat-calendar-grid chat-calendar-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
@@ -979,12 +979,21 @@ function bindEvents() {
     $('chat-calendar-days').innerHTML = cells.join('');
   }
   let mediaLibraryMode = false;
+  let mediaLibraryFavoritesOnly = false;
+  function setMediaFavorite(windowId,index,value) {
+    const win=getChatWindows().find(w=>w.id===windowId); if(!win)return;
+    const list=getWindowMessages(win), msg=list[index]; if(!msg)return;
+    msg.favorite=!!value;
+    if(win.legacyKey){S.chatMsgsByChannel[win.legacyKey]=list;save("chatMsgsByChannel");}
+    else {win.updatedAt=Date.now();save("chatWindows");}
+  }
   function renderMediaLibrary() {
     const host=$('chat-search-results');
     const records=[];
     getChatWindows().forEach(win=>{
       getWindowMessages(win).forEach((m,i)=>{
         if(!['image','video','file','sticker'].includes(m.type))return;
+        if(mediaLibraryFavoritesOnly&&!m.favorite)return;
         if(searchType!=='all'&&m.type!==searchType)return;
         records.push({ch:win.id,title:win.title,m,i});
       });
@@ -1001,9 +1010,10 @@ function bindEvents() {
     host.innerHTML=[...groups.entries()].map(([month,items])=>{
       const cards=items.map(({ch,title,m,i})=>{
         const meta=esc(title||'聊天');
-        if(m.type==='image'||m.type==='sticker') return '<button type="button" class="media-library-image" data-search-window="'+esc(ch)+'" data-search-index="'+i+'" aria-label="'+meta+' 图片"><span '+(m.mediaId?'data-media-id="'+esc(m.mediaId)+'"':'style="background-image:url(&quot;'+esc(m.url||'')+'&quot;)"')+'></span><small>'+(m.type==='sticker'?'表情':meta)+'</small></button>';
+        const star='<button type="button" class="media-library-star'+(m.favorite?' saved':'')+'" data-media-favorite="'+esc(ch)+'" data-favorite-index="'+i+'" aria-label="'+(m.favorite?'取消收藏':'收藏')+'">'+(m.favorite?'★':'☆')+'</button>';
+        if(m.type==='image'||m.type==='sticker') return '<div class="media-library-card"><button type="button" class="media-library-image" data-search-window="'+esc(ch)+'" data-search-index="'+i+'" aria-label="'+meta+' 图片"><span '+(m.mediaId?'data-media-id="'+esc(m.mediaId)+'"':'style="background-image:url(&quot;'+esc(m.url||'')+'&quot;)"')+'></span><small>'+(m.type==='sticker'?'表情':meta)+'</small></button>'+star+'</div>';
         const symbol=m.type==='video'?'▶':'↧';
-        return '<button type="button" class="media-library-file" data-search-window="'+esc(ch)+'" data-search-index="'+i+'"><i>'+symbol+'</i><span><b>'+esc(m.fileName||(m.type==='video'?'视频':'文件'))+'</b><small>'+meta+' · '+formatFileSize(m.fileSize||0)+'</small></span></button>';
+        return '<div class="media-library-card media-library-card-file"><button type="button" class="media-library-file" data-search-window="'+esc(ch)+'" data-search-index="'+i+'"><i>'+symbol+'</i><span><b>'+esc(m.fileName||(m.type==='video'?'视频':'文件'))+'</b><small>'+meta+' · '+formatFileSize(m.fileSize||0)+'</small></span></button>'+star+'</div>';
       }).join('');
       return '<section class="media-library-month"><h3>'+month+' <small>'+items.length+' 项</small></h3><div class="media-library-grid">'+cards+'</div></section>';
     }).join('');
@@ -1065,11 +1075,19 @@ function bindEvents() {
   }
   $('ch-search').onclick = openChatSearch;
   $('chat-media-library-toggle').onclick = () => {
-    mediaLibraryMode=!mediaLibraryMode;
+    mediaLibraryMode=!mediaLibraryMode; mediaLibraryFavoritesOnly=false;
     $('chat-media-library-toggle').classList.toggle('on',mediaLibraryMode);
     $('chat-media-library-toggle').textContent=mediaLibraryMode?'返回搜索':'▦ 媒体库';
+    $('chat-media-favorites-toggle').classList.remove('on'); $('chat-media-favorites-toggle').textContent='♡ 收藏';
     $('chat-search-input').placeholder=mediaLibraryMode?'媒体库按类型浏览':'搜索你们说过的话…';
     renderSearchResults();
+  };
+  $('chat-media-favorites-toggle').onclick=()=>{
+    mediaLibraryMode=true; mediaLibraryFavoritesOnly=!mediaLibraryFavoritesOnly;
+    $('chat-media-library-toggle').classList.add('on'); $('chat-media-library-toggle').textContent='返回搜索';
+    $('chat-media-favorites-toggle').classList.toggle('on',mediaLibraryFavoritesOnly);
+    $('chat-media-favorites-toggle').textContent=mediaLibraryFavoritesOnly?'★ 已收藏':'♡ 收藏';
+    $('chat-search-input').placeholder='收藏的媒体'; renderSearchResults();
   };
   $('chat-search-close').onclick = closeChatSearch;
   $('chat-calendar-toggle').onclick = () => {
@@ -1091,6 +1109,8 @@ function bindEvents() {
     renderSearchResults();
   });
   $('chat-search-results').addEventListener('click', e => {
+    const favoriteBtn=e.target.closest('[data-media-favorite]');
+    if(favoriteBtn){const winId=favoriteBtn.dataset.mediaFavorite,idx=Number(favoriteBtn.dataset.favoriteIndex);const win=getChatWindows().find(w=>w.id===winId);const msg=win&&getWindowMessages(win)[idx];if(msg){setMediaFavorite(winId,idx,!msg.favorite);renderSearchResults();toast(msg.favorite?'已加入收藏':'已取消收藏');}return;}
     const historyBtn = e.target.closest('[data-history-index]');
     if (historyBtn) { searchInput.value = searchHistory[Number(historyBtn.dataset.historyIndex)] || ''; renderSearchResults(); return; }
     const result = e.target.closest('[data-search-index]');
