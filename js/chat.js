@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════
-   chat.js · 聊天页（频道切换 · 打字机 · 头像联动 · 参考版）
+   chat.js · 聊天页（真实 API 对话 · 历史检索 · 频道切换）
    ══════════════════════════════════════════════ */
 
 (function() {
@@ -19,44 +19,6 @@ const CHANNELS = [
   { key: 'secret',  label: '秘密', sub: 'secret' },
 ];
 
-const CHANNEL_REPLIES = {
-  general: {
-    '想你|miss': '我也想你啦 ✨ 今天过得怎么样？',
-    '爱': '我也是～♡ 我们的小窝一直在这里等你。',
-    '晚安': '晚安，好梦～',
-    '早安|早': '早安！新的一天也要元气满满哦。',
-    '天气': '今天天气不错呢，记得出门带伞～',
-    '吃饭|饿': '记得按时吃饭哦，健康最重要。',
-    default: '收到你的消息啦！我在小窝里等你分享更多故事～',
-  },
-  sweet: {
-    '想你|miss': '每一分每一秒都在想你 💭',
-    '爱': '我爱你，比昨天更多一点。',
-    '晚安': '晚安，梦里见～',
-    '早安|早': '早安，我的太阳。',
-    '天气': '不管晴天雨天，有你在就是晴天。',
-    '吃饭|饿': '想和你一起吃每一顿饭。',
-    default: '你说什么我都觉得好甜呀～',
-  },
-  daily: {
-    '想你|miss': '忙完这阵就去找你。',
-    '爱': '爱你，今天也要加油！',
-    '晚安': '早点睡，别熬夜。',
-    '早安|早': '早，今天有什么安排？',
-    '天气': '今天降温了，多穿点。',
-    '吃饭|饿': '记得吃饭，别饿着。',
-    default: '收到，待会儿回你～',
-  },
-  secret: {
-    '想你|miss': '……我也在想。',
-    '爱': '……嗯。',
-    '晚安': '……晚安。',
-    '早安|早': '……早。',
-    '天气': '……记得带伞。',
-    '吃饭|饿': '……去吃饭。',
-    default: '……',
-  },
-};
 
 function getChannelMsgs() {
   if (!S.chatMsgsByChannel && S.chatMsgs) {
@@ -664,7 +626,7 @@ function bindEvents() {
     Object.entries(S.chatMsgsByChannel || {}).forEach(([ch, list]) => {
       (list || []).forEach((m, i) => {
         if (searchWho !== 'all' && m.who !== searchWho) return;
-        const raw = searchText(m), hay = (raw + ' ' + (m.thinking || m.reasoning || '')).toLocaleLowerCase();
+        const raw = searchText(m), hay = (raw + ' ' + (m.reasoningSummary || '')).toLocaleLowerCase();
         if (!hay.includes(q)) return;
         all.push({ ch, i, m, raw });
       });
