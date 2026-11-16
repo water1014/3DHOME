@@ -340,12 +340,12 @@ function draw() {
   mg.addColorStop(1, 'rgba(226,226,230,.65)');
   ctx.fillStyle = mg;
   ctx.fillRect(0, GROUND() - 40, W, H - GROUND() + 40);
-  ctx.strokeStyle = 'rgba(150,166,188,.3)';
+  ctx.strokeStyle = 'rgba(150,150,156,.3)';
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(0, GROUND()); ctx.lineTo(W, GROUND()); ctx.stroke();
 
   for (const r of ripples) {
-    ctx.strokeStyle = `rgba(148,168,194,${r.a})`;
+    ctx.strokeStyle = `rgba(148,148,154,${r.a})`;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.ellipse(r.x, r.y, r.r, r.r * 0.32, 0, 0, Math.PI * 2);
