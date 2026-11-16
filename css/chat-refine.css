@@ -314,3 +314,20 @@ html.dark #pg-chat .chat-search { background:var(--page-bg, #19191c); }
 #pg-chat .chat-ai-actions button { padding:.4rem .7rem; border:1px solid var(--dark); border-radius:2rem; background:var(--dark); color:var(--on-dark); font:.58rem var(--serif); }
 #pg-chat .chat-ai-actions small { color:var(--ink-3); font:.43rem var(--mono); }
 #pg-chat .chat-pref { max-height:min(76vh,38rem); overflow:auto; }
+
+
+/* Compact month picker, opened only when the user asks to browse by date. */
+#pg-chat .chat-date-tools { display:flex; align-items:center; gap:.6rem; padding:.5rem 0 .3rem; color:var(--ink-3); font:.46rem var(--mono); }
+#pg-chat .chat-date-tools button { padding:.28rem .55rem; border:1px solid var(--line); border-radius:2rem; background:transparent; color:var(--ink-2); font:.58rem var(--serif); }
+#pg-chat .chat-calendar { padding:.5rem .25rem .6rem; border-bottom:1px solid var(--line); }
+#pg-chat .chat-calendar[hidden] { display:none; }
+#pg-chat .chat-calendar-head { display:flex; align-items:center; justify-content:space-between; padding:0 .2rem .45rem; color:var(--ink-2); font:.62rem var(--serif); }
+#pg-chat .chat-calendar-head button { width:1.7rem; height:1.7rem; border:1px solid var(--line); border-radius:50%; background:transparent; color:var(--ink-2); font-size:1rem; }
+#pg-chat .chat-calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:.12rem; text-align:center; }
+#pg-chat .chat-calendar-week { padding-bottom:.22rem; color:var(--ink-3); font:.42rem var(--mono); }
+#pg-chat .cal-day { position:relative; min-height:2rem; border:1px solid transparent; border-radius:.5rem; background:transparent; color:var(--ink-2); font:.58rem var(--serif); }
+#pg-chat .cal-day.has-msg::after { content:''; position:absolute; bottom:.18rem; left:50%; width:.2rem; height:.2rem; border-radius:50%; background:var(--ink-3); transform:translateX(-50%); }
+#pg-chat .cal-day.selected { border-color:var(--glass-brd); background:var(--dark); color:var(--on-dark); }
+#pg-chat .cal-day.selected::after { background:var(--on-dark); }
+#pg-chat .cal-blank { min-height:2rem; }
+#pg-chat .chat-calendar-reset { display:block; margin:.35rem auto 0; border:0; background:transparent; color:var(--ink-3); font:.48rem var(--serif); }
