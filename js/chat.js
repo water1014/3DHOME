@@ -7,7 +7,14 @@ const D = document, $ = D.getElementById.bind(D);
 const { S, save } = XW;
 const { fmtClock, toast } = UI;
 
+// chatWindows is a Chat-only store key, so hydrate it here without changing global store.js.
+try {
+  const savedWindows = JSON.parse(localStorage.getItem('xw_chatWindows') || 'null');
+  if (Array.isArray(savedWindows)) S.chatWindows = savedWindows;
+} catch {}
+
 let aiTyping = false;
+let aiReplyWindowId = null;
 let replyingTo = null;
 let currentChannel = localStorage.getItem('xw_chatCurrentWindowId') || 'legacy_general';
 let typeWriterTimer = null;
@@ -65,6 +72,7 @@ function createChatWindow() {
 function activateWindow(id) {
   const win = getChatWindows().find(w => w.id === id && !w.archived); if (!win) return;
   currentChannel = id; localStorage.setItem('xw_chatCurrentWindowId', id); replyingTo = null; $('c-reply')?.classList.remove('show');
+  $('c-typing')?.classList.toggle('show', !!aiTyping && aiReplyWindowId === id);
   syncWindowLabel(); renderMsgs(); closeWindowManager();
 }
 function manageWindowAction(action,id) {
@@ -418,6 +426,7 @@ function pushMsgObj(msg) {
 async function aiReply(text) {
   aiTyping = true;
   const replyWindowId = currentChannel;
+  aiReplyWindowId = replyWindowId;
   const replyWindow = () => getChatWindows().find(w => w.id === replyWindowId);
   const replyMessages = () => replyWindow()?.messages || [];
   const saveReplyMessages = msgs => {
@@ -483,11 +492,14 @@ async function aiReply(text) {
       if (idx >= reply.length) {
         clearInterval(typeWriterTimer);
         aiTyping = false;
+        aiReplyWindowId = null;
+        $('c-typing')?.classList.remove('show');
       }
     }, 22);
   } catch (err) {
     $('c-typing').classList.remove('show');
     aiTyping = false;
+    aiReplyWindowId = null;
     toast(err.message || '连接失败，请检查 API 设置');
   }
 }
