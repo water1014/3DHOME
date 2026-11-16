@@ -12,7 +12,7 @@ html, body { height: 100%; }
 
 body {
   overflow: hidden;
-  font-family: var(--sans);
+  font-family: var(--sans);\n  -webkit-font-smoothing: antialiased;\n  text-rendering: optimizeLegibility;
   color: var(--ink);
   background: var(--page-bg);
   background-attachment: fixed;
@@ -277,3 +277,17 @@ html.dark #toast { color: #141414; }
 .overlay-text { font-size: .76rem; color: var(--ink-2); line-height: 1.7; margin-bottom: 1rem; }
 .overlay-btns { display: flex; gap: .6rem; }
 .overlay-btns .btn { flex: 1; }
+
+
+/* 全局精修：安全区、排印与克制的触感 */
+html { -webkit-tap-highlight-color: transparent; }
+body { overscroll-behavior: none; }
+button, a, input, textarea { -webkit-tap-highlight-color: transparent; }
+button { font-family: inherit; }
+::selection { background: var(--ink); color: var(--on-dark); }
+:focus-visible { outline: 1px solid var(--ink-2); outline-offset: 3px; }
+.pg { padding-top: env(safe-area-inset-top); }
+#pg-home { padding-top: 0; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
