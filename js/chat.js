@@ -157,6 +157,12 @@ function build() {
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 2L11 13"/></svg>
         </button>
       </div>
+      <div class="emoji-panel" id="emoji-panel" aria-label="选择表情">
+        <div class="emoji-panel-head"><span>表情</span><small>轻轻点一下，放进输入框</small></div>
+        <div class="emoji-grid">
+          <button type="button" class="emoji-choice" data-emoji="😀">😀</button><button type="button" class="emoji-choice" data-emoji="😃">😃</button><button type="button" class="emoji-choice" data-emoji="😄">😄</button><button type="button" class="emoji-choice" data-emoji="😁">😁</button><button type="button" class="emoji-choice" data-emoji="😆">😆</button><button type="button" class="emoji-choice" data-emoji="🥹">🥹</button><button type="button" class="emoji-choice" data-emoji="😊">😊</button><button type="button" class="emoji-choice" data-emoji="😌">😌</button><button type="button" class="emoji-choice" data-emoji="😍">😍</button><button type="button" class="emoji-choice" data-emoji="🥰">🥰</button><button type="button" class="emoji-choice" data-emoji="😘">😘</button><button type="button" class="emoji-choice" data-emoji="😚">😚</button><button type="button" class="emoji-choice" data-emoji="😋">😋</button><button type="button" class="emoji-choice" data-emoji="😛">😛</button><button type="button" class="emoji-choice" data-emoji="🤔">🤔</button><button type="button" class="emoji-choice" data-emoji="🥺">🥺</button><button type="button" class="emoji-choice" data-emoji="😢">😢</button><button type="button" class="emoji-choice" data-emoji="😭">😭</button><button type="button" class="emoji-choice" data-emoji="😤">😤</button><button type="button" class="emoji-choice" data-emoji="😠">😠</button><button type="button" class="emoji-choice" data-emoji="🙈">🙈</button><button type="button" class="emoji-choice" data-emoji="🙉">🙉</button><button type="button" class="emoji-choice" data-emoji="🙊">🙊</button><button type="button" class="emoji-choice" data-emoji="💗">💗</button><button type="button" class="emoji-choice" data-emoji="💕">💕</button><button type="button" class="emoji-choice" data-emoji="💞">💞</button><button type="button" class="emoji-choice" data-emoji="💓">💓</button><button type="button" class="emoji-choice" data-emoji="💘">💘</button><button type="button" class="emoji-choice" data-emoji="💌">💌</button><button type="button" class="emoji-choice" data-emoji="❤️‍🩹">❤️‍🩹</button><button type="button" class="emoji-choice" data-emoji="✨">✨</button><button type="button" class="emoji-choice" data-emoji="🌙">🌙</button><button type="button" class="emoji-choice" data-emoji="☁️">☁️</button><button type="button" class="emoji-choice" data-emoji="🌷">🌷</button><button type="button" class="emoji-choice" data-emoji="🌸">🌸</button><button type="button" class="emoji-choice" data-emoji="🫶">🫶</button><button type="button" class="emoji-choice" data-emoji="👀">👀</button>
+        </div>
+      </div>
       <!-- 工具面板（点击 + 展开） -->
       <div class="tool-panel" id="tool-panel">
         <button class="tp-btn" data-tool="heart">
@@ -528,8 +534,27 @@ function bindEvents() {
   $('c-inp').addEventListener('input', function() { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 112) + 'px'; });
 
   // 工具面板
-  $('ib-plus').onclick = toggleToolPanel;
-  $('ib-emoji').onclick = () => { /* emoji picker placeholder */ };
+  $('ib-plus').onclick = () => {
+    $('emoji-panel').classList.remove('show');
+    $('ib-emoji').setAttribute('aria-expanded', 'false');
+    toggleToolPanel();
+  };
+  $('ib-emoji').onclick = () => {
+    const panel = $('emoji-panel');
+    panel.classList.toggle('show');
+    $('tool-panel').classList.remove('show');
+    $('ib-emoji').setAttribute('aria-expanded', String(panel.classList.contains('show')));
+  };
+  $('emoji-panel').querySelectorAll('[data-emoji]').forEach(btn => {
+    btn.onclick = () => {
+      const inp = $('c-inp'), emoji = btn.dataset.emoji;
+      const start = inp.selectionStart ?? inp.value.length;
+      const end = inp.selectionEnd ?? start;
+      inp.setRangeText(emoji, start, end, 'end');
+      inp.dispatchEvent(new Event('input', { bubbles:true }));
+      inp.focus();
+    };
+  });
   $('ib-mic').onclick = startVoice;
 
   $('tool-panel').querySelectorAll('.tp-btn').forEach(btn => {
@@ -544,6 +569,13 @@ function bindEvents() {
 
   // 关闭工具面板（点击外部）
   $('c-body').addEventListener('click', () => $('tool-panel')?.classList.remove('show'));
+  D.addEventListener('click', e => {
+    if (!e.target.closest('#emoji-panel, #ib-emoji')) {
+      $('emoji-panel')?.classList.remove('show');
+      $('ib-emoji')?.setAttribute('aria-expanded', 'false');
+    }
+    if (!e.target.closest('#tool-panel, #ib-plus')) $('tool-panel')?.classList.remove('show');
+  });
 
   $('vh-cancel').onclick = () => stopVoice(true);
   $('vh-send').onclick = () => stopVoice(false);
