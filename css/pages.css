@@ -871,7 +871,7 @@ html.dark .v-core { background: var(--dark); border-color: rgba(255,255,255,.25)
 }
 .vh-ring {
   position: absolute; inset: -4px; border-radius: 50%;
-  border: 1.5px solid rgba(168,228,244,.35);
+  border: 1.5px solid rgba(150,150,156,.32);
   animation: vhBreath 2s ease-in-out infinite;
 }
 @keyframes vhBreath {
