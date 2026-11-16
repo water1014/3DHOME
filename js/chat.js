@@ -259,7 +259,8 @@ function build() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
           <span>拍一拍</span>
         </button>
-        <button class="tp-btn" data-tool="image"><span class="tp-emoji">▧</span><span>照片</span></button>
+        <button class="tp-btn" data-tool="image"><span class="tp-emoji">▧</span><span>相册</span></button>
+        <button class="tp-btn" data-tool="camera"><span class="tp-emoji">◎</span><span>拍照</span></button>
         <button class="tp-btn" data-tool="video"><span class="tp-emoji">▶</span><span>视频</span></button>
         <button class="tp-btn" data-tool="file"><span class="tp-emoji">⌕</span><span>文件</span></button>
         <button class="tp-btn" data-tool="sticker"><span class="tp-emoji">☺</span><span>表情包</span></button>
@@ -808,19 +809,20 @@ function formatFileSize(bytes) {
 }
 async function chooseChatMedia(kind) {
   const input=D.createElement('input'); input.type='file';
-  input.accept=kind==='image'?'image/*':kind==='video'?'video/*':kind==='sticker'?'image/*,.gif': '*/*';
-  if(kind==='sticker') input.multiple=false;
+  input.accept=kind==='image'||kind==='camera'?'image/*':kind==='video'?'video/*':kind==='sticker'?'image/*,.gif': '*/*';
+  if(kind==='image'||kind==='file') input.multiple=true;
+  if(kind==='camera') input.capture='environment';
   input.onchange=async()=>{
     const files=[...(input.files||[])]; if(!files.length)return;
     for(const file of files) {
-      if(kind==='video'&&!file.type.startsWith('video/')){toast('请选择视频文件');continue;}
+      if((kind==='image'||kind==='camera')&&!file.type.startsWith('image/')){toast('请选择视频文件');continue;}
       if(kind==='image'&&!file.type.startsWith('image/')){toast('请选择图片文件');continue;}
       if(kind==='sticker'&&!file.type.startsWith('image/')){toast('表情包请选择 GIF 或图片');continue;}
       const limit=kind==='video'?80:kind==='file'?25:kind==='sticker'?12:20;
       if(file.size>limit*1024*1024){toast('单个文件不能超过 '+limit+' MB');continue;}
       try {
         const mediaId=await storeChatMedia(file);
-        const type=kind==='sticker'?'sticker':kind==='image'?'image':kind==='video'?'video':'file';
+        const type=kind==='sticker'?'sticker':(kind==='image'||kind==='camera')?'image':kind==='video'?'video':'file';
         pushMsgObj({who:'me',type,mediaId,fileName:file.name|| (type==='sticker'?'表情包':type==='image'?'图片':type==='video'?'视频':'文件'),fileSize:file.size,mime:file.type,t:Date.now(),text:type==='sticker'?'[表情]':type==='image'?'[图片]':type==='video'?'[视频]':'[文件]'});
       } catch(err) { toast(err.message||'保存失败，请检查设备存储空间'); }
     }
@@ -883,6 +885,7 @@ function bindEvents() {
       if (t === 'heart') openHeart();
       else if (t === 'pat') sendPat();
       else if (t === 'image') chooseChatMedia('image');
+      else if (t === 'camera') chooseChatMedia('camera');
       else if (t === 'video') chooseChatMedia('video');
       else if (t === 'file') chooseChatMedia('file');
       else if (t === 'sticker') chooseChatMedia('sticker');
