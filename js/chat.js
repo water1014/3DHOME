@@ -59,7 +59,7 @@ function createChatWindow() {
   const title = prompt('给这段新聊天起个名字', '新的聊天'); if (title === null) return;
   const clean = title.trim().slice(0,32) || '新的聊天';
   const win = { id:'win_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7), title:clean, messages:[], createdAt:Date.now(), updatedAt:Date.now(), archived:false };
-  getChatWindows().push(win); save('chatWindows'); currentChannel = win.id; S.chatCurrentWindowId = currentChannel; save('chatCurrentWindowId');
+  getChatWindows().push(win); save('chatWindows'); currentChannel = win.id; localStorage.setItem('xw_chatCurrentWindowId', currentChannel);
   syncWindowLabel(); renderMsgs(); closeWindowManager(); toast('新会话已创建');
 }
 function activateWindow(id) {
@@ -75,7 +75,7 @@ function manageWindowAction(action,id) {
   } else if (action === 'archive') {
     const next = getChatWindows().find(w => !w.archived && w.id !== id);
     if (id === currentChannel && !next) { toast('至少保留一个正在使用的会话'); return; }
-    if (id === currentChannel) { currentChannel = next.id; S.chatCurrentWindowId = currentChannel; save('chatCurrentWindowId'); }
+    if (id === currentChannel) { currentChannel = next.id; localStorage.setItem('xw_chatCurrentWindowId', currentChannel); }
     win.archived = true; syncWindowLabel(); renderMsgs();
   } else if (action === 'restore') win.archived = false;
   else if (action === 'delete') {
@@ -795,7 +795,7 @@ function bindEvents() {
       searchHistory.splice(0, searchHistory.length, ...history);
     }
     currentChannel = result.dataset.searchWindow;
-    S.chatCurrentWindowId = currentChannel; save('chatCurrentWindowId');
+    localStorage.setItem('xw_chatCurrentWindowId', currentChannel);
     syncWindowLabel();
     closeChatSearch();
     renderMsgs();
