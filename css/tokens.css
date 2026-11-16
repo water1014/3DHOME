@@ -1,0 +1,82 @@
+/* ══════════════════════════════════════════════
+   tokens.css · 设计变量（唯一真源）
+   黑白磨砂玻璃：灰阶渐变底 + 半透明模糊卡片。
+   任何颜色只在这里定义，页面里禁止写死色值。
+   ══════════════════════════════════════════════ */
+
+:root {
+  /* 文字 */
+  --ink:   #181818;
+  --ink-2: #6d6d6d;
+  --ink-3: #9c9c9c;
+
+  /* 功能色 */
+  --dark: #161616;   /* 主按钮 / 深色气泡 / 实心图形 */
+  --on-dark: #f7f7f7; /* 深色底上的文字 */
+  --rose: #4a4a4a;
+  --red:  #c2410c;
+  --gold: #8a8a8a;
+
+  /* 磨砂玻璃（轻透） */
+  --glass:        rgba(255, 255, 255, .38);
+  --glass-strong: rgba(255, 255, 255, .6);
+  --glass-brd:    rgba(255, 255, 255, .5);
+  --glass-hi:     rgba(255, 255, 255, .55);   /* 顶部高光 */
+  --glass-shadow: 0 3px 14px rgba(20, 20, 25, .05), inset 0 1px 0 var(--glass-hi);
+  --blur: blur(9px) saturate(1.05);
+
+  /* 线条 */
+  --line:  rgba(20, 20, 25, .1);
+  --frame: #161616;
+  --track: rgba(20, 20, 25, .12);
+
+  /* 卡片（走玻璃） */
+  --card-bg: var(--glass);
+  --card-border: var(--glass-brd);
+  --card-shadow: var(--glass-shadow);
+  --card-radius: 1.15rem;
+
+  /* 页面背景：多层灰阶渐变 */
+  --page-bg:
+    radial-gradient(1100px 560px at 88% -8%, rgba(30, 30, 35, .075), transparent 62%),
+    radial-gradient(850px 480px at -12% 28%, rgba(30, 30, 35, .06), transparent 60%),
+    radial-gradient(950px 680px at 50% 112%, rgba(30, 30, 35, .065), transparent 62%),
+    linear-gradient(180deg, #f6f6f7 0%, #efeff1 100%);
+
+  /* 字体 */
+  --serif: "Songti SC", "Noto Serif SC", Georgia, serif;
+  --hand:  "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", serif;
+  --sans:  -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono:  ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  /* 尺寸 */
+  --tabbar-h: 4.6rem;
+  --maxw: 30rem;
+}
+
+html.dark {
+  --ink:   #e9e9e9;
+  --ink-2: #9a9a9a;
+  --ink-3: #5f5f5f;
+
+  --dark: #f0f0f0;
+  --on-dark: #141414;
+  --rose: #c9c9c9;
+  --red:  #fb923c;
+
+  --glass:        rgba(32, 32, 36, .42);
+  --glass-strong: rgba(34, 34, 38, .62);
+  --glass-brd:    rgba(255, 255, 255, .11);
+  --glass-hi:     rgba(255, 255, 255, .07);
+  --glass-shadow: 0 4px 16px rgba(0, 0, 0, .3), inset 0 1px 0 var(--glass-hi);
+
+  --line:  rgba(255, 255, 255, .12);
+  --frame: #e9e9e9;
+  --track: rgba(255, 255, 255, .16);
+
+  --page-bg:
+    radial-gradient(1100px 560px at 85% -8%, rgba(255, 255, 255, .08), transparent 62%),
+    radial-gradient(850px 520px at -10% 32%, rgba(255, 255, 255, .06), transparent 60%),
+    radial-gradient(950px 700px at 50% 115%, rgba(255, 255, 255, .07), transparent 62%),
+    linear-gradient(180deg, #101012 0%, #0a0a0c 100%);
+}
