@@ -10,10 +10,15 @@ const DEF = {
   loveDate: '2025-01-01',
   hisName: '他',
   herName: '她',
-  chatMsgs: [
-    { who: 'ta', text: '欢迎来到我们的小窝～这里是我们的秘密基地 ♡', t: Date.now() - 3600000 },
-    { who: 'me', text: '以后这里只装我们俩的故事。', t: Date.now() - 3500000 },
-  ],
+  chatMsgsByChannel: {
+    general: [
+      { who: 'ta', text: '欢迎来到我们的小窝～这里是我们的秘密基地 ♡', t: Date.now() - 3600000 },
+      { who: 'me', text: '以后这里只装我们俩的故事。', t: Date.now() - 3500000 },
+    ],
+    sweet: [],
+    daily: [],
+    secret: [],
+  },
   nextAlbumId: 1,
   album: [
     { id: 0, title: '初见', desc: '2025-01-01', url: '' },
@@ -32,9 +37,19 @@ const DEF = {
     { d: '2025-05-20', t: '520' },
     { d: '2025-01-01', t: '初见' },
   ],
+  hisAvatar: '',
+  herAvatar: '',
+  hisWords: [
+    { text: '你今天很好看。', date: '2025-11-14' },
+    { text: '我想你了。', date: '2025-11-10' },
+    { text: '晚安，做个好梦。', date: '2025-11-08' },
+  ],
   aiKey: '',
   aiUrl: 'https://api.openai.com/v1/chat/completions',
   aiModel: 'gpt-4o-mini',
+  loveLetter: '遇见你之后，每一天都变得不一样了。\n\n以前我觉得日子就是一天天过去，没什么特别的。但有了你之后，连最普通的早晨都变得值得期待。\n\n谢谢你出现在我的生命里。',
+  voiceMsgs: [],
+  photos: [],
 };
 
 const S = {};

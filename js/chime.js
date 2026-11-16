@@ -1,29 +1,21 @@
 /* ══════════════════════════════════════════════
-   chime.js · 雨天（透明伞照片 + 伞沿挂牌）
-   真实透明伞图片做单摆 · 入口挂牌挂伞沿
-   雨滴落进伞面 → 伞沿滴落敲音
+   chime.js · 雨天（撑开放射伞面 · 水珠入口）
+   仰视角大伞：中心枢纽 + 放射伞骨 + 扇形薄膜
+   入口 = 伞面水珠 · 左右滑动转伞 · 雨滴沿骨滑走
    ══════════════════════════════════════════════ */
 
 (function() {
-let cv, ctx, W = 0, H = 0, dpr = 1, wrap = null, imgEl = null;
+let cv, ctx, W = 0, H = 0, dpr = 1, wrap = null;
 let running = false, raf = null, lastT = 0, t = 0;
 let drops = [], drips = [], ripples = [], bokeh = [], bigs = [];
 let wind = 0, windTarget = 0;
 let um;
-let entries = [], handleTag = null;
+let entries = [];
 let muted = false, actx = null, noiseGain = null, noteIdx = 0, cd = 0;
 
 const NOTES = [523.25, 587.33, 659.25, 783.99, 880.00];
-
-// 挂牌锚点（伞图内的比例坐标：伞沿四个点 + 伞柄末端）
-const ANCHORS = [
-  { fx: 0.10, fy: 0.40, len: 26, off: -0.05 },
-  { fx: 0.32, fy: 0.45, len: 36, off: 0.035 },
-  { fx: 0.68, fy: 0.45, len: 36, off: -0.03 },
-  { fx: 0.90, fy: 0.40, len: 26, off: 0.055 },
-];
-const HANDLE_ANCHOR = { fx: 0.5, fy: 0.90 };
-const IMG_ASPECT = 0.777;   // 431/555 竖构图
+const RIB_N = 10;                  // 伞骨数量
+const GROUND = () => H * 0.82;
 
 function ensureAudio() {
   if (!actx) {
@@ -43,24 +35,6 @@ function ensureAudio() {
   }
   if (actx.state === 'suspended') actx.resume();
 }
-// 敲伞声：低哑的咚咚（PVC 被手指敲）
-function knock() {
-  if (muted) return;
-  try { ensureAudio(); } catch (e) { return; }
-  const tt = actx.currentTime;
-  const mk = (f, g, d) => {
-    const o = actx.createOscillator(), gn = actx.createGain();
-    o.type = 'sine'; o.frequency.setValueAtTime(f, tt);
-    o.frequency.exponentialRampToValueAtTime(f * 0.7, tt + d);
-    gn.gain.setValueAtTime(g, tt);
-    gn.gain.exponentialRampToValueAtTime(0.0001, tt + d);
-    o.connect(gn).connect(actx.destination);
-    o.start(tt); o.stop(tt + d + 0.05);
-  };
-  mk(150, 0.22, 0.16);
-  mk(82, 0.14, 0.28);
-}
-
 function plink(vel) {
   if (muted) return;
   try { ensureAudio(); } catch (e) { return; }
@@ -78,8 +52,23 @@ function plink(vel) {
   mk(f, g, 1.1);
   mk(f * 3.01, g * 0.15, 0.35);
 }
-
-const GROUND = () => H * 0.8;
+function knock() {
+  if (muted) return;
+  try { ensureAudio(); } catch (e) { return; }
+  const tt = actx.currentTime;
+  const mk = (f, g, d) => {
+    const o = actx.createOscillator(), gn = actx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(f, tt);
+    o.frequency.exponentialRampToValueAtTime(f * 0.7, tt + d);
+    gn.gain.setValueAtTime(g, tt);
+    gn.gain.exponentialRampToValueAtTime(0.0001, tt + d);
+    o.connect(gn).connect(actx.destination);
+    o.start(tt); o.stop(tt + d + 0.05);
+  };
+  mk(150, 0.2, 0.16);
+  mk(82, 0.13, 0.28);
+}
 
 function spawnDrop(x) {
   return {
@@ -91,76 +80,67 @@ function spawnDrop(x) {
 }
 
 function layout() {
-  const h = Math.min(H * 0.52, (W * 0.92) / IMG_ASPECT);
-  const w = h * IMG_ASPECT;
   um = {
-    w, h,
-    cx: W / 2, topY: H * 0.1,
-    tcx: W / 2, ttopY: H * 0.1,
+    cx: W / 2, cy: H * 0.38,
+    tcx: W / 2, tcy: H * 0.38,
+    R: Math.min(W * 0.55, 200),
     angle: 0, vel: 0,
     squash: 0, squashV: 0,
+    open: 1, openV: 0, openT: 1,
     grabbed: false,
   };
-  if (imgEl) {
-    imgEl.style.width = w + 'px';
-    imgEl.style.height = h + 'px';
-  }
-  layoutHangs();
+  layoutEntries();
 }
 
-// 伞图局部比例坐标 → 屏幕坐标（含摆角旋转，绕顶中心）
-function imgPoint(fx, fy) {
-  const a = um.angle;
-  const lx = fx * um.w - um.w / 2;
-  const ly = fy * um.h;
-  const ca = Math.cos(a), sa = Math.sin(a);
-  return {
-    x: um.cx + lx * ca - ly * sa,
-    y: um.topY + um.h * 0 + lx * sa + ly * ca,
-  };
+// 伞局部（绕伞心旋转 angle）→ 屏幕
+function umPoint(lx, ly) {
+  const a = um.angle, c = Math.cos(a), s = Math.sin(a);
+  return { x: um.cx + lx * c - ly * s, y: um.cy + lx * s + ly * c };
 }
 
-function layoutHangs() {
+// 水珠在伞面上的位置（固定角度，半径 0.52R）
+function dropPos(a) {
+  const r = um.R * 0.52;
+  return umPoint(Math.cos(a) * r, Math.sin(a) * r);
+}
+
+function layoutEntries() {
+  // 4 个入口均匀分布在伞面中圈
+  const base = [0.25, 0.75, 1.75, 2.25].map(v => v * Math.PI);
   entries.forEach((e, i) => {
-    const c = ANCHORS[i] || ANCHORS[0];
-    e.fx = c.fx; e.fy = c.fy; e.len = c.len; e.off = c.off || 0;
-    e.angle = c.off || 0; e.vel = 0;
-    e.el.style.setProperty('--len', c.len + 'px');
+    e.a = base[i] || (i * Math.PI / 2);
+    e.angle = 0; e.vel = 0;
   });
-  if (handleTag) {
-    handleTag.fx = HANDLE_ANCHOR.fx; handleTag.fy = HANDLE_ANCHOR.fy;
-    handleTag.len = 34;
-    handleTag.angle = 0; handleTag.vel = 0;
-    handleTag.el.style.setProperty('--len', '34px');
-  }
 }
 
-function stepHangs(dt) {
-  const g = 2600;
-  const gustN = wind * 1.2;
+function stepEntries(dt) {
+  // 水珠随伞旋转 + 轻微物理晃动
   for (const e of entries) {
-    // 平衡角 = 伞倾角传递 + 自身静息微偏（生动感）
-    const eq = um.angle * 0.9 + e.off;
-    const acc = -(g / e.len) * Math.sin(e.angle - eq) - 1.2 * e.vel + (gustN / e.len) * 0.4;
-    e.vel += acc * dt;
     e.angle += e.vel * dt;
-    const p = imgPoint(e.fx, e.fy);
+    e.vel *= Math.pow(0.4, dt);
+    const p = dropPos(e.a + um.angle);
     e.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${e.angle}rad)`;
   }
-  if (handleTag) {
-    const acc = -(g / handleTag.len) * Math.sin(handleTag.angle + um.angle) - 1.3 * handleTag.vel;
-    handleTag.vel += acc * dt;
-    handleTag.angle += handleTag.vel * dt;
-    const p = imgPoint(handleTag.fx, handleTag.fy);
-    handleTag.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${handleTag.angle}rad)`;
-  }
 }
 
-function positionUmbrella() {
-  const a = um.angle;
-  const sq = um.squash;
-  imgEl.style.transform =
-    `translate(${um.cx - um.w / 2}px, ${um.topY}px) rotate(${a}rad) scale(${1 + sq * 0.45}, ${1 - sq})`;
+// 点在多边形内？（伞面是 RIB_N 边形）
+function inCanopy(px, py) {
+  const dx = px - um.cx, dy = py - um.cy;
+  const d = Math.sqrt(dx * dx + dy * dy);
+  if (d > um.R) return false;
+  const a = Math.atan2(dy, dx) - um.angle;
+  const seg = Math.PI * 2 / RIB_N;
+  const half = seg / 2;
+  const da = ((a % seg) + seg) % seg;
+  // 多边形边到中心的距离
+  const edgeR = um.R * Math.cos(half);
+  return d <= edgeR;
+}
+
+// 最近伞骨角度
+function nearestRib(a) {
+  const seg = Math.PI * 2 / RIB_N;
+  return Math.round(a / seg) * seg;
 }
 
 function step(dt) {
@@ -168,29 +148,32 @@ function step(dt) {
   wind += (windTarget - wind) * 0.04;
   windTarget *= Math.pow(0.3, dt);
 
-  // 伞单摆（抓取时由指针驱动 tx）
+  // 开合弹簧
+  um.openV += ((um.openT - um.open) * 70 - um.openV * 7.5) * dt;
+  um.open += um.openV * dt;
+  um.open = Math.max(0, Math.min(1, um.open));
+
   if (um.grabbed) {
+    // 拖动 → 旋转伞
     const acc = (um.tAngle - um.angle) * 120 - um.vel * 10;
     um.vel += acc * dt;
     um.angle += um.vel * dt;
   } else {
-    const g = 2200, L = um.h * 0.9;
-    const acc = -(g / L) * Math.sin(um.angle) - 1.4 * um.vel + (wind * 4 / L) * Math.sin(t * 0.9);
+    // 松手后伞面像陀螺般缓慢回正 + 风
+    const g = 1200, L = um.R * 2;
+    const acc = -(g / L) * Math.sin(um.angle) - 1.8 * um.vel + (wind * 6 / L) * Math.sin(t * 0.9);
     um.vel += acc * dt;
     um.angle += um.vel * dt;
-    um.angle = Math.max(-0.42, Math.min(0.42, um.angle));
-    um.tcx += (W / 2 - um.tcx) * 0.2 * dt;
-    um.topY += (H * 0.11 - um.topY) * 0.25 * dt;
+    um.tcx += (W / 2 - um.tcx) * 0.15 * dt;
+    um.tcy += (H * 0.38 - um.tcy) * 0.18 * dt;
   }
-  // 戳伞回弹（弹簧）
+  um.cx += (um.tcx - um.cx) * Math.min(1, (um.grabbed ? 16 : 4) * dt);
+  um.cy += (um.tcy - um.cy) * Math.min(1, (um.grabbed ? 16 : 4) * dt);
   um.squashV += (-160 * um.squash - 11 * um.squashV) * dt;
   um.squash += um.squashV * dt;
   um.squash = Math.max(-0.05, Math.min(0.18, um.squash));
-  um.cx += (um.tcx - um.cx) * Math.min(1, (um.grabbed ? 16 : 4) * dt);
-  positionUmbrella();
-  stepHangs(dt);
+  stepEntries(dt);
 
-  // 雨滴
   const want = Math.floor(W / 6);
   while (drops.length < want) drops.push(spawnDrop());
   for (let i = drops.length - 1; i >= 0; i--) {
@@ -199,27 +182,13 @@ function step(dt) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
 
-    // 落进伞面区域 → 变成伞沿滴水
-    const ix = um.cx - um.w / 2, iy = um.topY;
-    if (p.x > ix + um.w * 0.05 && p.x < ix + um.w * 0.95 &&
-        p.y > iy + um.h * 0.14 && p.y < iy + um.h * 0.56 && Math.random() < 0.3) {
-      // 找最近锚点
-      let best = null, bd = 1e9;
-      for (const e of entries) {
-        const q = imgPoint(e.fx, e.fy);
-        const d = Math.abs(q.x - p.x);
-        if (d < bd) { bd = d; best = q; }
-      }
-      if (best) {
-        // 找最近锚点对应的入口，雨滴会沿它的绳滑下、压一下牌
-        let be = null, bd2 = 1e9;
-        for (const e of entries) {
-          const q = imgPoint(e.fx, e.fy);
-          const dd = Math.abs(q.x - p.x);
-          if (dd < bd2) { bd2 = dd; be = e; }
-        }
-        drips.push({ x: best.x, y: best.y, vy: 24, vx: 0, tag: be });
-      }
+    if (inCanopy(p.x, p.y)) {
+      // 沿最近伞骨滑向边缘
+      const dx = p.x - um.cx, dy = p.y - um.cy;
+      const a = Math.atan2(dy, dx) - um.angle;
+      const ribA = nearestRib(a);
+      const edge = umPoint(Math.cos(ribA) * um.R, Math.sin(ribA) * um.R);
+      drips.push({ x: p.x, y: p.y, vy: 40, vx: 0, ribA, edge });
       drops.splice(i, 1);
       continue;
     }
@@ -229,22 +198,16 @@ function step(dt) {
     }
   }
 
-  // 滴水
   for (let i = drips.length - 1; i >= 0; i--) {
     const g = drips[i];
-    g.vy += 1500 * dt;
-    g.x += g.vx * dt + wind * 30 * dt;
-    g.y += g.vy * dt;
-    // 雨滴滑到牌顶 → 把牌压得一晃
-    if (g.tag && !g.hit) {
-      const q = imgPoint(g.tag.fx, g.tag.fy);
-      if (g.y > q.y + g.tag.len - 4) {
-        g.hit = true;
-        g.tag.vel += 0.9;
-        if (Math.random() < 0.5) plink(0.35);
-      }
-    }
-    if (g.y > GROUND()) {
+    g.vy += 800 * dt;
+    // 沿伞骨方向移动
+    const dir = g.ribA + um.angle;
+    g.x += Math.cos(dir) * g.vy * dt * 0.6;
+    g.y += Math.sin(dir) * g.vy * dt * 0.6;
+    const dx = g.x - um.cx, dy = g.y - um.cy;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d > um.R || g.y > GROUND()) {
       ripples.push({ x: g.x, y: GROUND(), r: 2, a: 0.55 });
       if (cd <= 0) { plink(0.8); cd = 150; }
       drips.splice(i, 1);
@@ -281,16 +244,87 @@ function step(dt) {
   }
 }
 
+// ── 绘制 ──
+function drawUmbrella() {
+  const { cx, cy, R, angle, open } = um;
+  const seg = Math.PI * 2 / RIB_N;
+  const half = seg / 2;
+  const edgeR = R * Math.cos(half);
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.scale(1 + um.squash * 0.45, 1 - um.squash);
+
+  // 开合因子：open=1 完全撑开，open=0 收拢成一束
+  const o = open;
+  const curR = R * o;
+  const curEdgeR = edgeR * o;
+
+  // 伞面薄膜（N 边形）
+  ctx.beginPath();
+  for (let i = 0; i <= RIB_N; i++) {
+    const a = i * seg - half;
+    const x = Math.cos(a) * curEdgeR;
+    const y = Math.sin(a) * curEdgeR;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  const film = ctx.createRadialGradient(0, 0, R * 0.05, 0, 0, curR);
+  film.addColorStop(0, 'rgba(230, 240, 252, .22)');
+  film.addColorStop(0.7, 'rgba(210, 225, 244, .28)');
+  film.addColorStop(1, 'rgba(180, 200, 228, .38)');
+  ctx.fillStyle = film;
+  ctx.fill();
+
+  // 伞面边缘
+  ctx.strokeStyle = 'rgba(140, 160, 190, .45)';
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
+
+  // 伞骨
+  ctx.strokeStyle = 'rgba(100, 120, 150, .55)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < RIB_N; i++) {
+    const a = i * seg;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(a) * curR, Math.sin(a) * curR);
+    ctx.stroke();
+  }
+
+  // 伞骨间细线（像 Yume 那种交叉感）
+  ctx.strokeStyle = 'rgba(130, 150, 180, .25)';
+  ctx.lineWidth = 0.8;
+  for (let i = 0; i < RIB_N; i++) {
+    const a1 = i * seg;
+    const a2 = ((i + 2) % RIB_N) * seg;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a1) * curR * 0.5, Math.sin(a1) * curR * 0.5);
+    ctx.lineTo(Math.cos(a2) * curR * 0.5, Math.sin(a2) * curR * 0.5);
+    ctx.stroke();
+  }
+
+  // 中心枢纽
+  ctx.fillStyle = 'rgba(60, 55, 50, .92)';
+  ctx.beginPath(); ctx.arc(0, 0, 5 * o + 2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(140, 130, 120, .8)';
+  ctx.beginPath(); ctx.arc(0, 0, 2.5 * o + 1, 0, Math.PI * 2); ctx.fill();
+
+  // 伞沿小珠
+  for (let i = 0; i < RIB_N; i++) {
+    const a = i * seg;
+    const x = Math.cos(a) * curR;
+    const y = Math.sin(a) * curR;
+    ctx.fillStyle = 'rgba(120, 110, 100, .7)';
+    ctx.beginPath(); ctx.arc(x, y, 2 * o, 0, Math.PI * 2); ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 function draw() {
   ctx.clearRect(0, 0, W, H);
-
-  // 伞后柔光衬底：白色伞在白底上的轮廓救星
-  if (typeof ctx.filter === 'string') ctx.filter = 'blur(22px)';
-  ctx.fillStyle = 'rgba(206, 216, 229, .55)';
-  ctx.beginPath();
-  ctx.ellipse(um.cx, um.topY + um.h * 0.42, um.w * 0.78, um.h * 0.52, 0, 0, Math.PI * 2);
-  ctx.fill();
-  if (typeof ctx.filter === 'string') ctx.filter = 'none';
 
   for (const b of bokeh) {
     const bg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
@@ -298,29 +332,6 @@ function draw() {
     bg.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = bg;
     ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
-  }
-
-  // 挂绳：屏顶 → 伞顶中心（考虑摆角）
-  const tip = imgPoint(0.5, 0.02);
-  ctx.strokeStyle = 'rgba(60,60,66,.5)';
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.moveTo(tip.x, 0);
-  ctx.lineTo(tip.x, tip.y);
-  ctx.stroke();
-
-  // 锚点系绳小珠
-  for (const e of entries) {
-    const q = imgPoint(e.fx, e.fy);
-    ctx.fillStyle = 'rgba(96,88,72,.85)';
-    ctx.beginPath(); ctx.arc(q.x, q.y, 2.3, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,.5)';
-    ctx.beginPath(); ctx.arc(q.x - 0.7, q.y - 0.7, 0.8, 0, Math.PI * 2); ctx.fill();
-  }
-  if (handleTag) {
-    const q = imgPoint(handleTag.fx, handleTag.fy);
-    ctx.fillStyle = 'rgba(96,88,72,.85)';
-    ctx.beginPath(); ctx.arc(q.x, q.y, 2.3, 0, Math.PI * 2); ctx.fill();
   }
 
   // 地面水雾
@@ -341,7 +352,6 @@ function draw() {
     ctx.stroke();
   }
 
-  // 雨丝
   ctx.lineWidth = 1; ctx.lineCap = 'round';
   for (const p of drops) {
     const a = 0.18 + Math.min(0.18, p.vy / 4200);
@@ -366,6 +376,8 @@ function draw() {
     ctx.fillStyle = gr;
     ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2); ctx.fill();
   }
+
+  drawUmbrella();
 }
 
 function loop(ts) {
@@ -384,12 +396,11 @@ function onDown(e) {
   const r = cv.getBoundingClientRect();
   const x = e.clientX - r.left, y = e.clientY - r.top;
   down = { x: e.clientX, y: e.clientY, moved: 0 };
-  // 伞图区域（轴对齐包围盒）
-  const ix = um.cx - um.w / 2;
-  if (x > ix - 10 && x < ix + um.w + 10 && y > um.topY - 10 && y < um.topY + um.h + 10) {
+  const dx = x - um.cx, dy = y - um.cy;
+  const d = Math.sqrt(dx * dx + dy * dy);
+  if (d < um.R * 1.1) {
     um.grabbed = true;
-    down.offX = x - um.cx;
-    down.offY = y - um.topY;
+    down.lastX = x;
   }
 }
 function onMove(e) {
@@ -399,11 +410,9 @@ function onMove(e) {
   down.x = e.clientX; down.y = e.clientY;
   if (um.grabbed) {
     const r = cv.getBoundingClientRect();
-    um.tcx = e.clientX - r.left - down.offX;
-    // 目标摆角：相对屏中心的偏移角
-    const nx = (um.tcx - W / 2) / (W / 2);
-    um.tAngle = Math.max(-0.4, Math.min(0.4, nx * 0.5));
-    um.ttopY = Math.max(H * 0.08, Math.min(H * 0.4, e.clientY - r.top - down.offY));
+    const nx = e.clientX - r.left;
+    const rot = (nx - um.cx) * 0.004;
+    um.vel = rot;
   } else {
     windTarget = Math.max(-2.2, Math.min(2.2, windTarget + dx * 0.02));
   }
@@ -411,22 +420,23 @@ function onMove(e) {
 function onUp(e) {
   if (!down) return;
   const tap = down.moved < 8;
-  down = null;
-  if (um.grabbed) { um.grabbed = false; return; }
+  const wasGrabbed = um.grabbed;
+  um.grabbed = false;
+  if (wasGrabbed && !tap) { um.vel *= 0.5; return; }
   if (!tap || !e) return;
   const r = cv.getBoundingClientRect();
   const x = e.clientX - r.left, y = e.clientY - r.top;
+  const dx = x - um.cx, dy = y - um.cy;
+  const d = Math.sqrt(dx * dx + dy * dy);
 
-  // 是否点中伞（逆旋转求局部比例坐标）
-  const ca = Math.cos(um.angle), sa = Math.sin(um.angle);
-  const dxs = x - um.cx, dys = y - um.topY;
-  const lx = dxs * ca + dys * sa;
-  const ly = -dxs * sa + dys * ca;
-  const fx = (lx + um.w / 2) / um.w, fy = ly / um.h;
-
-  if (fx > 0 && fx < 1 && fy > 0.04 && fy < 0.66) {
-    // 戳伞面：凹陷回弹 + 敲伞声 + 涟漪圈
-    um.squashV += 1.6;
+  // 中心枢纽 → 开合
+  if (d < 18) {
+    um.openT = um.openT > 0.5 ? 0 : 1;
+    return;
+  }
+  // 伞面 → 涟漪
+  if (inCanopy(x, y)) {
+    um.squashV += 1.2;
     knock();
     const ring = document.createElement('div');
     ring.className = 'tap-ring';
@@ -436,13 +446,6 @@ function onUp(e) {
     setTimeout(() => ring.remove(), 600);
     return;
   }
-  if (fx > 0 && fx < 1 && fy >= 0.66) {
-    // 拨伞柄：纸签晃动 + 轻音
-    if (handleTag) handleTag.vel += (Math.random() - 0.5) * 4;
-    plink(0.5);
-    return;
-  }
-  // 点画天空：一串大雨滴
   if (y < GROUND() - 30) {
     for (let i = 0; i < 5; i++) {
       bigs.push({
@@ -476,19 +479,13 @@ function buildBokeh() {
 
 function init(container, opts = {}) {
   wrap = container;
-  wrap.innerHTML = `
-    <canvas class="chime-bokeh" style="pointer-events:auto"></canvas>
-    <img class="um-img" src="assets/umbrella.png" alt="" draggable="false">
-  `;
+  wrap.innerHTML = '<canvas class="chime-bokeh" style="pointer-events:auto"></canvas>';
   cv = wrap.querySelector('canvas');
   ctx = cv.getContext('2d');
-  imgEl = wrap.querySelector('.um-img');
 
-  entries = (opts.entries || []).map((el, i) => ({ el, fx: 0, fy: 0, len: 60, angle: 0, vel: 0 }));
-  handleTag = opts.handleTag ? { el: opts.handleTag, fx: 0, fy: 0, len: 46, angle: 0, vel: 0 } : null;
+  entries = (opts.entries || []).map(el => ({ el, a: 0, angle: 0, vel: 0 }));
 
   onResize();
-  if (!imgEl.complete) imgEl.onload = () => { positionUmbrella(); };
 
   cv.addEventListener('pointerdown', onDown);
   window.addEventListener('pointermove', onMove, { passive: true });
@@ -512,20 +509,17 @@ function destroy() {
   }
   if (wrap) wrap.innerHTML = '';
   drops = []; drips = []; ripples = []; bigs = [];
-  entries = []; handleTag = null;
+  entries = [];
 }
 
 function gust() {
   windTarget += (Math.random() > 0.5 ? 1 : -1) * 1.8;
   um.vel += (Math.random() - 0.5) * 2;
   for (const e of entries) e.vel += (Math.random() - 0.5) * 2.4;
-  if (handleTag) handleTag.vel += (Math.random() - 0.5) * 2;
 }
-
 function poke(el) {
   const e = entries.find(x => x.el === el);
   if (e) { e.vel += (Math.random() > 0.5 ? 1 : -1) * 2.4; plink(0.5); }
-  if (handleTag && el === handleTag.el) handleTag.vel += (Math.random() - 0.5) * 3;
 }
 
 window.Chime = {
