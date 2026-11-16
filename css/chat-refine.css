@@ -443,3 +443,15 @@ html.dark #pg-chat .chat-search { background:var(--page-bg, #19191c); }
 #pg-chat .media-library-file span {display:flex;flex-direction:column;gap:.18rem;min-width:0}
 #pg-chat .media-library-file b {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:.58rem var(--serif);font-weight:500}
 #pg-chat .media-library-file small {color:var(--ink-3);font:.43rem var(--mono)}
+
+
+/* Chat media favorites */
+#pg-chat #chat-media-favorites-toggle {padding:.32rem .58rem;border:1px solid var(--line);border-radius:2rem;background:transparent;color:var(--ink-2);font:.5rem var(--serif);white-space:nowrap}
+#pg-chat #chat-media-favorites-toggle.on {background:var(--dark);border-color:var(--dark);color:var(--page-bg)}
+#pg-chat .media-library-card {position:relative;min-width:0}
+#pg-chat .media-library-card-file {grid-column:span 3;display:flex;align-items:center;gap:.4rem}
+#pg-chat .media-library-card-file .media-library-file {flex:1;min-width:0}
+#pg-chat .media-library-star {position:absolute;z-index:2;top:.28rem;right:.28rem;display:grid;place-items:center;width:1.65rem;height:1.65rem;padding:0;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(25,29,35,.42);color:white;font-size:1rem;line-height:1}
+#pg-chat .media-library-star.saved {background:rgba(25,29,35,.78);color:#ffe6a5}
+#pg-chat .media-library-card-file .media-library-star {position:static;flex:0 0 1.8rem;border-color:var(--line);background:transparent;color:var(--ink-2)}
+#pg-chat .media-library-card-file .media-library-star.saved {color:#b18a43}
