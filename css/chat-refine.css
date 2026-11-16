@@ -455,3 +455,70 @@ html.dark #pg-chat .chat-search { background:var(--page-bg, #19191c); }
 #pg-chat .media-library-star.saved {background:rgba(25,29,35,.78);color:#ffe6a5}
 #pg-chat .media-library-card-file .media-library-star {position:static;flex:0 0 1.8rem;border-color:var(--line);background:transparent;color:var(--ink-2)}
 #pg-chat .media-library-card-file .media-library-star.saved {color:#b18a43}
+
+
+/* Refined Chat composer: calmer silhouette, clearer touch targets, no changes outside Chat. */
+#pg-chat .input-bar {
+  padding: .55rem max(.8rem,var(--page-pad)) calc(.55rem + env(safe-area-inset-bottom));
+  border-top: 1px solid color-mix(in srgb,var(--line) 72%,transparent);
+  background: color-mix(in srgb,var(--page-bg) 88%,transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+  backdrop-filter: blur(16px) saturate(1.08);
+}
+#pg-chat .input-card {
+  gap: .32rem;
+  min-height: 3.15rem;
+  padding: .38rem .42rem;
+  border: 1px solid color-mix(in srgb,var(--glass-brd) 82%,transparent);
+  border-radius: 1.15rem;
+  background: color-mix(in srgb,var(--glass-strong) 94%,white 6%);
+  box-shadow: 0 5px 18px rgba(31,45,58,.055),inset 0 1px 0 var(--glass-hi);
+  transition: border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+#pg-chat .input-card:focus-within {
+  border-color: color-mix(in srgb,var(--ink-3) 48%,var(--glass-brd));
+  box-shadow: 0 7px 22px rgba(31,45,58,.075),0 0 0 3px color-mix(in srgb,var(--ink-3) 8%,transparent),inset 0 1px 0 var(--glass-hi);
+}
+#pg-chat .input-card .ib-btn {
+  width: 2.25rem;height: 2.25rem;flex:0 0 2.25rem;
+  border: 1px solid transparent;border-radius: .78rem;
+  color: var(--ink-2);
+}
+#pg-chat .input-card .ib-plus {
+  background: color-mix(in srgb,var(--glass-strong) 78%,var(--page-bg));
+  border-color: var(--line);
+}
+#pg-chat .input-card .ib-plus svg {width:1.12rem;height:1.12rem}
+#pg-chat .input-card .ib-emoji {opacity:.82}
+#pg-chat .input-field {
+  min-width:0;min-height:2.25rem;max-height:7rem;
+  padding:.42rem .35rem;
+  font-family:var(--serif);font-size:.88rem;line-height:1.48;
+  letter-spacing:.012em;
+}
+#pg-chat .input-field::placeholder {
+  font-family:var(--serif);font-style:normal;font-size:.78rem;
+  letter-spacing:.045em;color:var(--ink-3);opacity:.78;
+}
+#pg-chat .input-card .send-btn {
+  width:2.35rem;height:2.35rem;flex:0 0 2.35rem;
+  border:1px solid color-mix(in srgb,var(--dark) 78%,transparent);
+  border-radius:.82rem;
+  box-shadow:0 3px 8px rgba(25,35,45,.13);
+}
+#pg-chat .input-card .send-btn svg {width:1rem;height:1rem;transform:translate(1px,-1px)}
+#pg-chat .input-card button:focus-visible {
+  outline:2px solid var(--ink-3);outline-offset:2px;
+}
+#pg-chat .input-bar .emoji-panel,
+#pg-chat .input-bar .tool-panel {
+  border:1px solid var(--glass-brd);
+  border-radius:1.05rem;
+  box-shadow:0 12px 34px rgba(24,35,46,.12);
+}
+@media (max-width:380px) {
+  #pg-chat .input-card {gap:.18rem;padding:.32rem}
+  #pg-chat .input-card .ib-btn {width:2.05rem;height:2.05rem;flex-basis:2.05rem}
+  #pg-chat .input-card .send-btn {width:2.2rem;height:2.2rem;flex-basis:2.2rem}
+  #pg-chat .input-field {font-size:.84rem}
+}
