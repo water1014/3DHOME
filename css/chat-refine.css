@@ -1,6 +1,6 @@
 /* 3DHOME · QQ-style chat refinement */
-#pg-chat { min-height: 0; overflow: hidden; }
-#pg-chat .chat-header { min-height: 4.1rem; padding-left: var(--page-pad); padding-right: var(--page-pad); }
+#pg-chat { position: relative; min-height: 0; overflow: hidden; }
+#pg-chat .chat-header { min-height: 4.1rem; padding-top: .48rem; padding-left: var(--page-pad); padding-right: var(--page-pad); }
 #pg-chat .ch-ava { width: 2.55rem; height: 2.55rem; border: 1px solid var(--line); }
 #pg-chat .ch-right { gap: .28rem; }
 #pg-chat .ch-btn { width: 2.25rem; height: 2.25rem; border: 1px solid transparent; }
