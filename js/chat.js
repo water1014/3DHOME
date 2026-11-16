@@ -404,7 +404,7 @@ function setChatAppearance(key, value) {
   syncChatAppearance();
 }
 function resetChatAppearance(key) {
-  const stateKey = ({taBubble:'chatTaBubble',myBubble:'chatMyBubble',wallpaper:'chatWallpaper'})[key] || key;
+  const stateKey = ({hisAvatar:'chatHisAvatar',herAvatar:'chatHerAvatar',taBubble:'chatTaBubble',myBubble:'chatMyBubble',wallpaper:'chatWallpaper'})[key] || key;
   S[stateKey] = '';
   save(stateKey);
   if (key === 'hisAvatar') updateHeader();
