@@ -1001,7 +1001,7 @@ function bindEvents() {
     host.innerHTML=[...groups.entries()].map(([month,items])=>{
       const cards=items.map(({ch,title,m,i})=>{
         const meta=esc(title||'聊天');
-        if(m.type==='image'||m.type==='sticker') return '<button type="button" class="media-library-image" data-search-window="'+esc(ch)+'" data-search-index="'+i+'" aria-label="'+meta+' 图片"><span data-media-id="'+esc(m.mediaId||'')+'"></span><small>'+(m.type==='sticker'?'表情':meta)+'</small></button>';
+        if(m.type==='image'||m.type==='sticker') return '<button type="button" class="media-library-image" data-search-window="'+esc(ch)+'" data-search-index="'+i+'" aria-label="'+meta+' 图片"><span '+(m.mediaId?'data-media-id="'+esc(m.mediaId)+'"':'style="background-image:url(&quot;'+esc(m.url||'')+'&quot;)"')+'></span><small>'+(m.type==='sticker'?'表情':meta)+'</small></button>';
         const symbol=m.type==='video'?'▶':'↧';
         return '<button type="button" class="media-library-file" data-search-window="'+esc(ch)+'" data-search-index="'+i+'"><i>'+symbol+'</i><span><b>'+esc(m.fileName||(m.type==='video'?'视频':'文件'))+'</b><small>'+meta+' · '+formatFileSize(m.fileSize||0)+'</small></span></button>';
       }).join('');
