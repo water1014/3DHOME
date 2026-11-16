@@ -101,6 +101,13 @@ function build() {
       <div class="chat-search-filters" id="chat-search-filters">
         <button type="button" class="on" data-search-who="all">全部</button><button type="button" data-search-who="me">我</button><button type="button" data-search-who="ta">TA</button>
       </div>
+      <div class="chat-date-tools"><button type="button" id="chat-calendar-toggle">⌑ 按日期查找</button><span id="chat-date-label">不限日期</span></div>
+      <div class="chat-calendar" id="chat-calendar" hidden>
+        <div class="chat-calendar-head"><button type="button" id="chat-cal-prev" aria-label="上个月">‹</button><b id="chat-cal-title"></b><button type="button" id="chat-cal-next" aria-label="下个月">›</button></div>
+        <div class="chat-calendar-grid chat-calendar-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div class="chat-calendar-grid" id="chat-calendar-days"></div>
+        <button type="button" class="chat-calendar-reset" id="chat-cal-reset">显示全部日期</button>
+      </div>
       <div class="chat-search-results" id="chat-search-results"><div class="chat-search-empty">输入关键词，找回某个瞬间。</div></div>
     </section>
     <div class="chat-body" id="c-body"></div>
@@ -607,6 +614,8 @@ function bindEvents() {
   // 聊天记录查找：跨频道检索，命中后回到原消息位置
   const searchPanel = $('chat-search'), searchInput = $('chat-search-input');
   let searchWho = 'all';
+  let selectedSearchDate = '';
+  let calendarMonth = new Date();
   const searchHistory = (() => { try { return JSON.parse(localStorage.getItem('xw_chatSearchHistory') || '[]'); } catch { return []; } })();
   function searchText(m) {
     if (m.text) return String(m.text);
@@ -614,9 +623,31 @@ function bindEvents() {
     if (m.type === 'voice') return '[语音]';
     return '';
   }
+  function dateKey(ts) {
+    const d = new Date(ts || Date.now());
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function renderCalendar() {
+    const y = calendarMonth.getFullYear(), m = calendarMonth.getMonth();
+    $('chat-cal-title').textContent = y + '年' + (m+1) + '月';
+    $('chat-date-label').textContent = selectedSearchDate || '不限日期';
+    const counts = {};
+    Object.values(S.chatMsgsByChannel || {}).forEach(list => (list || []).forEach(msg => {
+      const key = dateKey(msg.t); counts[key] = (counts[key] || 0) + 1;
+    }));
+    const first = new Date(y,m,1).getDay(), days = new Date(y,m+1,0).getDate();
+    const cells = [];
+    for(let i=0;i<first;i++) cells.push('<span class="cal-blank"></span>');
+    for(let day=1;day<=days;day++) {
+      const key = y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+      const count = counts[key] || 0;
+      cells.push('<button type="button" class="cal-day'+(selectedSearchDate===key?' selected':'')+(count?' has-msg':'')+'" data-date="'+key+'">'+day+(count?'<i></i>':'')+'</button>');
+    }
+    $('chat-calendar-days').innerHTML = cells.join('');
+  }
   function renderSearchResults() {
     const host = $('chat-search-results'), q = searchInput.value.trim().toLocaleLowerCase();
-    if (!q) {
+    if (!q && !selectedSearchDate) {
       host.innerHTML = searchHistory.length
         ? '<div class="chat-search-caption">最近找过</div>' + searchHistory.map((v, i) => '<button type="button" class="chat-search-history" data-history-index="' + i + '">' + esc(v) + '</button>').join('')
         : '<div class="chat-search-empty">输入关键词，找回某个瞬间。</div>';
@@ -626,8 +657,9 @@ function bindEvents() {
     Object.entries(S.chatMsgsByChannel || {}).forEach(([ch, list]) => {
       (list || []).forEach((m, i) => {
         if (searchWho !== 'all' && m.who !== searchWho) return;
+        if (selectedSearchDate && dateKey(m.t) !== selectedSearchDate) return;
         const raw = searchText(m), hay = (raw + ' ' + (m.reasoningSummary || '')).toLocaleLowerCase();
-        if (!hay.includes(q)) return;
+        if (q && !hay.includes(q)) return;
         all.push({ ch, i, m, raw });
       });
     });
@@ -654,6 +686,17 @@ function bindEvents() {
   }
   $('ch-search').onclick = openChatSearch;
   $('chat-search-close').onclick = closeChatSearch;
+  $('chat-calendar-toggle').onclick = () => {
+    const cal = $('chat-calendar'); cal.hidden = !cal.hidden;
+    if (!cal.hidden) { renderCalendar(); }
+  };
+  $('chat-cal-prev').onclick = () => { calendarMonth.setMonth(calendarMonth.getMonth()-1); renderCalendar(); };
+  $('chat-cal-next').onclick = () => { calendarMonth.setMonth(calendarMonth.getMonth()+1); renderCalendar(); };
+  $('chat-cal-reset').onclick = () => { selectedSearchDate = ''; renderCalendar(); renderSearchResults(); };
+  $('chat-calendar-days').addEventListener('click', e => {
+    const day = e.target.closest('[data-date]'); if (!day) return;
+    selectedSearchDate = day.dataset.date; renderCalendar(); renderSearchResults();
+  });
   $('chat-search-clear').onclick = () => { searchInput.value = ''; renderSearchResults(); searchInput.focus(); };
   searchInput.addEventListener('input', renderSearchResults);
   $('chat-search-filters').querySelectorAll('[data-search-who]').forEach(btn => btn.onclick = () => {
