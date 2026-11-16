@@ -196,6 +196,9 @@ function build() {
       <div class="chat-search-filters" id="chat-search-filters">
         <button type="button" class="on" data-search-who="all">全部</button><button type="button" data-search-who="me">我</button><button type="button" data-search-who="ta">TA</button>
       </div>
+      <div class="chat-media-filters" id="chat-media-filters" aria-label="按内容类型查找">
+        <button type="button" class="on" data-search-type="all">全部</button><button type="button" data-search-type="image">图片</button><button type="button" data-search-type="video">视频</button><button type="button" data-search-type="file">文件</button><button type="button" data-search-type="sticker">表情</button>
+      </div>
       <div class="chat-date-tools"><button type="button" id="chat-calendar-toggle">⌑ 按日期查找</button><span id="chat-date-label">不限日期</span></div>
       <div class="chat-calendar" id="chat-calendar" hidden>
         <div class="chat-calendar-head"><button type="button" id="chat-cal-prev" aria-label="上个月">‹</button><b id="chat-cal-title"></b><button type="button" id="chat-cal-next" aria-label="下个月">›</button></div>
@@ -256,10 +259,10 @@ function build() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
           <span>拍一拍</span>
         </button>
-        <button class="tp-btn" data-tool="image">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <span>图片</span>
-        </button>
+        <button class="tp-btn" data-tool="image"><span class="tp-emoji">▧</span><span>照片</span></button>
+        <button class="tp-btn" data-tool="video"><span class="tp-emoji">▶</span><span>视频</span></button>
+        <button class="tp-btn" data-tool="file"><span class="tp-emoji">⌕</span><span>文件</span></button>
+        <button class="tp-btn" data-tool="sticker"><span class="tp-emoji">☺</span><span>表情包</span></button>
       </div>
     </div>
 
@@ -456,12 +459,15 @@ function renderMsgs() {
     const typingClass = m._typing ? ' typing-msg' : '';
     const quote = m.quote ? `<div class="bubble-quote"><small>${esc(m.quote.who || '')}</small>${esc(m.quote.text || '')}</div>` : '';
     const textHtml = m._typing ? `<span class="tw-cursor">${esc(m.text)}</span>` : esc(m.text);
-    const content = `${renderMeta(m)}<div class="bubble">${quote}${m.type === 'voice' ? renderVoiceBubble(m) : m.type === 'image' ? renderImgBubble(m, i) : m.type === 'pat' ? renderPatBubble(m) : textHtml}</div><div class="msg-time">${fmtClock(m.t)}</div>`;
+    const mediaTypes = ['image','video','file','sticker'];
+    const bubbleContent = m.type === 'voice' ? renderVoiceBubble(m) : mediaTypes.includes(m.type) ? mediaMessageMarkup(m,i) : m.type === 'pat' ? renderPatBubble(m) : textHtml;
+    const content = `${renderMeta(m)}<div class="bubble">${quote}${bubbleContent}</div><div class="msg-time">${fmtClock(m.t)}</div>`;
     const mergedClass = merged ? ' msg-merged' : '';
     if (isTa) return dateSep + `<div class="msg ta bubble-item${gapClass}${typingClass}${mergedClass}" data-i="${i}">${merged ? '<span class="msg-ava-spacer"></span>' : getAvaHtml('ta')}<div class="msg-col">${content}</div></div>`;
     return dateSep + `<div class="msg me bubble-item${gapClass}${typingClass}${mergedClass}" data-i="${i}"><div class="msg-col">${content}</div>${merged ? '<span class="msg-ava-spacer"></span>' : getAvaHtml('me')}</div>`;
   }).join('');
   body.scrollTop = body.scrollHeight;
+  hydrateChatMedia(body);
 }
 function renderVoiceBubble(m) {
   const dur = m.dur || 3;
@@ -746,19 +752,83 @@ function sendHeart() {
   pushMsgObj({ who: 'me', text: heartText, type: 'heart', t: Date.now() });
 }
 
-/* ── 图片 ── */
-function sendImage() {
-  const inp = D.createElement('input');
-  inp.type = 'file'; inp.accept = 'image/*';
-  inp.onchange = (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => pushMsgObj({ who: 'me', text: '[图片]', type: 'image', url: reader.result, t: Date.now() });
-    reader.readAsDataURL(f);
-  };
-  inp.click();
+/* ── Chat media vault: binary files live in IndexedDB, message history stores only references. ── */
+const CHAT_MEDIA_DB = 'xw_chat_media_v1';
+function openChatMediaDB() {
+  return new Promise((resolve,reject) => {
+    if (!('indexedDB' in window)) { reject(new Error('当前浏览器不支持本地媒体存储')); return; }
+    const req = indexedDB.open(CHAT_MEDIA_DB,1);
+    req.onupgradeneeded = () => { const db=req.result; if(!db.objectStoreNames.contains('assets')) db.createObjectStore('assets',{keyPath:'id'}); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error('媒体仓库打开失败'));
+  });
 }
+async function storeChatMedia(file) {
+  const db=await openChatMediaDB(), id='media_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+  await new Promise((resolve,reject) => {
+    const tx=db.transaction('assets','readwrite');
+    tx.objectStore('assets').put({id,blob:file,name:file.name||'未命名文件',mime:file.type||'application/octet-stream',size:file.size,createdAt:Date.now()});
+    tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error||new Error('保存媒体失败'));
+  });
+  db.close(); return id;
+}
+async function getChatMedia(id) {
+  const db=await openChatMediaDB();
+  const item=await new Promise((resolve,reject)=>{const req=db.transaction('assets','readonly').objectStore('assets').get(id);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});
+  db.close(); return item;
+}
+async function hydrateChatMedia(scope) {
+  const host=scope||$('c-body'); if(!host)return;
+  const nodes=[...host.querySelectorAll('[data-media-id]')];
+  for(const node of nodes) {
+    if(node.dataset.hydrated==='1')continue;
+    node.dataset.hydrated='1';
+    try {
+      const item=await getChatMedia(node.dataset.mediaId); if(!item) {node.textContent='文件暂不可用';continue;}
+      const url=URL.createObjectURL(item.blob);
+      if(node.tagName==='IMG'||node.tagName==='VIDEO') node.src=url;
+      else if(node.tagName==='A') {node.href=url;node.download=item.name;}
+      node.dataset.objectUrl=url;
+    } catch { node.textContent='媒体加载失败'; }
+  }
+}
+function mediaMessageMarkup(m,idx) {
+  const id=esc(m.mediaId||'');
+  if(m.type==='image'||m.type==='sticker') return `<div class="img-bubble ${m.type==='sticker'?'sticker-bubble':''}"><img data-media-id="${id}" src="${m.url?esc(m.url):''}" alt="${m.fileName?esc(m.fileName):'图片'}" loading="lazy"/><div class="img-badge">${m.type==='sticker'?'表情':idx+1}</div></div>`;
+  if(m.type==='video') return `<div class="file-bubble video-file"><video data-media-id="${id}" controls playsinline preload="metadata" ${m.url?'src="'+esc(m.url)+'"':''}></video><span>${esc(m.fileName||'视频')}</span></div>`;
+  if(m.type==='file') return `<a class="file-bubble" data-media-id="${id}" ${m.url?'href="'+esc(m.url)+'"':''} download="${esc(m.fileName||'文件')}"><span class="file-icon">↧</span><span class="file-info"><b>${esc(m.fileName||'文件')}</b><small>${formatFileSize(m.fileSize||0)} · 点击保存</small></span></a>`;
+  return esc(m.text||'');
+}
+function formatFileSize(bytes) {
+  if(!bytes)return '文件';
+  if(bytes<1024)return bytes+' B';
+  if(bytes<1024*1024)return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/1024/1024).toFixed(1)+' MB';
+}
+async function chooseChatMedia(kind) {
+  const input=D.createElement('input'); input.type='file';
+  input.accept=kind==='image'?'image/*':kind==='video'?'video/*':kind==='sticker'?'image/*,.gif': '*/*';
+  if(kind==='sticker') input.multiple=false;
+  input.onchange=async()=>{
+    const files=[...(input.files||[])]; if(!files.length)return;
+    for(const file of files) {
+      if(kind==='video'&&!file.type.startsWith('video/')){toast('请选择视频文件');continue;}
+      if(kind==='image'&&!file.type.startsWith('image/')){toast('请选择图片文件');continue;}
+      if(kind==='sticker'&&!file.type.startsWith('image/')){toast('表情包请选择 GIF 或图片');continue;}
+      const limit=kind==='video'?80:kind==='file'?25:kind==='sticker'?12:20;
+      if(file.size>limit*1024*1024){toast('单个文件不能超过 '+limit+' MB');continue;}
+      try {
+        const mediaId=await storeChatMedia(file);
+        const type=kind==='sticker'?'sticker':kind==='image'?'image':kind==='video'?'video':'file';
+        pushMsgObj({who:'me',type,mediaId,fileName:file.name|| (type==='sticker'?'表情包':type==='image'?'图片':type==='video'?'视频':'文件'),fileSize:file.size,mime:file.type,t:Date.now(),text:type==='sticker'?'[表情]':type==='image'?'[图片]':type==='video'?'[视频]':'[文件]'});
+      } catch(err) { toast(err.message||'保存失败，请检查设备存储空间'); }
+    }
+  };
+  input.click();
+}
+
+/* ── 图片 ── */
+function sendImage() { chooseChatMedia('image'); }
 
 /* ── 清空记录 ── */
 function clearChat() {
@@ -811,7 +881,10 @@ function bindEvents() {
       $('tool-panel').classList.remove('show');
       if (t === 'heart') openHeart();
       else if (t === 'pat') sendPat();
-      else if (t === 'image') sendImage();
+      else if (t === 'image') chooseChatMedia('image');
+      else if (t === 'video') chooseChatMedia('video');
+      else if (t === 'file') chooseChatMedia('file');
+      else if (t === 'sticker') chooseChatMedia('sticker');
     };
   });
 
@@ -866,14 +939,18 @@ function bindEvents() {
   // 聊天记录查找：跨频道检索，命中后回到原消息位置
   const searchPanel = $('chat-search'), searchInput = $('chat-search-input');
   let searchWho = 'all';
+  let searchType = 'all';
   let selectedSearchDate = '';
   let calendarMonth = new Date();
   const searchHistory = (() => { try { return JSON.parse(localStorage.getItem('xw_chatSearchHistory') || '[]'); } catch { return []; } })();
   function searchText(m) {
-    if (m.text) return String(m.text);
+    if (m.fileName) return String(m.fileName);
     if (m.type === 'image') return '[图片]';
+    if (m.type === 'video') return '[视频]';
+    if (m.type === 'file') return '[文件] ' + (m.fileName||'');
+    if (m.type === 'sticker') return '[表情包]';
     if (m.type === 'voice') return '[语音]';
-    return '';
+    return String(m.text||'');
   }
   function dateKey(ts) {
     const d = new Date(ts || Date.now());
@@ -910,6 +987,7 @@ function bindEvents() {
       const ch = win.id, list = getWindowMessages(win);
       list.forEach((m, i) => {
         if (searchWho !== 'all' && m.who !== searchWho) return;
+        if (searchType !== 'all' && m.type !== searchType) return;
         if (selectedSearchDate && dateKey(m.t) !== selectedSearchDate) return;
         const raw = searchText(m), hay = (raw + ' ' + (m.reasoningSummary || '')).toLocaleLowerCase();
         if (q && !hay.includes(q)) return;
@@ -923,9 +1001,18 @@ function bindEvents() {
       const stamp = date.toLocaleDateString('zh-CN',{month:'2-digit',day:'2-digit'}) + ' ' + fmtClock(m.t);
       const who = m.who === 'ta' ? (S.hisName || 'TA') : '我';
       const excerpt = raw.length > 90 ? raw.slice(0,90) + '…' : raw;
-      return '<button type="button" class="chat-search-result" data-search-window="' + ch + '" data-search-index="' + i + '"><span class="csr-meta"><b>' + esc(who) + '</b><i>' + esc(channelName(ch)) + '</i><time>' + esc(stamp) + '</time></span><span class="csr-text">' + esc(excerpt || '[思考过程]') + '</span></button>';
+      const media = ['image','video','file','sticker'].includes(m.type);
+      const label = ({image:'图片',video:'视频',file:'文件',sticker:'表情包'})[m.type] || '';
+      const thumb = media && (m.type==='image'||m.type==='sticker') && m.mediaId ? '<span class="csr-thumb" data-media-id="' + esc(m.mediaId) + '"></span>' : '';
+      return '<button type="button" class="chat-search-result" data-search-window="' + ch + '" data-search-index="' + i + '"><span class="csr-meta"><b>' + esc(who) + '</b><i>' + esc(channelName(ch)) + '</i><time>' + esc(stamp) + '</time></span><span class="csr-media-row">' + thumb + '<span class="csr-text">' + (media ? '<em>' + label + '</em> ' : '') + esc(excerpt || '[思考过程]') + '</span></span></button>';
     }).join('') : '<div class="chat-search-empty">没有找到相关记录。换个词试试看。</div>';
+    hydrateChatMedia(host);
   }
+  $('chat-media-filters').querySelectorAll('[data-search-type]').forEach(btn => btn.onclick = () => {
+    searchType = btn.dataset.searchType;
+    $('chat-media-filters').querySelectorAll('button').forEach(b => b.classList.toggle('on',b===btn));
+    renderSearchResults();
+  });
   function openChatSearch() {
     searchPanel.classList.add('show');
     $('chat-pref').classList.remove('show');
