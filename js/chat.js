@@ -9,7 +9,7 @@ const { fmtClock, toast } = UI;
 
 let aiTyping = false;
 let replyingTo = null;
-let currentChannel = 'general';
+let currentChannel = 'legacy_general';
 let typeWriterTimer = null;
 
 const CHANNELS = [
@@ -20,19 +20,73 @@ const CHANNELS = [
 ];
 
 
-function getChannelMsgs() {
-  if (!S.chatMsgsByChannel && S.chatMsgs) {
-    S.chatMsgsByChannel = { general: S.chatMsgs, sweet: [], daily: [], secret: [] };
-    save('chatMsgsByChannel');
+function getChatWindows() {
+  if (!Array.isArray(S.chatWindows) || !S.chatWindows.length) {
+    const legacy = S.chatMsgsByChannel || (S.chatMsgs ? { general: S.chatMsgs } : {});
+    S.chatWindows = CHANNELS.map((c, i) => ({
+      id: 'legacy_' + c.key, title: c.label, messages: Array.isArray(legacy[c.key]) ? legacy[c.key] : [],
+      createdAt: Date.now() - (CHANNELS.length - i) * 1000, updatedAt: Date.now(), archived: false, legacyKey: c.key
+    }));
+    save('chatWindows');
   }
-  S.chatMsgsByChannel = S.chatMsgsByChannel || {};
-  S.chatMsgsByChannel[currentChannel] = S.chatMsgsByChannel[currentChannel] || [];
-  return S.chatMsgsByChannel[currentChannel];
+  S.chatWindows = S.chatWindows.filter(w => w && w.id);
+  if (!S.chatWindows.some(w => w.id === currentChannel && !w.archived)) currentChannel = (S.chatWindows.find(w => !w.archived) || S.chatWindows[0]).id;
+  return S.chatWindows;
 }
-
+function getCurrentWindow() { return getChatWindows().find(w => w.id === currentChannel) || getChatWindows()[0]; }
+function getChannelMsgs() { const win = getCurrentWindow(); if (!Array.isArray(win.messages)) win.messages = []; return win.messages; }
 function saveChannelMsgs(msgs) {
-  S.chatMsgsByChannel[currentChannel] = msgs;
-  save('chatMsgsByChannel');
+  const win = getCurrentWindow(); win.messages = msgs; win.updatedAt = Date.now(); save('chatWindows');
+  if (win.legacyKey) { S.chatMsgsByChannel = S.chatMsgsByChannel || {}; S.chatMsgsByChannel[win.legacyKey] = msgs; save('chatMsgsByChannel'); }
+}
+function syncWindowLabel() { const el = $('chat-window-current'); if (el) el.textContent = getCurrentWindow()?.title || '新会话'; }
+function renderWindowManager() {
+  const host = $('chat-window-list'); if (!host) return;
+  const windows = getChatWindows(), active = windows.filter(w => !w.archived), archived = windows.filter(w => w.archived);
+  const row = w => `<article class="chat-window-item ${w.id === currentChannel ? 'current' : ''}">
+    <button type="button" class="chat-window-open" data-window-open="${esc(w.id)}"><span class="chat-window-symbol">◌</span>
+      <span class="chat-window-copy"><b>${esc(w.title)}</b><small>${(w.messages || []).length} 条消息 · 独立聊天记录</small></span>
+      <span class="chat-window-check">${w.id === currentChannel ? '当前' : '进入'}</span></button>
+    <div class="chat-window-actions"><button type="button" data-window-rename="${esc(w.id)}">重命名</button>
+      ${w.archived ? `<button type="button" data-window-restore="${esc(w.id)}">恢复</button>` : `<button type="button" data-window-archive="${esc(w.id)}">归档</button>`}
+      <button type="button" class="danger" data-window-delete="${esc(w.id)}">删除</button></div></article>`;
+  host.innerHTML = (active.length ? '<div class="chat-window-group-title">正在使用</div>' + active.map(row).join('') : '') +
+    (archived.length ? '<div class="chat-window-group-title">已归档</div>' + archived.map(row).join('') : '') || '<div class="chat-search-empty">这里还没有会话。</div>';
+}
+function openWindowManager() { renderWindowManager(); $('chat-window-sheet')?.classList.add('show'); $('chat-window-sheet')?.setAttribute('aria-hidden','false'); }
+function closeWindowManager() { $('chat-window-sheet')?.classList.remove('show'); $('chat-window-sheet')?.setAttribute('aria-hidden','true'); }
+function createChatWindow() {
+  const title = prompt('给这段新聊天起个名字', '新的聊天'); if (title === null) return;
+  const clean = title.trim().slice(0,32) || '新的聊天';
+  const win = { id:'win_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7), title:clean, messages:[], createdAt:Date.now(), updatedAt:Date.now(), archived:false };
+  getChatWindows().push(win); save('chatWindows'); currentChannel = win.id;
+  syncWindowLabel(); renderMsgs(); closeWindowManager(); toast('新会话已创建');
+}
+function activateWindow(id) {
+  const win = getChatWindows().find(w => w.id === id && !w.archived); if (!win) return;
+  currentChannel = id; replyingTo = null; $('c-reply')?.classList.remove('show');
+  syncWindowLabel(); renderMsgs(); closeWindowManager();
+}
+function manageWindowAction(action,id) {
+  const win = getChatWindows().find(w => w.id === id); if (!win) return;
+  if (action === 'rename') {
+    const title = prompt('修改会话名称',win.title); if (title === null) return;
+    win.title = title.trim().slice(0,32) || win.title;
+  } else if (action === 'archive') {
+    const next = getChatWindows().find(w => !w.archived && w.id !== id);
+    if (id === currentChannel && !next) { toast('至少保留一个正在使用的会话'); return; }
+    if (id === currentChannel) currentChannel = next.id;
+    win.archived = true; syncWindowLabel(); renderMsgs();
+  } else if (action === 'restore') win.archived = false;
+  else if (action === 'delete') {
+    UI.confirmDialog({title:'删除这段聊天？',text:'这段会话及其中的消息将被永久删除，无法恢复。',okText:'删除',onOk:()=>{
+      S.chatWindows = getChatWindows().filter(w=>w.id!==id);
+      if (!S.chatWindows.length) S.chatWindows.push({id:'win_'+Date.now().toString(36),title:'新的聊天',messages:[],createdAt:Date.now(),updatedAt:Date.now(),archived:false});
+      if (currentChannel===id) currentChannel=(S.chatWindows.find(w=>!w.archived)||S.chatWindows[0]).id;
+      save('chatWindows'); syncWindowLabel(); renderMsgs(); renderWindowManager();
+    }}); return;
+  }
+  save('chatWindows'); syncWindowLabel(); renderWindowManager();
 }
 
 /* ── 构建 ── */
@@ -62,10 +116,18 @@ function build() {
       </div>
     </div>
 
-    <!-- 频道标签 -->
-    <div class="channel-bar" id="c-channels">
-      ${CHANNELS.map((c, i) => `<button class="channel-tab ${i===0?'on':''}" data-ch="${c.key}">${c.label}<span class="ch-sub">${c.sub}</span></button>`).join('')}
+    <div class="chat-window-switch">
+      <button type="button" id="chat-window-trigger" aria-label="切换聊天窗口"><span class="chat-window-kicker">CONVERSATION</span><b id="chat-window-current">通用</b><span class="chat-window-chevron">⌄</span></button>
+      <button type="button" id="chat-window-new" aria-label="新建聊天窗口">＋</button>
     </div>
+    <section class="chat-window-sheet" id="chat-window-sheet" aria-hidden="true">
+      <div class="chat-window-backdrop" data-window-close></div>
+      <div class="chat-window-panel">
+        <div class="chat-window-sheet-head"><div><small>YOUR CONVERSATIONS</small><h3>聊天窗口</h3><p>每个窗口拥有独立聊天记录。</p></div><button type="button" data-window-close aria-label="关闭">×</button></div>
+        <div class="chat-window-list" id="chat-window-list"></div>
+        <button type="button" class="chat-window-create" id="chat-window-create">＋ 新建一个聊天窗口</button>
+      </div>
+    </section>
 
     <div class="chat-pref" id="chat-pref" aria-label="聊天显示设置">
       <div class="chat-pref-group"><span class="chat-pref-label">消息排列</span>
@@ -202,7 +264,9 @@ function build() {
       </div>
     </div>`;
 
+  getChatWindows();
   updateHeader();
+  syncWindowLabel();
   syncChatPrefs();
   renderMsgs();
   bindEvents();
@@ -524,14 +588,8 @@ function toggleToolPanel() {
   $('tool-panel').classList.toggle('show');
 }
 
-/* ── 频道切换 ── */
-function switchChannel(ch) {
-  currentChannel = ch;
-  $('c-channels').querySelectorAll('.channel-tab').forEach(t => {
-    t.classList.toggle('on', t.dataset.ch === ch);
-  });
-  renderMsgs();
-}
+/* ── 会话窗口切换 ── */
+function switchChannel(id) { activateWindow(id); }
 
 /* ── 事件绑定 ── */
 function bindEvents() {
@@ -606,9 +664,19 @@ function bindEvents() {
   $('c-body').addEventListener('touchend', () => clearTimeout(pressTimer));
   $('c-body').addEventListener('touchmove', () => clearTimeout(pressTimer));
 
-  // 频道切换
-  $('c-channels').querySelectorAll('.channel-tab').forEach(t => {
-    t.onclick = () => switchChannel(t.dataset.ch);
+  // 会话窗口管理
+  $('chat-window-trigger').onclick = openWindowManager;
+  $('chat-window-new').onclick = createChatWindow;
+  $('chat-window-create').onclick = createChatWindow;
+  $('chat-window-sheet').addEventListener('click', e => {
+    if (e.target.closest('[data-window-close]')) { closeWindowManager(); return; }
+    const open=e.target.closest('[data-window-open]'), rename=e.target.closest('[data-window-rename]');
+    const archive=e.target.closest('[data-window-archive]'), restore=e.target.closest('[data-window-restore]'), del=e.target.closest('[data-window-delete]');
+    if (open) activateWindow(open.dataset.windowOpen);
+    else if (rename) manageWindowAction('rename',rename.dataset.windowRename);
+    else if (archive) manageWindowAction('archive',archive.dataset.windowArchive);
+    else if (restore) manageWindowAction('restore',restore.dataset.windowRestore);
+    else if (del) manageWindowAction('delete',del.dataset.windowDelete);
   });
 
   // 聊天记录查找：跨频道检索，命中后回到原消息位置
@@ -632,7 +700,7 @@ function bindEvents() {
     $('chat-cal-title').textContent = y + '年' + (m+1) + '月';
     $('chat-date-label').textContent = selectedSearchDate || '不限日期';
     const counts = {};
-    Object.values(S.chatMsgsByChannel || {}).forEach(list => (list || []).forEach(msg => {
+    getChatWindows().forEach(win => (win.messages || []).forEach(msg => {
       const key = dateKey(msg.t); counts[key] = (counts[key] || 0) + 1;
     }));
     const first = new Date(y,m,1).getDay(), days = new Date(y,m+1,0).getDate();
@@ -654,23 +722,24 @@ function bindEvents() {
       return;
     }
     const all = [];
-    Object.entries(S.chatMsgsByChannel || {}).forEach(([ch, list]) => {
-      (list || []).forEach((m, i) => {
+    getChatWindows().forEach(win => {
+      const ch = win.id, list = win.messages || [];
+      list.forEach((m, i) => {
         if (searchWho !== 'all' && m.who !== searchWho) return;
         if (selectedSearchDate && dateKey(m.t) !== selectedSearchDate) return;
         const raw = searchText(m), hay = (raw + ' ' + (m.reasoningSummary || '')).toLocaleLowerCase();
         if (q && !hay.includes(q)) return;
-        all.push({ ch, i, m, raw });
+        all.push({ ch, i, m, raw, title: win.title });
       });
     });
     all.sort((a,b) => (b.m.t || 0) - (a.m.t || 0));
-    const channelName = key => (CHANNELS.find(c => c.key === key) || {}).label || key;
+    const channelName = key => (getChatWindows().find(w => w.id === key) || {}).title || key;
     host.innerHTML = all.length ? all.slice(0,80).map(({ch,i,m,raw}) => {
       const date = new Date(m.t || Date.now());
       const stamp = date.toLocaleDateString('zh-CN',{month:'2-digit',day:'2-digit'}) + ' ' + fmtClock(m.t);
       const who = m.who === 'ta' ? (S.hisName || 'TA') : '我';
       const excerpt = raw.length > 90 ? raw.slice(0,90) + '…' : raw;
-      return '<button type="button" class="chat-search-result" data-search-ch="' + ch + '" data-search-index="' + i + '"><span class="csr-meta"><b>' + esc(who) + '</b><i>' + esc(channelName(ch)) + '</i><time>' + esc(stamp) + '</time></span><span class="csr-text">' + esc(excerpt || '[思考过程]') + '</span></button>';
+      return '<button type="button" class="chat-search-result" data-search-window="' + ch + '" data-search-index="' + i + '"><span class="csr-meta"><b>' + esc(who) + '</b><i>' + esc(channelName(ch)) + '</i><time>' + esc(stamp) + '</time></span><span class="csr-text">' + esc(excerpt || '[思考过程]') + '</span></button>';
     }).join('') : '<div class="chat-search-empty">没有找到相关记录。换个词试试看。</div>';
   }
   function openChatSearch() {
@@ -715,8 +784,8 @@ function bindEvents() {
       localStorage.setItem('xw_chatSearchHistory', JSON.stringify(history));
       searchHistory.splice(0, searchHistory.length, ...history);
     }
-    currentChannel = result.dataset.searchCh;
-    $('c-channels').querySelectorAll('.channel-tab').forEach(t => t.classList.toggle('on', t.dataset.ch === currentChannel));
+    currentChannel = result.dataset.searchWindow;
+    syncWindowLabel();
     closeChatSearch();
     renderMsgs();
     const target = $('c-body').querySelector('.bubble-item[data-i="' + result.dataset.searchIndex + '"]');
