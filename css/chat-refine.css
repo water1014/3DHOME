@@ -737,3 +737,17 @@ html.dark #pg-chat .input-bar .tool-panel .tp-btn {
 html.dark #pg-chat .input-bar .tool-panel .tp-btn svg {
   color:#dce6f2 !important;
 }
+
+/* QQ-style alignment: both participants' avatars sit above their own bubbles. */
+#pg-chat .msg.me > .msg-ava,
+#pg-chat .msg.me > .msg-ava-spacer {
+  order:-1;
+  align-self:flex-end;
+}
+#pg-chat .msg.ta > .msg-ava,
+#pg-chat .msg.ta > .msg-ava-spacer {
+  order:-1;
+  align-self:flex-start;
+}
+#pg-chat .msg.me .msg-col { align-self:flex-end; }
+#pg-chat .msg.ta .msg-col { align-self:flex-start; }
