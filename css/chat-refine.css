@@ -71,7 +71,7 @@ html.dark #pg-chat .channel-bar { background:rgba(255,255,255,.015); }
   animation:msgIn .24s cubic-bezier(.22,1,.36,1);
 }
 #pg-chat .msg.ta { flex-direction:row; justify-content:flex-start; }
-#pg-chat .msg.me { flex-direction:row-reverse; justify-content:flex-start; }
+#pg-chat .msg.me { flex-direction:row; justify-content:flex-end; }
 #pg-chat .msg-ava, #pg-chat .msg-ava-spacer {
   flex:0 0 1.72rem; width:1.72rem; height:1.72rem;
 }
