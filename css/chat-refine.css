@@ -650,3 +650,90 @@ html.dark #pg-chat .reasoning-meta .meta-content {
   color:#eef1f5;
   border-left-color:#9aa9bb;
 }
+
+/* Readability guard: wallpaper must never wash out reasoning or composer tools. */
+#pg-chat .msg-meta.reasoning-meta {
+  display:block;
+  padding:.28rem .42rem;
+  border:1px solid rgba(61,76,96,.14);
+  border-radius:.68rem;
+  background:#f4f6f9 !important;
+  color:#263241 !important;
+  opacity:1 !important;
+  box-shadow:0 2px 8px rgba(22,34,48,.07);
+}
+#pg-chat .msg-meta.reasoning-meta summary,
+#pg-chat .msg-meta.reasoning-meta summary i,
+#pg-chat .msg-meta.reasoning-meta .meta-mark {
+  color:#263241 !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+#pg-chat .msg-meta.reasoning-meta .meta-content {
+  background:#e9eef4 !important;
+  color:#263241 !important;
+  border-left:2px solid #71849b !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+html.dark #pg-chat .msg-meta.reasoning-meta {
+  background:#252b34 !important;
+  border-color:rgba(220,230,242,.16);
+  color:#f0f3f7 !important;
+}
+html.dark #pg-chat .msg-meta.reasoning-meta summary,
+html.dark #pg-chat .msg-meta.reasoning-meta summary i,
+html.dark #pg-chat .msg-meta.reasoning-meta .meta-mark {
+  color:#f0f3f7 !important;
+}
+html.dark #pg-chat .msg-meta.reasoning-meta .meta-content {
+  background:#343c48 !important;
+  color:#f0f3f7 !important;
+  border-left-color:#a9bbd0 !important;
+}
+
+/* Opaque tool tray and high-contrast labels, independent of chat wallpaper. */
+#pg-chat .input-bar .tool-panel {
+  background:#f7f8fa !important;
+  color:#273241 !important;
+  border:1px solid rgba(48,63,82,.2) !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+  opacity:1 !important;
+}
+#pg-chat .input-bar .tool-panel *,
+#pg-chat .input-bar .tool-panel .tp-btn,
+#pg-chat .input-bar .tool-panel .tp-btn span,
+#pg-chat .input-bar .tool-panel .tp-btn small,
+#pg-chat .input-bar .tool-panel .tp-btn i {
+  color:#273241 !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+#pg-chat .input-bar .tool-panel .tp-btn {
+  background:#e9edf2 !important;
+  border:1px solid rgba(48,63,82,.12) !important;
+}
+#pg-chat .input-bar .tool-panel .tp-btn svg {
+  color:#40536a !important;
+  opacity:1 !important;
+}
+html.dark #pg-chat .input-bar .tool-panel {
+  background:#252a32 !important;
+  color:#f0f3f7 !important;
+  border-color:rgba(230,238,248,.2) !important;
+}
+html.dark #pg-chat .input-bar .tool-panel *,
+html.dark #pg-chat .input-bar .tool-panel .tp-btn,
+html.dark #pg-chat .input-bar .tool-panel .tp-btn span,
+html.dark #pg-chat .input-bar .tool-panel .tp-btn small,
+html.dark #pg-chat .input-bar .tool-panel .tp-btn i {
+  color:#f0f3f7 !important;
+}
+html.dark #pg-chat .input-bar .tool-panel .tp-btn {
+  background:#363e49 !important;
+  border-color:rgba(230,238,248,.12) !important;
+}
+html.dark #pg-chat .input-bar .tool-panel .tp-btn svg {
+  color:#dce6f2 !important;
+}
