@@ -140,9 +140,13 @@ function bindEvents() {
     }});
   };
 
-  // AI 设置（后续可扩展弹窗编辑）
-  $('m-ai-model').onclick = () => UI.toast('模型切换后续开放');
-  $('m-ai-key').onclick = () => UI.toast('API Key 编辑后续开放');
+  // AI 设置统一放在聊天页「更多」中，避免出现两套配置入口。
+  const openChatAiSettings = () => {
+    window.go?.('chat');
+    setTimeout(() => $('ch-menu')?.click(), 80);
+  };
+  $('m-ai-model').onclick = openChatAiSettings;
+  $('m-ai-key').onclick = openChatAiSettings;
   $('m-font-row').onclick = () => UI.toast('字体切换后续开放');
 }
 
