@@ -161,6 +161,16 @@ function build() {
         <button type="button" data-pref="bubble" data-value="on">显示</button>
         <button type="button" data-pref="bubble" data-value="off">无背景</button>
       </div>
+      <div class="chat-pref-section chat-appearance">
+        <span class="chat-pref-label">聊天外观 · PERSONALIZE</span>
+        <div class="chat-appearance-row"><div><b>TA 的头像</b><small>聊天顶部与对话列表</small></div><button type="button" data-appearance-upload="hisAvatar">更换图片</button><button type="button" data-appearance-reset="hisAvatar">恢复</button></div>
+        <div class="chat-appearance-row"><div><b>我的头像</b><small>显示在自己的消息旁</small></div><button type="button" data-appearance-upload="herAvatar">更换图片</button><button type="button" data-appearance-reset="herAvatar">恢复</button></div>
+        <div class="chat-appearance-row"><div><b>TA 的气泡</b><small>单独设置对方消息样式</small></div><button type="button" data-appearance-upload="taBubble">上传图片</button><button type="button" data-appearance-reset="taBubble">恢复</button></div>
+        <div class="chat-appearance-row"><div><b>我的气泡</b><small>单独设置自己消息样式</small></div><button type="button" data-appearance-upload="myBubble">上传图片</button><button type="button" data-appearance-reset="myBubble">恢复</button></div>
+        <div class="chat-appearance-row"><div><b>聊天壁纸</b><small>只影响聊天内容区域</small></div><button type="button" data-appearance-upload="wallpaper">上传图片</button><button type="button" data-appearance-reset="wallpaper">恢复</button></div>
+        <div class="chat-appearance-foot">图片会压缩后保存在当前设备。更换壁纸或气泡不会修改聊天记录。</div>
+        <input id="chat-appearance-file" type="file" accept="image/*" hidden/>
+      </div>
       <p class="chat-pref-note">服务商返回思考摘要或工具调用时，会显示在消息下方；不会伪造缺失内容。</p>
       <div class="chat-pref-section chat-ai-settings">
         <span class="chat-pref-label">AI 连接</span>
@@ -302,10 +312,17 @@ function updateHeader() {
   name.textContent = S.hisName || 'TA';
   if (S.hisAvatar) {
     ava.style.backgroundImage = `url(${S.hisAvatar})`;
+    ava.innerHTML = '';
   } else {
     ava.style.backgroundImage = '';
     ava.innerHTML = `<b>${(S.hisName || '他').charAt(0)}</b>`;
   }
+  const typingAva = $('typing-ava');
+  if (typingAva) {
+    typingAva.style.backgroundImage = S.hisAvatar ? `url(${S.hisAvatar})` : '';
+    typingAva.innerHTML = S.hisAvatar ? '' : `<b>${(S.hisName || '他').charAt(0)}</b>`;
+  }
+  syncChatAppearance();
 }
 
 function getAvaHtml(who, size) {
@@ -335,6 +352,63 @@ function syncChatPrefs() {
     btn.classList.toggle('on', active);
     btn.setAttribute('aria-pressed', String(active));
   });
+}
+/* ── Chat-only visual customization ── */
+const CHAT_APPEARANCE_KEYS = ['hisAvatar','herAvatar','taBubble','myBubble','wallpaper'];
+function syncChatAppearance() {
+  const root = $('pg-chat'), body = $('c-body');
+  if (!root || !body) return;
+  const setImage = (el, value, mode) => {
+    if (!el) return;
+    el.style.backgroundImage = value ? `url("${value}")` : '';
+    if (value && mode) el.style.backgroundSize = mode;
+  };
+  setImage(body, S.chatWallpaper, 'cover');
+  body.style.backgroundPosition = 'center';
+  root.style.setProperty('--chat-ta-bubble-image', S.chatTaBubble ? `url("${S.chatTaBubble}")` : 'none');
+  root.style.setProperty('--chat-my-bubble-image', S.chatMyBubble ? `url("${S.chatMyBubble}")` : 'none');
+  const ta = $('ch-ava');
+  if (ta && S.hisAvatar) { ta.style.backgroundImage = `url("${S.hisAvatar}")`; ta.innerHTML = ''; }
+  const typing = $('typing-ava');
+  if (typing && S.hisAvatar) { typing.style.backgroundImage = `url("${S.hisAvatar}")`; typing.innerHTML = ''; }
+}
+function compressChatImage(file, maxSide, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('图片读取失败'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('无法识别这张图片'));
+      img.onload = () => {
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const canvas = D.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function setChatAppearance(key, value) {
+  const stateKey = ({taBubble:'chatTaBubble',myBubble:'chatMyBubble',wallpaper:'chatWallpaper'})[key] || key;
+  S[stateKey] = value;
+  save(stateKey);
+  if (key === 'hisAvatar') updateHeader();
+  if (key === 'herAvatar' || key === 'hisAvatar') renderMsgs();
+  syncChatAppearance();
+}
+function resetChatAppearance(key) {
+  const stateKey = ({taBubble:'chatTaBubble',myBubble:'chatMyBubble',wallpaper:'chatWallpaper'})[key] || key;
+  S[stateKey] = '';
+  save(stateKey);
+  if (key === 'hisAvatar') updateHeader();
+  if (key === 'herAvatar' || key === 'hisAvatar') renderMsgs();
+  syncChatAppearance();
+  toast('已恢复默认样式');
 }
 function renderMeta(m) {
   // 仅展示服务商明确提供的思考摘要，不展示隐藏的原始推理内容。
@@ -918,6 +992,33 @@ function bindEvents() {
     $('chat-ai-status').textContent = S.aiKey ? '已配置' : '尚未配置';
     toast(S.aiKey ? 'AI 连接设置已保存' : '已保存接口与模型，请补充 API Key');
   };
+
+  // 上传头像、气泡与壁纸：全部属于 Chat 页面，图片压缩后保存在本机。
+  let pendingAppearanceKey = '';
+  const appearanceFile = $('chat-appearance-file');
+  $('chat-pref').addEventListener('click', async e => {
+    const upload = e.target.closest('[data-appearance-upload]');
+    const reset = e.target.closest('[data-appearance-reset]');
+    if (reset) { resetChatAppearance(reset.dataset.appearanceReset); return; }
+    if (upload) {
+      pendingAppearanceKey = upload.dataset.appearanceUpload;
+      appearanceFile.value = '';
+      appearanceFile.click();
+    }
+  });
+  appearanceFile.addEventListener('change', async e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file || !pendingAppearanceKey) return;
+    if (!file.type.startsWith('image/')) { toast('请选择图片文件'); return; }
+    try {
+      const key = pendingAppearanceKey;
+      const avatar = key === 'hisAvatar' || key === 'herAvatar';
+      const data = await compressChatImage(file, avatar ? 640 : 1440, avatar ? .84 : .8);
+      setChatAppearance(key, data);
+      toast('图片已应用到聊天页');
+    } catch (err) { toast(err.message || '图片处理失败'); }
+    finally { pendingAppearanceKey = ''; appearanceFile.value = ''; }
+  });
 
   // 顶部按钮
   $('ch-music').onclick = () => toast('一起听功能开发中...');
