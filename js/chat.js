@@ -9,7 +9,7 @@ const { fmtClock, toast } = UI;
 
 let aiTyping = false;
 let replyingTo = null;
-let currentChannel = S.chatCurrentWindowId || 'legacy_general';
+let currentChannel = localStorage.getItem('xw_chatCurrentWindowId') || 'legacy_general';
 let typeWriterTimer = null;
 
 const CHANNELS = [
@@ -30,7 +30,7 @@ function getChatWindows() {
     save('chatWindows');
   }
   S.chatWindows = S.chatWindows.filter(w => w && w.id);
-  if (!S.chatWindows.some(w => w.id === currentChannel && !w.archived)) { currentChannel = (S.chatWindows.find(w => !w.archived) || S.chatWindows[0]).id; S.chatCurrentWindowId = currentChannel; save('chatCurrentWindowId'); }
+  if (!S.chatWindows.some(w => w.id === currentChannel && !w.archived)) { currentChannel = (S.chatWindows.find(w => !w.archived) || S.chatWindows[0]).id; localStorage.setItem('xw_chatCurrentWindowId', currentChannel); }
   return S.chatWindows;
 }
 function getCurrentWindow() { return getChatWindows().find(w => w.id === currentChannel) || getChatWindows()[0]; }
@@ -64,7 +64,7 @@ function createChatWindow() {
 }
 function activateWindow(id) {
   const win = getChatWindows().find(w => w.id === id && !w.archived); if (!win) return;
-  currentChannel = id; S.chatCurrentWindowId = id; save('chatCurrentWindowId'); replyingTo = null; $('c-reply')?.classList.remove('show');
+  currentChannel = id; localStorage.setItem('xw_chatCurrentWindowId', id); replyingTo = null; $('c-reply')?.classList.remove('show');
   syncWindowLabel(); renderMsgs(); closeWindowManager();
 }
 function manageWindowAction(action,id) {
@@ -82,7 +82,7 @@ function manageWindowAction(action,id) {
     UI.confirmDialog({title:'删除这段聊天？',text:'这段会话及其中的消息将被永久删除，无法恢复。',okText:'删除',onOk:()=>{
       S.chatWindows = getChatWindows().filter(w=>w.id!==id);
       if (!S.chatWindows.length) S.chatWindows.push({id:'win_'+Date.now().toString(36),title:'新的聊天',messages:[],createdAt:Date.now(),updatedAt:Date.now(),archived:false});
-      if (currentChannel===id) { currentChannel=(S.chatWindows.find(w=>!w.archived)||S.chatWindows[0]).id; S.chatCurrentWindowId=currentChannel; save('chatCurrentWindowId'); }
+      if (currentChannel===id) { currentChannel=(S.chatWindows.find(w=>!w.archived)||S.chatWindows[0]).id; localStorage.setItem('xw_chatCurrentWindowId', currentChannel); }
       save('chatWindows'); syncWindowLabel(); renderMsgs(); renderWindowManager();
     }}); return;
   }
