@@ -4,7 +4,19 @@
 
 (function() {
 const D = document, $ = D.getElementById.bind(D);
+
 const { S, save } = XW;
+
+// Chat-only appearance keys are intentionally outside the global DEF schema.
+// Rehydrate them explicitly so wallpapers, avatars and bubble art survive reloads.
+['chatHisAvatar','chatHerAvatar','chatTaBubble','chatMyBubble','chatWallpaper'].forEach(key => {
+  try {
+    const stored = localStorage.getItem('xw_' + key);
+    if (stored !== null) S[key] = JSON.parse(stored);
+  } catch (err) {
+    console.warn('[Chat] Could not restore appearance setting:', key, err);
+  }
+});
 const { fmtClock, toast } = UI;
 
 // chatWindows is a Chat-only store key, so hydrate it here without changing global store.js.
