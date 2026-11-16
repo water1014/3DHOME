@@ -115,6 +115,14 @@ function build() {
         <button type="button" data-pref="bubble" data-value="off">无背景</button>
       </div>
       <p class="chat-pref-note">思考过程与工具调用会收在消息下方，点击即可展开。</p>
+      <div class="chat-pref-section chat-ai-settings">
+        <span class="chat-pref-label">AI 连接</span>
+        <label class="chat-ai-field"><span>接口地址</span><input id="chat-ai-url" type="url" placeholder="https://api.openai.com/v1/chat/completions"/></label>
+        <label class="chat-ai-field"><span>模型名称</span><input id="chat-ai-model" type="text" placeholder="gpt-4o-mini"/></label>
+        <label class="chat-ai-field"><span>API Key</span><input id="chat-ai-key" type="password" autocomplete="new-password" placeholder="粘贴你的 API Key"/></label>
+        <div class="chat-ai-actions"><button type="button" id="chat-ai-save">保存连接</button><small id="chat-ai-status">尚未配置</small></div>
+        <p class="chat-pref-note">密钥仅保存在当前设备浏览器中。请使用可信的 API 服务商。</p>
+      </div>
       <div class="chat-pref-section">
         <span class="chat-pref-label">会话管理</span>
         <button type="button" class="chat-pref-action" data-chat-action="clear">
@@ -273,7 +281,8 @@ function syncChatPrefs() {
   });
 }
 function renderMeta(m) {
-  const reasoning = m.thinking ?? m.reasoning ?? m.thoughts ?? m.reasoning_content;
+  // 仅展示服务商明确提供的思考摘要，不展示隐藏的原始推理内容。
+  const reasoning = m.reasoningSummary ?? m.reasoning_summary ?? m.thinking_summary ?? m.summary;
   const calls = m.toolCalls ?? m.tool_calls ?? m.tools;
   const parts = [];
   if (reasoning) {
@@ -352,6 +361,12 @@ function sendMsg() {
   const inp = $('c-inp');
   const text = inp.value.trim();
   if (!text || aiTyping) return;
+  if (!S.aiKey) {
+    $('chat-pref').classList.add('show');
+    $('ch-menu').setAttribute('aria-expanded', 'true');
+    toast('先在「更多 → AI 连接」中配置 API Key');
+    return;
+  }
   const msg = { who: 'me', text, t: Date.now() };
   if (replyingTo) { msg.quote = replyingTo; cancelReply(); }
   pushMsgObj(msg);
@@ -367,60 +382,71 @@ function pushMsgObj(msg) {
 }
 
 /* ── AI 回复（打字机效果） ── */
-function aiReply(text) {
+async function aiReply(text) {
   aiTyping = true;
   const body = $('c-body');
-  body.scrollTop = body.scrollHeight;
-
-  const replies = CHANNEL_REPLIES[currentChannel] || CHANNEL_REPLIES.general;
-  let reply = replies.default;
-  const lower = text.toLowerCase();
-  for (const [key, val] of Object.entries(replies)) {
-    if (key === 'default') continue;
-    const patterns = key.split('|');
-    if (patterns.some(p => lower.includes(p))) { reply = val; break; }
-  }
-
-  // 先显示 typing 指示器
   $('c-typing').classList.add('show');
   body.scrollTop = body.scrollHeight;
-
-  const delay = Math.min(800 + reply.length * 50, 2200);
-  setTimeout(() => {
+  try {
+    const history = getChannelMsgs().filter(m => !m._typing).slice(-40).map(m => ({
+      role: m.who === 'ta' ? 'assistant' : 'user',
+      content: String(m.text || (m.type === 'image' ? '[发送了一张图片]' : m.type === 'voice' ? '[发送了一段语音]' : ''))
+    })).filter(m => m.content);
+    const response = await fetch(S.aiUrl || 'https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.aiKey },
+      body: JSON.stringify({
+        model: S.aiModel || 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: '你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' },
+          ...history
+        ],
+        stream: false
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error?.message || data.message || ('API 请求失败（HTTP ' + response.status + '）'));
+    const choice = data.choices?.[0];
+    const message = choice?.message || data.message || {};
+    let reply = message.content;
+    if (Array.isArray(reply)) reply = reply.map(part => typeof part === 'string' ? part : (part.text || '')).join('');
+    if (typeof reply !== 'string' || !reply.trim()) {
+      if (Array.isArray(message.tool_calls) && message.tool_calls.length) reply = '模型请求调用工具，但当前聊天页还没有配置对应的工具执行器。';
+      else throw new Error('接口已返回，但没有可显示的文字回复。请检查模型与接口兼容性。');
+    }
+    const reasoningSummary = message.reasoning_summary || message.thinking_summary || message.summary || null;
+    const toolCalls = message.tool_calls || data.tool_calls || [];
     $('c-typing').classList.remove('show');
-
-    // 打字机效果
     const msgs = getChannelMsgs();
     const msgIdx = msgs.length;
-    msgs.push({ who: 'ta', text: '', t: Date.now(), _typing: true });
+    const answer = { who: 'ta', text: '', t: Date.now() };
+    if (reasoningSummary) answer.reasoningSummary = typeof reasoningSummary === 'string' ? reasoningSummary : JSON.stringify(reasoningSummary);
+    if (Array.isArray(toolCalls) && toolCalls.length) answer.toolCalls = toolCalls;
+    msgs.push(answer);
     saveChannelMsgs(msgs);
     renderMsgs();
-
     let idx = 0;
-    const speed = 40;
     clearInterval(typeWriterTimer);
     typeWriterTimer = setInterval(() => {
-      idx++;
-      const msgs2 = getChannelMsgs();
-      if (msgIdx < msgs2.length) {
-        msgs2[msgIdx].text = reply.slice(0, idx);
-        saveChannelMsgs(msgs2);
+      idx = Math.min(idx + 2, reply.length);
+      const live = getChannelMsgs();
+      if (live[msgIdx]) {
+        live[msgIdx].text = reply.slice(0, idx);
+        saveChannelMsgs(live);
         renderMsgs();
-        const body2 = $('c-body');
-        body2.scrollTop = body2.scrollHeight;
+        const scroller = $('c-body');
+        scroller.scrollTop = scroller.scrollHeight;
       }
       if (idx >= reply.length) {
         clearInterval(typeWriterTimer);
-        const msgs3 = getChannelMsgs();
-        if (msgIdx < msgs3.length) {
-          delete msgs3[msgIdx]._typing;
-          saveChannelMsgs(msgs3);
-          renderMsgs();
-        }
         aiTyping = false;
       }
-    }, speed);
-  }, delay);
+    }, 22);
+  } catch (err) {
+    $('c-typing').classList.remove('show');
+    aiTyping = false;
+    toast(err.message || '连接失败，请检查 API 设置');
+  }
 }
 
 /* ── 引用回复 ── */
@@ -695,6 +721,19 @@ function bindEvents() {
       setTimeout(() => target.classList.remove('search-hit'), 1800);
     }
   });
+
+  // AI 连接设置
+  $('chat-ai-url').value = S.aiUrl || 'https://api.openai.com/v1/chat/completions';
+  $('chat-ai-model').value = S.aiModel || 'gpt-4o-mini';
+  $('chat-ai-key').value = S.aiKey || '';
+  $('chat-ai-save').onclick = () => {
+    S.aiUrl = $('chat-ai-url').value.trim() || 'https://api.openai.com/v1/chat/completions';
+    S.aiModel = $('chat-ai-model').value.trim() || 'gpt-4o-mini';
+    S.aiKey = $('chat-ai-key').value.trim();
+    ['aiUrl','aiModel','aiKey'].forEach(save);
+    $('chat-ai-status').textContent = S.aiKey ? '已配置' : '尚未配置';
+    toast(S.aiKey ? 'AI 连接设置已保存' : '已保存接口与模型，请补充 API Key');
+  };
 
   // 顶部按钮
   $('ch-music').onclick = () => toast('一起听功能开发中...');
