@@ -15,6 +15,7 @@ try {
 
 let aiTyping = false;
 let aiReplyWindowId = null;
+let activeAIController = null;
 let replyingTo = null;
 let currentChannel = localStorage.getItem('xw_chatCurrentWindowId') || 'legacy_general';
 let typeWriterTimer = null;
@@ -444,6 +445,7 @@ function renderMeta(m) {
 function renderMsgs() {
   const body = $('c-body');
   if (!body) return;
+  const followLatest = body.scrollHeight - body.scrollTop - body.clientHeight < 110;
   const msgs = getChannelMsgs(), prefs = getChatPrefs();
   let lastDate = '', lastWho = '';
   body.innerHTML = msgs.map((m, i) => {
@@ -467,7 +469,7 @@ function renderMsgs() {
     if (isTa) return dateSep + `<div class="msg ta bubble-item${gapClass}${typingClass}${mergedClass}" data-i="${i}">${merged ? '<span class="msg-ava-spacer"></span>' : getAvaHtml('ta')}<div class="msg-col">${content}</div></div>`;
     return dateSep + `<div class="msg me bubble-item${gapClass}${typingClass}${mergedClass}" data-i="${i}"><div class="msg-col">${content}</div>${merged ? '<span class="msg-ava-spacer"></span>' : getAvaHtml('me')}</div>`;
   }).join('');
-  body.scrollTop = body.scrollHeight;
+  if (followLatest) body.scrollTop = body.scrollHeight;
   hydrateChatMedia(body);
 }
 function renderVoiceBubble(m) {
@@ -525,6 +527,8 @@ function pushMsgObj(msg) {
 /* ── AI 回复（打字机效果） ── */
 async function aiReply(text) {
   aiTyping = true;
+  activeAIController = new AbortController();
+  updateSendControl();
   const replyWindowId = currentChannel;
   aiReplyWindowId = replyWindowId;
   const replyWindow = () => getChatWindows().find(w => w.id === replyWindowId);
@@ -537,7 +541,8 @@ async function aiReply(text) {
     save('chatWindows');
   };
   const finish = () => {
-    aiTyping = false; aiReplyWindowId = null;
+    aiTyping = false; aiReplyWindowId = null; activeAIController = null;
+    updateSendControl();
     if (currentChannel === replyWindowId) $('c-typing')?.classList.remove('show');
   };
   const readReasoning = message => {
@@ -562,7 +567,7 @@ async function aiReply(text) {
   const paint = () => {
     if (currentChannel === replyWindowId) {
       renderMsgs();
-      const scroller = $('c-body'); if (scroller) scroller.scrollTop = scroller.scrollHeight;
+      // renderMsgs preserves the reader's position; it only follows when already near the latest message.
     }
   };
   const applyChunk = chunk => {
@@ -602,6 +607,7 @@ async function aiReply(text) {
     const response = await fetch(S.aiUrl || 'https://api.openai.com/v1/chat/completions', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.aiKey},
+      signal:activeAIController.signal,
       body:JSON.stringify({
         model:S.aiModel || 'gpt-4o-mini',
         messages:[
@@ -668,9 +674,26 @@ async function aiReply(text) {
     saveReplyMessages(finalMsgs); paint();
     finish();
   } catch (err) {
+    const wasCancelled = err?.name === 'AbortError';
     finish();
-    toast(err.message || '连接失败，请检查 API 设置');
+    if (wasCancelled) {
+      if (answer && reply.trim()) { answer.text = reply; answer.interrupted = true; const msgs=replyMessages(); if(msgs[msgIdx])msgs[msgIdx]=answer; saveReplyMessages(msgs); paint(); }
+      toast('已暂停回复');
+    } else toast(err.message || '连接失败，请检查 API 设置');
   }
+}
+
+function updateSendControl() {
+  const btn=$('c-send'); if(!btn)return;
+  btn.classList.toggle('is-stop',!!aiTyping);
+  btn.title=aiTyping?'暂停回复':'发送消息';
+  btn.setAttribute('aria-label',aiTyping?'暂停回复':'发送消息');
+  btn.innerHTML=aiTyping
+    ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14"/><path d="m21 3-7 18-4-7-7-4 18-7Z"/></svg>';
+}
+function stopAIReply() {
+  if (activeAIController && aiTyping) activeAIController.abort();
 }
 
 /* ── 引用回复 ── */
@@ -850,7 +873,8 @@ function switchChannel(id) { activateWindow(id); }
 
 /* ── 事件绑定 ── */
 function bindEvents() {
-  $('c-send').onclick = sendMsg;
+  $('c-send').onclick = () => aiTyping ? stopAIReply() : sendMsg();
+  updateSendControl();
   $('c-inp').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } });
   $('c-inp').addEventListener('input', function() { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 112) + 'px'; });
 
