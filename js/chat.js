@@ -310,8 +310,9 @@ function updateHeader() {
   const name = $('ch-name');
   if (!ava || !name) return;
   name.textContent = S.hisName || 'TA';
-  if (S.hisAvatar) {
-    ava.style.backgroundImage = `url(${S.hisAvatar})`;
+  const chatHisAvatar = S.chatHisAvatar || S.hisAvatar;
+  if (chatHisAvatar) {
+    ava.style.backgroundImage = `url(${chatHisAvatar})`;
     ava.innerHTML = '';
   } else {
     ava.style.backgroundImage = '';
@@ -319,15 +320,15 @@ function updateHeader() {
   }
   const typingAva = $('typing-ava');
   if (typingAva) {
-    typingAva.style.backgroundImage = S.hisAvatar ? `url(${S.hisAvatar})` : '';
-    typingAva.innerHTML = S.hisAvatar ? '' : `<b>${(S.hisName || '他').charAt(0)}</b>`;
+    typingAva.style.backgroundImage = chatHisAvatar ? `url(${chatHisAvatar})` : '';
+    typingAva.innerHTML = chatHisAvatar ? '' : `<b>${(S.hisName || '他').charAt(0)}</b>`;
   }
   syncChatAppearance();
 }
 
 function getAvaHtml(who, size) {
   const isTa = who === 'ta';
-  const img = isTa ? S.hisAvatar : S.herAvatar;
+  const img = isTa ? (S.chatHisAvatar || S.hisAvatar) : (S.chatHerAvatar || S.herAvatar);
   const name = isTa ? (S.hisName || '他') : (S.herName || '她');
   const cls = size || 'msg-ava';
   if (img) {
@@ -367,10 +368,11 @@ function syncChatAppearance() {
   body.style.backgroundPosition = 'center';
   root.style.setProperty('--chat-ta-bubble-image', S.chatTaBubble ? `url("${S.chatTaBubble}")` : 'none');
   root.style.setProperty('--chat-my-bubble-image', S.chatMyBubble ? `url("${S.chatMyBubble}")` : 'none');
+  const hisAvatar = S.chatHisAvatar || S.hisAvatar;
   const ta = $('ch-ava');
-  if (ta && S.hisAvatar) { ta.style.backgroundImage = `url("${S.hisAvatar}")`; ta.innerHTML = ''; }
+  if (ta) { ta.style.backgroundImage = hisAvatar ? `url("${hisAvatar}")` : ''; if (hisAvatar) ta.innerHTML = ''; }
   const typing = $('typing-ava');
-  if (typing && S.hisAvatar) { typing.style.backgroundImage = `url("${S.hisAvatar}")`; typing.innerHTML = ''; }
+  if (typing) { typing.style.backgroundImage = hisAvatar ? `url("${hisAvatar}")` : ''; if (hisAvatar) typing.innerHTML = ''; }
 }
 function compressChatImage(file, maxSide, quality) {
   return new Promise((resolve, reject) => {
@@ -394,7 +396,7 @@ function compressChatImage(file, maxSide, quality) {
   });
 }
 function setChatAppearance(key, value) {
-  const stateKey = ({taBubble:'chatTaBubble',myBubble:'chatMyBubble',wallpaper:'chatWallpaper'})[key] || key;
+  const stateKey = ({hisAvatar:'chatHisAvatar',herAvatar:'chatHerAvatar',taBubble:'chatTaBubble',myBubble:'chatMyBubble',wallpaper:'chatWallpaper'})[key] || key;
   S[stateKey] = value;
   save(stateKey);
   if (key === 'hisAvatar') updateHeader();
