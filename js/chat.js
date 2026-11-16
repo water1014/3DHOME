@@ -656,7 +656,7 @@ function bindEvents() {
     const host = $('chat-search-results'), q = searchInput.value.trim().toLocaleLowerCase();
     if (!q) {
       host.innerHTML = searchHistory.length
-        ? '<div class="chat-search-caption">最近找过</div>' + searchHistory.map(v => '<button type="button" class="chat-search-history" data-history="' + esc(v) + '">' + esc(v) + '</button>').join('')
+        ? '<div class="chat-search-caption">最近找过</div>' + searchHistory.map((v, i) => '<button type="button" class="chat-search-history" data-history-index="' + i + '">' + esc(v) + '</button>').join('')
         : '<div class="chat-search-empty">输入关键词，找回某个瞬间。</div>';
       return;
     }
@@ -700,8 +700,8 @@ function bindEvents() {
     renderSearchResults();
   });
   $('chat-search-results').addEventListener('click', e => {
-    const historyBtn = e.target.closest('[data-history]');
-    if (historyBtn) { searchInput.value = historyBtn.dataset.history; renderSearchResults(); return; }
+    const historyBtn = e.target.closest('[data-history-index]');
+    if (historyBtn) { searchInput.value = searchHistory[Number(historyBtn.dataset.historyIndex)] || ''; renderSearchResults(); return; }
     const result = e.target.closest('[data-search-index]');
     if (!result) return;
     const q = searchInput.value.trim();
@@ -726,6 +726,7 @@ function bindEvents() {
   $('chat-ai-url').value = S.aiUrl || 'https://api.openai.com/v1/chat/completions';
   $('chat-ai-model').value = S.aiModel || 'gpt-4o-mini';
   $('chat-ai-key').value = S.aiKey || '';
+  $('chat-ai-status').textContent = S.aiKey ? '已配置' : '尚未配置';
   $('chat-ai-save').onclick = () => {
     S.aiUrl = $('chat-ai-url').value.trim() || 'https://api.openai.com/v1/chat/completions';
     S.aiModel = $('chat-ai-model').value.trim() || 'gpt-4o-mini';
