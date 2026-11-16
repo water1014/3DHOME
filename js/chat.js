@@ -788,6 +788,7 @@ async function hydrateChatMedia(scope) {
       const url=URL.createObjectURL(item.blob);
       if(node.tagName==='IMG'||node.tagName==='VIDEO') node.src=url;
       else if(node.tagName==='A') {node.href=url;node.download=item.name;}
+      else node.style.backgroundImage = `url("${url}")`;
       node.dataset.objectUrl=url;
     } catch { node.textContent='媒体加载失败'; }
   }
@@ -976,7 +977,7 @@ function bindEvents() {
   }
   function renderSearchResults() {
     const host = $('chat-search-results'), q = searchInput.value.trim().toLocaleLowerCase();
-    if (!q && !selectedSearchDate) {
+    if (!q && !selectedSearchDate && searchType === 'all') {
       host.innerHTML = searchHistory.length
         ? '<div class="chat-search-caption">最近找过</div>' + searchHistory.map((v, i) => '<button type="button" class="chat-search-history" data-history-index="' + i + '">' + esc(v) + '</button>').join('')
         : '<div class="chat-search-empty">输入关键词，找回某个瞬间。</div>';
