@@ -168,7 +168,9 @@ html.dark #pg-chat .msg.me .bubble { color:var(--on-dark); background:var(--dark
 /* Composer: Messages-like floating writing field, without fighting the global tab bar. */
 #pg-chat .input-bar {
   z-index:4; flex:0 0 auto; position:relative;
-  margin:0; padding:.55rem var(--page-pad) calc(var(--tabbar-h) + 1.55rem + env(safe-area-inset-bottom));
+  /* Reserve the floating global tabbar as real layout space, not composer padding. */
+  margin:0 0 calc(var(--tabbar-h) + 1.15rem + env(safe-area-inset-bottom));
+  padding:.55rem var(--page-pad) calc(.55rem + env(safe-area-inset-bottom));
   border-top:1px solid var(--line);
   background:linear-gradient(180deg,rgba(245,245,246,.76),rgba(245,245,246,.94));
   -webkit-backdrop-filter:blur(9px); backdrop-filter:blur(9px);
