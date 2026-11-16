@@ -239,6 +239,23 @@ html.dark #pg-chat .input-bar {
 #pg-chat .img-bubble img { display:block; max-width:100%; max-height:15rem; object-fit:cover; }
 #pg-chat .pat-bubble { font:.7rem/1.5 var(--serif); }
 #pg-chat .input-bar .tool-panel { bottom:calc(100% - .15rem); }
+#pg-chat .emoji-panel {
+  display:none; position:absolute; z-index:22; right:var(--page-pad);
+  bottom:calc(100% - .12rem); width:min(19rem,calc(100vw - 2 * var(--page-pad)));
+  padding:.72rem; border:1px solid var(--glass-brd); border-radius:.9rem;
+  background:var(--glass-strong); box-shadow:0 10px 28px rgba(0,0,0,.12);
+  -webkit-backdrop-filter:blur(9px); backdrop-filter:blur(9px);
+}
+#pg-chat .emoji-panel.show { display:block; animation:chatPrefIn .16s ease-out both; }
+#pg-chat .emoji-panel-head { display:flex; align-items:baseline; justify-content:space-between; gap:.5rem; margin-bottom:.5rem; color:var(--ink-2); font:.62rem var(--serif); }
+#pg-chat .emoji-panel-head small { color:var(--ink-3); font:.42rem var(--mono); }
+#pg-chat .emoji-grid { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:.12rem; }
+#pg-chat .emoji-choice {
+  display:grid; place-items:center; min-width:0; aspect-ratio:1; padding:0;
+  border:0; border-radius:.42rem; background:transparent; font-size:1.18rem;
+}
+#pg-chat .emoji-choice:active { background:rgba(128,128,128,.13); transform:scale(.92); }
+
 
 /* Tablet: keep the conversation column comfortable, never stretch bubbles across the screen. */
 @media (min-width:600px) {
