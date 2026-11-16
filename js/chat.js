@@ -104,6 +104,18 @@ function build() {
       ${CHANNELS.map((c, i) => `<button class="channel-tab ${i===0?'on':''}" data-ch="${c.key}">${c.label}<span class="ch-sub">${c.sub}</span></button>`).join('')}
     </div>
 
+    <div class="chat-pref" id="chat-pref" aria-label="聊天显示设置">
+      <div class="chat-pref-group"><span class="chat-pref-label">消息排列</span>
+        <button type="button" data-pref="split" data-value="split">逐条切分</button>
+        <button type="button" data-pref="split" data-value="merge">连续合并</button>
+      </div>
+      <div class="chat-pref-group"><span class="chat-pref-label">气泡背景</span>
+        <button type="button" data-pref="bubble" data-value="on">显示</button>
+        <button type="button" data-pref="bubble" data-value="off">无背景</button>
+      </div>
+      <p class="chat-pref-note">思考过程与工具调用会收在消息下方，点击即可展开。</p>
+    </div>
+
     <div class="chat-body" id="c-body"></div>
 
     <!-- 正在输入指示器 -->
@@ -195,6 +207,7 @@ function build() {
     </div>`;
 
   updateHeader();
+  syncChatPrefs();
   renderMsgs();
   bindEvents();
 }
@@ -223,57 +236,71 @@ function getAvaHtml(who, size) {
   return `<div class="${cls} ${who}-ava" data-who="${who}"><b>${name.charAt(0)}</b></div>`;
 }
 
-/* ── 渲染消息（QQ 切分模式：每条消息独立头像） ── */
+/* ── 消息显示偏好 ── */
+function getChatPrefs() {
+  if (!S.chatSplitMode) S.chatSplitMode = 'split';
+  if (typeof S.chatBubbleBg !== 'boolean') S.chatBubbleBg = true;
+  return { split: S.chatSplitMode, bubble: S.chatBubbleBg };
+}
+function syncChatPrefs() {
+  const prefs = getChatPrefs(), root = $('pg-chat');
+  root.classList.toggle('chat-no-bubble', !prefs.bubble);
+  $('chat-pref')?.querySelectorAll('[data-pref]').forEach(btn => {
+    const active = btn.dataset.pref === 'split'
+      ? prefs.split === btn.dataset.value
+      : prefs.bubble === (btn.dataset.value === 'on');
+    btn.classList.toggle('on', active);
+    btn.setAttribute('aria-pressed', String(active));
+  });
+}
+function renderMeta(m) {
+  const reasoning = m.thinking ?? m.reasoning ?? m.thoughts ?? m.reasoning_content;
+  const calls = m.toolCalls ?? m.tool_calls ?? m.tools;
+  const parts = [];
+  if (reasoning) {
+    const value = typeof reasoning === 'string' ? reasoning : JSON.stringify(reasoning, null, 2);
+    parts.push(`<details class="msg-meta"><summary><span class="meta-mark">✦</span>思考过程</summary><div class="meta-content">${esc(value)}</div></details>`);
+  }
+  if (Array.isArray(calls) && calls.length) {
+    const rows = calls.map((call, n) => {
+      const name = call?.name || call?.function?.name || call?.tool || `工具 ${n + 1}`;
+      const status = call?.status || call?.state || '已调用';
+      const payload = call?.arguments ?? call?.input ?? call?.output ?? call?.result;
+      const detail = payload == null ? '' : esc(typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2));
+      return `<div class="tool-record"><div class="tool-record-head"><b>${esc(String(name))}</b><span>${esc(String(status))}</span></div>${detail ? `<pre>${detail}</pre>` : ''}</div>`;
+    }).join('');
+    parts.push(`<details class="msg-meta tool-meta"><summary><span class="meta-mark">⌘</span>工具调用 <i>${calls.length}</i></summary><div class="meta-content">${rows}</div></details>`);
+  }
+  return parts.length ? `<div class="msg-meta-stack">${parts.join('')}</div>` : '';
+}
+
+/* ── 渲染消息：支持 QQ 切分 / 连续消息合并 ── */
 function renderMsgs() {
   const body = $('c-body');
   if (!body) return;
-  const msgs = getChannelMsgs();
-  let lastDate = '';
-  let lastWho = '';
-
+  const msgs = getChannelMsgs(), prefs = getChatPrefs();
+  let lastDate = '', lastWho = '';
   body.innerHTML = msgs.map((m, i) => {
-    const d = new Date(m.t);
+    const d = new Date(m.t || Date.now());
     const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    let dateSep = '';
-    if (dateStr !== lastDate) { lastDate = dateStr; dateSep = `<div class="date-sep"><span>${dateStr}</span></div>`; }
-
-    const isTa = m.who === 'ta';
-    const sameSender = lastWho === m.who;
+    const dateChanged = dateStr !== lastDate;
+    const dateSep = dateChanged ? `<div class="date-sep"><span>${dateStr}</span></div>` : '';
+    if (dateChanged) lastWho = '';
+    lastDate = dateStr;
+    const isTa = m.who === 'ta', sameSender = lastWho === m.who;
     lastWho = m.who;
-
-    // 同发送者连续消息：小间距 + 隐藏上一个消息的时间戳
+    const merged = prefs.split === 'merge' && sameSender;
     const gapClass = sameSender ? ' msg-gap-sm' : ' msg-gap-lg';
     const typingClass = m._typing ? ' typing-msg' : '';
-    const quote = m.quote ? `<div class="bubble-quote">${esc(m.quote.text)}</div>` : '';
+    const quote = m.quote ? `<div class="bubble-quote"><small>${esc(m.quote.who || '')}</small>${esc(m.quote.text || '')}</div>` : '';
     const textHtml = m._typing ? `<span class="tw-cursor">${esc(m.text)}</span>` : esc(m.text);
-    const thinkingLabel = isTa ? `<div class="msg-thinking">thinking...</div>` : '';
-
-    const content = `
-      ${thinkingLabel}
-      <div class="bubble">
-        ${quote}
-        ${m.type === 'voice' ? renderVoiceBubble(m) : m.type === 'image' ? renderImgBubble(m, i) : m.type === 'pat' ? renderPatBubble(m) : textHtml}
-      </div>
-      <div class="msg-time">${fmtClock(m.t)}</div>
-    `;
-
-    if (isTa) {
-      return dateSep + `
-      <div class="msg ta${gapClass}${typingClass}" data-i="${i}">
-        ${getAvaHtml('ta')}
-        <div class="msg-col">${content}</div>
-      </div>`;
-    } else {
-      return dateSep + `
-      <div class="msg me${gapClass}${typingClass}" data-i="${i}">
-        <div class="msg-col">${content}</div>
-        ${getAvaHtml('me')}
-      </div>`;
-    }
+    const content = `${renderMeta(m)}<div class="bubble">${quote}${m.type === 'voice' ? renderVoiceBubble(m) : m.type === 'image' ? renderImgBubble(m, i) : m.type === 'pat' ? renderPatBubble(m) : textHtml}</div><div class="msg-time">${fmtClock(m.t)}</div>`;
+    const mergedClass = merged ? ' msg-merged' : '';
+    if (isTa) return dateSep + `<div class="msg ta bubble-item${gapClass}${typingClass}${mergedClass}" data-i="${i}">${merged ? '<span class="msg-ava-spacer"></span>' : getAvaHtml('ta')}<div class="msg-col">${content}</div></div>`;
+    return dateSep + `<div class="msg me bubble-item${gapClass}${typingClass}${mergedClass}" data-i="${i}"><div class="msg-col">${content}</div>${merged ? '<span class="msg-ava-spacer"></span>' : getAvaHtml('me')}</div>`;
   }).join('');
   body.scrollTop = body.scrollHeight;
 }
-
 function renderVoiceBubble(m) {
   const dur = m.dur || 3;
   const w = Math.min(60 + dur * 10, 200);
@@ -547,7 +574,24 @@ function bindEvents() {
 
   // 顶部按钮
   $('ch-music').onclick = () => toast('一起听功能开发中...');
-  $('ch-menu').onclick = () => toast('更多功能开发中...');
+  $('ch-menu').onclick = () => {
+    const panel = $('chat-pref');
+    panel.classList.toggle('show');
+    $('ch-menu').setAttribute('aria-expanded', String(panel.classList.contains('show')));
+  };
+  $('chat-pref').querySelectorAll('[data-pref]').forEach(btn => {
+    btn.onclick = () => {
+      if (btn.dataset.pref === 'split') {
+        S.chatSplitMode = btn.dataset.value;
+        save('chatSplitMode');
+      } else {
+        S.chatBubbleBg = btn.dataset.value === 'on';
+        save('chatBubbleBg');
+      }
+      syncChatPrefs();
+      renderMsgs();
+    };
+  });
 }
 
 window.Chat = { build };
