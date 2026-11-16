@@ -9,7 +9,7 @@ const { fmtClock, toast } = UI;
 
 let aiTyping = false;
 let replyingTo = null;
-let currentChannel = 'legacy_general';
+let currentChannel = S.chatCurrentWindowId || 'legacy_general';
 let typeWriterTimer = null;
 
 const CHANNELS = [
@@ -30,7 +30,7 @@ function getChatWindows() {
     save('chatWindows');
   }
   S.chatWindows = S.chatWindows.filter(w => w && w.id);
-  if (!S.chatWindows.some(w => w.id === currentChannel && !w.archived)) currentChannel = (S.chatWindows.find(w => !w.archived) || S.chatWindows[0]).id;
+  if (!S.chatWindows.some(w => w.id === currentChannel && !w.archived)) { currentChannel = (S.chatWindows.find(w => !w.archived) || S.chatWindows[0]).id; S.chatCurrentWindowId = currentChannel; save('chatCurrentWindowId'); }
   return S.chatWindows;
 }
 function getCurrentWindow() { return getChatWindows().find(w => w.id === currentChannel) || getChatWindows()[0]; }
@@ -59,12 +59,12 @@ function createChatWindow() {
   const title = prompt('给这段新聊天起个名字', '新的聊天'); if (title === null) return;
   const clean = title.trim().slice(0,32) || '新的聊天';
   const win = { id:'win_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7), title:clean, messages:[], createdAt:Date.now(), updatedAt:Date.now(), archived:false };
-  getChatWindows().push(win); save('chatWindows'); currentChannel = win.id;
+  getChatWindows().push(win); save('chatWindows'); currentChannel = win.id; S.chatCurrentWindowId = currentChannel; save('chatCurrentWindowId');
   syncWindowLabel(); renderMsgs(); closeWindowManager(); toast('新会话已创建');
 }
 function activateWindow(id) {
   const win = getChatWindows().find(w => w.id === id && !w.archived); if (!win) return;
-  currentChannel = id; replyingTo = null; $('c-reply')?.classList.remove('show');
+  currentChannel = id; S.chatCurrentWindowId = id; save('chatCurrentWindowId'); replyingTo = null; $('c-reply')?.classList.remove('show');
   syncWindowLabel(); renderMsgs(); closeWindowManager();
 }
 function manageWindowAction(action,id) {
@@ -75,14 +75,14 @@ function manageWindowAction(action,id) {
   } else if (action === 'archive') {
     const next = getChatWindows().find(w => !w.archived && w.id !== id);
     if (id === currentChannel && !next) { toast('至少保留一个正在使用的会话'); return; }
-    if (id === currentChannel) currentChannel = next.id;
+    if (id === currentChannel) { currentChannel = next.id; S.chatCurrentWindowId = currentChannel; save('chatCurrentWindowId'); }
     win.archived = true; syncWindowLabel(); renderMsgs();
   } else if (action === 'restore') win.archived = false;
   else if (action === 'delete') {
     UI.confirmDialog({title:'删除这段聊天？',text:'这段会话及其中的消息将被永久删除，无法恢复。',okText:'删除',onOk:()=>{
       S.chatWindows = getChatWindows().filter(w=>w.id!==id);
       if (!S.chatWindows.length) S.chatWindows.push({id:'win_'+Date.now().toString(36),title:'新的聊天',messages:[],createdAt:Date.now(),updatedAt:Date.now(),archived:false});
-      if (currentChannel===id) currentChannel=(S.chatWindows.find(w=>!w.archived)||S.chatWindows[0]).id;
+      if (currentChannel===id) { currentChannel=(S.chatWindows.find(w=>!w.archived)||S.chatWindows[0]).id; S.chatCurrentWindowId=currentChannel; save('chatCurrentWindowId'); }
       save('chatWindows'); syncWindowLabel(); renderMsgs(); renderWindowManager();
     }}); return;
   }
@@ -417,11 +417,19 @@ function pushMsgObj(msg) {
 /* ── AI 回复（打字机效果） ── */
 async function aiReply(text) {
   aiTyping = true;
+  const replyWindowId = currentChannel;
+  const replyWindow = () => getChatWindows().find(w => w.id === replyWindowId);
+  const replyMessages = () => replyWindow()?.messages || [];
+  const saveReplyMessages = msgs => {
+    const win = replyWindow(); if (!win) return;
+    win.messages = msgs; win.updatedAt = Date.now(); save('chatWindows');
+    if (win.legacyKey) { S.chatMsgsByChannel = S.chatMsgsByChannel || {}; S.chatMsgsByChannel[win.legacyKey] = msgs; save('chatMsgsByChannel'); }
+  };
   const body = $('c-body');
   $('c-typing').classList.add('show');
   body.scrollTop = body.scrollHeight;
   try {
-    const history = getChannelMsgs().filter(m => !m._typing).slice(-40).map(m => ({
+    const history = replyMessages().filter(m => !m._typing).slice(-40).map(m => ({
       role: m.who === 'ta' ? 'assistant' : 'user',
       content: String(m.text || (m.type === 'image' ? '[发送了一张图片]' : m.type === 'voice' ? '[发送了一段语音]' : ''))
     })).filter(m => m.content);
@@ -450,25 +458,27 @@ async function aiReply(text) {
     const reasoningSummary = message.reasoning_summary || message.thinking_summary || message.summary || null;
     const toolCalls = message.tool_calls || data.tool_calls || [];
     $('c-typing').classList.remove('show');
-    const msgs = getChannelMsgs();
+    const msgs = replyMessages();
     const msgIdx = msgs.length;
     const answer = { who: 'ta', text: '', t: Date.now() };
     if (reasoningSummary) answer.reasoningSummary = typeof reasoningSummary === 'string' ? reasoningSummary : JSON.stringify(reasoningSummary);
     if (Array.isArray(toolCalls) && toolCalls.length) answer.toolCalls = toolCalls;
     msgs.push(answer);
-    saveChannelMsgs(msgs);
-    renderMsgs();
+    saveReplyMessages(msgs);
+    if (currentChannel === replyWindowId) renderMsgs();
     let idx = 0;
     clearInterval(typeWriterTimer);
     typeWriterTimer = setInterval(() => {
       idx = Math.min(idx + 2, reply.length);
-      const live = getChannelMsgs();
+      const live = replyMessages();
       if (live[msgIdx]) {
         live[msgIdx].text = reply.slice(0, idx);
-        saveChannelMsgs(live);
-        renderMsgs();
-        const scroller = $('c-body');
-        scroller.scrollTop = scroller.scrollHeight;
+        saveReplyMessages(live);
+        if (currentChannel === replyWindowId) {
+          renderMsgs();
+          const scroller = $('c-body');
+          scroller.scrollTop = scroller.scrollHeight;
+        }
       }
       if (idx >= reply.length) {
         clearInterval(typeWriterTimer);
@@ -785,6 +795,7 @@ function bindEvents() {
       searchHistory.splice(0, searchHistory.length, ...history);
     }
     currentChannel = result.dataset.searchWindow;
+    S.chatCurrentWindowId = currentChannel; save('chatCurrentWindowId');
     syncWindowLabel();
     closeChatSearch();
     renderMsgs();
