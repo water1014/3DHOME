@@ -76,7 +76,7 @@ function build() {
         <button type="button" data-pref="bubble" data-value="on">显示</button>
         <button type="button" data-pref="bubble" data-value="off">无背景</button>
       </div>
-      <p class="chat-pref-note">思考过程与工具调用会收在消息下方，点击即可展开。</p>
+      <p class="chat-pref-note">服务商返回思考摘要或工具调用时，会显示在消息下方；不会伪造缺失内容。</p>
       <div class="chat-pref-section chat-ai-settings">
         <span class="chat-pref-label">AI 连接</span>
         <label class="chat-ai-field"><span>接口地址</span><input id="chat-ai-url" type="url" placeholder="https://api.openai.com/v1/chat/completions"/></label>
