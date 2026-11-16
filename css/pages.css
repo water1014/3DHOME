@@ -1018,3 +1018,102 @@ html.dark .mine-ava {
 }
 .ph-ic { width: 1.6rem; height: 1.6rem; color: var(--ink-3); }
 .ph-desc { font-family: var(--serif); font-size: .82rem; color: var(--ink-2); line-height: 1.8; max-width: 13rem; }
+
+
+/* ══════════════════════════════════════════════
+   小窝视觉校准 · 按设计规范统一材质与节奏
+   ══════════════════════════════════════════════ */
+.fe-hd { padding-top: calc(.55rem + env(safe-area-inset-top)); }
+.fe-menu { border:1px solid var(--line); background:var(--glass); }
+.fe-time { font-family:var(--display); font-size:1rem; letter-spacing:.08em; }
+.fe-weather { font-family:var(--mono); font-size:.55rem; letter-spacing:.12em; }
+.fe-body { padding: .15rem 1.15rem 1.1rem; }
+.fe-profile {
+  padding:1.15rem 1rem 1rem;
+  border-radius:1.15rem;
+  -webkit-backdrop-filter:var(--blur);
+  backdrop-filter:var(--blur);
+  box-shadow:0 3px 18px rgba(20,20,25,.045),inset 0 1px 0 var(--glass-hi);
+}
+.fp-ava { width:3.35rem;height:3.35rem;border:1px solid var(--glass-brd); }
+.fp-days { font-size:3.35rem; letter-spacing:-.045em; }
+.fp-names { letter-spacing:.13em; }
+.fp-line { font-size:.46rem; letter-spacing:.13em; }
+.fe-nav { justify-content:space-between; gap:.45rem; margin:.65rem .05rem .8rem; }
+.fn-pill {
+  flex:1; justify-content:center; gap:.35rem;
+  padding:.48rem .35rem;
+  border-radius:.55rem;
+  background:var(--ink);
+  border:1px solid var(--ink);
+  color:var(--on-dark);
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  font-size:.65rem;
+}
+html.dark .fn-pill { background:var(--glass-strong); color:var(--ink); border-color:var(--glass-brd); }
+.fn-pill:hover { background:var(--ink-2); color:var(--on-dark); transform:translateY(-1px); }
+.fn-pill .ic { width:.72rem;height:.72rem; }
+.fe-letter { min-height:6.5rem; margin-bottom:.9rem; }
+.flip-inner { min-height:6.5rem; }
+.flip-front,.flip-back {
+  border-radius:.35rem;
+  background-color:var(--paper);
+  color:var(--paper-ink);
+  border:1px solid rgba(120,120,120,.18);
+  box-shadow:0 5px 16px rgba(20,20,25,.055),inset 0 0 0 4px rgba(150,150,150,.055);
+}
+.flip-front::before,.flip-back::before {
+  content:""; position:absolute; inset:.45rem;
+  border:1px solid rgba(130,130,130,.18);
+  pointer-events:none;
+}
+.lf-text { font-family:var(--serif); letter-spacing:.2em; }
+.lf-hint { font-family:var(--display); font-style:italic; letter-spacing:.12em; }
+.fe-photos { margin:.35rem 0 1rem; }
+.ph-header { display:flex; align-items:baseline; gap:.45rem; margin-bottom:.55rem; }
+.ph-title { font-family:var(--display); font-size:1.15rem; font-style:italic; letter-spacing:.08em; }
+.ph-count { font-family:var(--mono); font-size:.48rem; color:var(--ink-3); }
+.ph-frame {
+  background:#f8f8f6;
+  border:1px solid rgba(20,20,25,.08);
+  box-shadow:0 4px 13px rgba(20,20,25,.09);
+}
+.ph-img { filter:grayscale(1); }
+.ph-cap { color:#555; font-family:var(--display); font-style:italic; letter-spacing:.1em; }
+.fe-vinyl {
+  border:1px solid var(--glass-brd);
+  border-radius:1.15rem;
+  background:var(--glass-strong);
+  -webkit-backdrop-filter:var(--blur);
+  backdrop-filter:var(--blur);
+  box-shadow:var(--card-shadow);
+}
+.v-disc { filter:grayscale(1); }
+.v-label { font-family:var(--mono); letter-spacing:.2em; }
+.v-title { font-family:var(--serif); }
+.v-artist { font-family:var(--display); font-style:italic; }
+.fe-foot { padding:.45rem 1rem calc(var(--tabbar-h) + 1.35rem + env(safe-area-inset-bottom)); }
+.fe-greet { font-family:var(--display); font-style:italic; letter-spacing:.08em; }
+.tabbar {
+  bottom:calc(1.05rem + env(safe-area-inset-bottom));
+  padding:.5rem 1.1rem;
+  background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(20px) saturate(1.05);
+  backdrop-filter:blur(20px) saturate(1.05);
+  border-radius:2rem;
+  box-shadow:0 4px 24px rgba(0,0,0,.08),inset 0 1px 0 var(--glass-hi);
+}
+.tab-item { gap:.28rem; }
+.tab-item .ic { width:1.12rem;height:1.12rem; }
+.tab-item span { font-size:.46rem; letter-spacing:.14em; }
+.chat-header { padding-top:calc(.55rem + env(safe-area-inset-top)); }
+.chat-name,.ph-title,.mine-title { font-family:var(--serif); }
+.chat-status,.micro,.msg-thinking,.msg-time { font-family:var(--mono); }
+.bubble { line-height:1.58; padding:.38rem .58rem; }
+.input-card { box-shadow:0 3px 12px rgba(20,20,25,.045),inset 0 1px 0 var(--glass-hi); }
+html.dark .ph-frame { background:#e9e9e7; }
+@media (min-width:480px) {
+  .fe-body { padding-left:1.35rem; padding-right:1.35rem; }
+}
