@@ -199,7 +199,7 @@ function build() {
       <div class="chat-media-filters" id="chat-media-filters" aria-label="按内容类型查找">
         <button type="button" class="on" data-search-type="all">全部</button><button type="button" data-search-type="image">图片</button><button type="button" data-search-type="video">视频</button><button type="button" data-search-type="file">文件</button><button type="button" data-search-type="sticker">表情</button>
       </div>
-      <div class="chat-date-tools"><button type="button" id="chat-calendar-toggle">⌑ 按日期查找</button><span id="chat-date-label">不限日期</span></div>
+      <div class="chat-date-tools"><button type="button" id="chat-calendar-toggle">⌑ 按日期查找</button><span id="chat-date-label">不限日期</span><button type="button" id="chat-media-library-toggle">▦ 媒体库</button></div>
       <div class="chat-calendar" id="chat-calendar" hidden>
         <div class="chat-calendar-head"><button type="button" id="chat-cal-prev" aria-label="上个月">‹</button><b id="chat-cal-title"></b><button type="button" id="chat-cal-next" aria-label="下个月">›</button></div>
         <div class="chat-calendar-grid chat-calendar-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
@@ -978,7 +978,39 @@ function bindEvents() {
     }
     $('chat-calendar-days').innerHTML = cells.join('');
   }
+  let mediaLibraryMode = false;
+  function renderMediaLibrary() {
+    const host=$('chat-search-results');
+    const records=[];
+    getChatWindows().forEach(win=>{
+      getWindowMessages(win).forEach((m,i)=>{
+        if(!['image','video','file','sticker'].includes(m.type))return;
+        if(searchType!=='all'&&m.type!==searchType)return;
+        records.push({ch:win.id,title:win.title,m,i});
+      });
+    });
+    records.sort((a,b)=>(b.m.t||0)-(a.m.t||0));
+    if(!records.length){host.innerHTML='<div class="chat-search-empty">这里还没有媒体内容。发送的照片、视频、文件和表情会收录在这里。</div>';return;}
+    const groups=new Map();
+    records.forEach(item=>{
+      const d=new Date(item.m.t||Date.now());
+      const key=d.getFullYear()+'年'+(d.getMonth()+1)+'月';
+      if(!groups.has(key))groups.set(key,[]);
+      groups.get(key).push(item);
+    });
+    host.innerHTML=[...groups.entries()].map(([month,items])=>{
+      const cards=items.map(({ch,title,m,i})=>{
+        const meta=esc(title||'聊天');
+        if(m.type==='image'||m.type==='sticker') return '<button type="button" class="media-library-image" data-search-window="'+esc(ch)+'" data-search-index="'+i+'" aria-label="'+meta+' 图片"><span data-media-id="'+esc(m.mediaId||'')+'"></span><small>'+(m.type==='sticker'?'表情':meta)+'</small></button>';
+        const symbol=m.type==='video'?'▶':'↧';
+        return '<button type="button" class="media-library-file" data-search-window="'+esc(ch)+'" data-search-index="'+i+'"><i>'+symbol+'</i><span><b>'+esc(m.fileName||(m.type==='video'?'视频':'文件'))+'</b><small>'+meta+' · '+formatFileSize(m.fileSize||0)+'</small></span></button>';
+      }).join('');
+      return '<section class="media-library-month"><h3>'+month+' <small>'+items.length+' 项</small></h3><div class="media-library-grid">'+cards+'</div></section>';
+    }).join('');
+    hydrateChatMedia(host);
+  }
   function renderSearchResults() {
+    if(mediaLibraryMode){renderMediaLibrary();return;}
     const host = $('chat-search-results'), q = searchInput.value.trim().toLocaleLowerCase();
     if (!q && !selectedSearchDate && searchType === 'all') {
       host.innerHTML = searchHistory.length
@@ -1027,8 +1059,18 @@ function bindEvents() {
   function closeChatSearch() {
     searchPanel.classList.remove('show');
     searchInput.value = '';
+    mediaLibraryMode=false;
+    $('chat-media-library-toggle').classList.remove('on');
+    $('chat-media-library-toggle').textContent='▦ 媒体库';
   }
   $('ch-search').onclick = openChatSearch;
+  $('chat-media-library-toggle').onclick = () => {
+    mediaLibraryMode=!mediaLibraryMode;
+    $('chat-media-library-toggle').classList.toggle('on',mediaLibraryMode);
+    $('chat-media-library-toggle').textContent=mediaLibraryMode?'返回搜索':'▦ 媒体库';
+    $('chat-search-input').placeholder=mediaLibraryMode?'媒体库按类型浏览':'搜索你们说过的话…';
+    renderSearchResults();
+  };
   $('chat-search-close').onclick = closeChatSearch;
   $('chat-calendar-toggle').onclick = () => {
     const cal = $('chat-calendar'); cal.hidden = !cal.hidden;
