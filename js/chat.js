@@ -90,6 +90,7 @@ function build() {
         </div>
       </div>
       <div class="ch-right">
+        <button class="ch-btn" id="ch-search" title="查找聊天记录" aria-label="查找聊天记录"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button>
         <button class="ch-btn" id="ch-music" title="一起听">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
@@ -122,6 +123,16 @@ function build() {
       </div>
     </div>
 
+    <section class="chat-search" id="chat-search" aria-label="查找聊天记录">
+      <div class="chat-search-top">
+        <div class="chat-search-field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input id="chat-search-input" type="search" placeholder="搜索你们说过的话…" autocomplete="off"/><button type="button" id="chat-search-clear" aria-label="清空搜索">×</button></div>
+        <button type="button" class="chat-search-close" id="chat-search-close">完成</button>
+      </div>
+      <div class="chat-search-filters" id="chat-search-filters">
+        <button type="button" class="on" data-search-who="all">全部</button><button type="button" data-search-who="me">我</button><button type="button" data-search-who="ta">TA</button>
+      </div>
+      <div class="chat-search-results" id="chat-search-results"><div class="chat-search-empty">输入关键词，找回某个瞬间。</div></div>
+    </section>
     <div class="chat-body" id="c-body"></div>
 
     <!-- 正在输入指示器 -->
@@ -603,6 +614,86 @@ function bindEvents() {
   // 频道切换
   $('c-channels').querySelectorAll('.channel-tab').forEach(t => {
     t.onclick = () => switchChannel(t.dataset.ch);
+  });
+
+  // 聊天记录查找：跨频道检索，命中后回到原消息位置
+  const searchPanel = $('chat-search'), searchInput = $('chat-search-input');
+  let searchWho = 'all';
+  const searchHistory = (() => { try { return JSON.parse(localStorage.getItem('xw_chatSearchHistory') || '[]'); } catch { return []; } })();
+  function searchText(m) {
+    if (m.text) return String(m.text);
+    if (m.type === 'image') return '[图片]';
+    if (m.type === 'voice') return '[语音]';
+    return '';
+  }
+  function renderSearchResults() {
+    const host = $('chat-search-results'), q = searchInput.value.trim().toLocaleLowerCase();
+    if (!q) {
+      host.innerHTML = searchHistory.length
+        ? '<div class="chat-search-caption">最近找过</div>' + searchHistory.map(v => '<button type="button" class="chat-search-history" data-history="' + esc(v) + '">' + esc(v) + '</button>').join('')
+        : '<div class="chat-search-empty">输入关键词，找回某个瞬间。</div>';
+      return;
+    }
+    const all = [];
+    Object.entries(S.chatMsgsByChannel || {}).forEach(([ch, list]) => {
+      (list || []).forEach((m, i) => {
+        if (searchWho !== 'all' && m.who !== searchWho) return;
+        const raw = searchText(m), hay = (raw + ' ' + (m.thinking || m.reasoning || '')).toLocaleLowerCase();
+        if (!hay.includes(q)) return;
+        all.push({ ch, i, m, raw });
+      });
+    });
+    all.sort((a,b) => (b.m.t || 0) - (a.m.t || 0));
+    const channelName = key => (CHANNELS.find(c => c.key === key) || {}).label || key;
+    host.innerHTML = all.length ? all.slice(0,80).map(({ch,i,m,raw}) => {
+      const date = new Date(m.t || Date.now());
+      const stamp = date.toLocaleDateString('zh-CN',{month:'2-digit',day:'2-digit'}) + ' ' + fmtClock(m.t);
+      const who = m.who === 'ta' ? (S.hisName || 'TA') : '我';
+      const excerpt = raw.length > 90 ? raw.slice(0,90) + '…' : raw;
+      return '<button type="button" class="chat-search-result" data-search-ch="' + ch + '" data-search-index="' + i + '"><span class="csr-meta"><b>' + esc(who) + '</b><i>' + esc(channelName(ch)) + '</i><time>' + esc(stamp) + '</time></span><span class="csr-text">' + esc(excerpt || '[思考过程]') + '</span></button>';
+    }).join('') : '<div class="chat-search-empty">没有找到相关记录。换个词试试看。</div>';
+  }
+  function openChatSearch() {
+    searchPanel.classList.add('show');
+    $('chat-pref').classList.remove('show');
+    $('ch-menu').setAttribute('aria-expanded','false');
+    renderSearchResults();
+    setTimeout(() => searchInput.focus(), 60);
+  }
+  function closeChatSearch() {
+    searchPanel.classList.remove('show');
+    searchInput.value = '';
+  }
+  $('ch-search').onclick = openChatSearch;
+  $('chat-search-close').onclick = closeChatSearch;
+  $('chat-search-clear').onclick = () => { searchInput.value = ''; renderSearchResults(); searchInput.focus(); };
+  searchInput.addEventListener('input', renderSearchResults);
+  $('chat-search-filters').querySelectorAll('[data-search-who]').forEach(btn => btn.onclick = () => {
+    searchWho = btn.dataset.searchWho;
+    $('chat-search-filters').querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn));
+    renderSearchResults();
+  });
+  $('chat-search-results').addEventListener('click', e => {
+    const historyBtn = e.target.closest('[data-history]');
+    if (historyBtn) { searchInput.value = historyBtn.dataset.history; renderSearchResults(); return; }
+    const result = e.target.closest('[data-search-index]');
+    if (!result) return;
+    const q = searchInput.value.trim();
+    if (q) {
+      const history = [q, ...searchHistory.filter(v => v !== q)].slice(0,5);
+      localStorage.setItem('xw_chatSearchHistory', JSON.stringify(history));
+      searchHistory.splice(0, searchHistory.length, ...history);
+    }
+    currentChannel = result.dataset.searchCh;
+    $('c-channels').querySelectorAll('.channel-tab').forEach(t => t.classList.toggle('on', t.dataset.ch === currentChannel));
+    closeChatSearch();
+    renderMsgs();
+    const target = $('c-body').querySelector('.bubble-item[data-i="' + result.dataset.searchIndex + '"]');
+    if (target) {
+      target.scrollIntoView({ behavior:'smooth', block:'center' });
+      target.classList.add('search-hit');
+      setTimeout(() => target.classList.remove('search-hit'), 1800);
+    }
   });
 
   // 顶部按钮
