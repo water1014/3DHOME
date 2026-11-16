@@ -304,3 +304,13 @@ html.dark #pg-chat .chat-search { background:var(--page-bg, #19191c); }
 #pg-chat .chat-search-empty { padding:2.2rem .5rem; color:var(--ink-3); text-align:center; font:.62rem/1.8 var(--serif); }
 #pg-chat .msg.search-hit { position:relative; z-index:1; animation:searchHit 1.8s ease both; }
 @keyframes searchHit { 0%,100% { background:transparent; } 18%,70% { background:rgba(130,145,165,.13); box-shadow:0 0 0 .35rem rgba(130,145,165,.13); border-radius:.7rem; } }
+
+
+/* AI connection fields inside the More drawer. */
+#pg-chat .chat-ai-field { display:flex; flex-direction:column; gap:.22rem; margin-top:.42rem; color:var(--ink-3); font:.44rem var(--mono); }
+#pg-chat .chat-ai-field input { width:100%; min-width:0; padding:.48rem .55rem; border:1px solid var(--line); border-radius:.48rem; outline:0; background:rgba(128,128,128,.045); color:var(--ink); font:.58rem var(--serif); }
+#pg-chat .chat-ai-field input:focus { border-color:var(--ink-3); }
+#pg-chat .chat-ai-actions { display:flex; align-items:center; gap:.55rem; margin-top:.5rem; }
+#pg-chat .chat-ai-actions button { padding:.4rem .7rem; border:1px solid var(--dark); border-radius:2rem; background:var(--dark); color:var(--on-dark); font:.58rem var(--serif); }
+#pg-chat .chat-ai-actions small { color:var(--ink-3); font:.43rem var(--mono); }
+#pg-chat .chat-pref { max-height:min(76vh,38rem); overflow:auto; }
