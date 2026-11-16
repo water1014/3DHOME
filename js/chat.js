@@ -344,6 +344,8 @@ function renderMeta(m) {
   if (reasoning) {
     const value = typeof reasoning === 'string' ? reasoning : JSON.stringify(reasoning, null, 2);
     parts.push(`<details class="msg-meta"><summary><span class="meta-mark">✦</span>思考过程</summary><div class="meta-content">${esc(value)}</div></details>`);
+  } else if (m.reasoningUnavailable) {
+    parts.push(`<details class="msg-meta reasoning-unavailable"><summary><span class="meta-mark">✦</span>思考过程</summary><div class="meta-content">本次接口没有返回可展示的思考内容。请确认当前模型支持思考输出，并检查服务商是否会返回 reasoning_content、reasoning 或 analysis 字段。</div></details>`);
   }
   if (Array.isArray(calls) && calls.length) {
     const rows = calls.map((call, n) => {
@@ -577,6 +579,7 @@ async function aiReply(text) {
     if (!answer) ensureAnswer();
     answer.text = reply || '模型请求调用工具，但当前聊天页还没有配置对应的工具执行器。';
     if (reasoning) answer.reasoningSummary = reasoning;
+    else answer.reasoningUnavailable = true;
     if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
     const finalMsgs=replyMessages(); if(finalMsgs[msgIdx])finalMsgs[msgIdx]=answer;
     saveReplyMessages(finalMsgs); paint();
