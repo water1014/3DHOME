@@ -37,14 +37,28 @@ function getChatWindows() {
     save('chatWindows');
   }
   S.chatWindows = S.chatWindows.filter(w => w && w.id);
+  // Legacy channels remain stored in their original key to avoid duplicating large image data.
+  S.chatWindows.forEach(w => { if (w.legacyKey && w.messages) delete w.messages; });
   if (!S.chatWindows.some(w => w.id === currentChannel && !w.archived)) { currentChannel = (S.chatWindows.find(w => !w.archived) || S.chatWindows[0]).id; localStorage.setItem('xw_chatCurrentWindowId', currentChannel); }
   return S.chatWindows;
 }
 function getCurrentWindow() { return getChatWindows().find(w => w.id === currentChannel) || getChatWindows()[0]; }
-function getChannelMsgs() { const win = getCurrentWindow(); if (!Array.isArray(win.messages)) win.messages = []; return win.messages; }
+function getWindowMessages(win) {
+  if (!win) return [];
+  if (win.legacyKey) {
+    S.chatMsgsByChannel = S.chatMsgsByChannel || {};
+    S.chatMsgsByChannel[win.legacyKey] = S.chatMsgsByChannel[win.legacyKey] || [];
+    return S.chatMsgsByChannel[win.legacyKey];
+  }
+  if (!Array.isArray(win.messages)) win.messages = [];
+  return win.messages;
+}
+function getChannelMsgs() { return getWindowMessages(getCurrentWindow()); }
 function saveChannelMsgs(msgs) {
-  const win = getCurrentWindow(); win.messages = msgs; win.updatedAt = Date.now(); save('chatWindows');
+  const win = getCurrentWindow(); win.updatedAt = Date.now();
   if (win.legacyKey) { S.chatMsgsByChannel = S.chatMsgsByChannel || {}; S.chatMsgsByChannel[win.legacyKey] = msgs; save('chatMsgsByChannel'); }
+  else win.messages = msgs;
+  save('chatWindows');
 }
 function syncWindowLabel() { const el = $('chat-window-current'); if (el) el.textContent = getCurrentWindow()?.title || '新会话'; }
 function renderWindowManager() {
@@ -52,7 +66,7 @@ function renderWindowManager() {
   const windows = getChatWindows(), active = windows.filter(w => !w.archived), archived = windows.filter(w => w.archived);
   const row = w => `<article class="chat-window-item ${w.id === currentChannel ? 'current' : ''}">
     <button type="button" class="chat-window-open" data-window-open="${esc(w.id)}"><span class="chat-window-symbol">◌</span>
-      <span class="chat-window-copy"><b>${esc(w.title)}</b><small>${(w.messages || []).length} 条消息 · 独立聊天记录</small></span>
+      <span class="chat-window-copy"><b>${esc(w.title)}</b><small>${getWindowMessages(w).length} 条消息 · 独立聊天记录</small></span>
       <span class="chat-window-check">${w.id === currentChannel ? '当前' : '进入'}</span></button>
     <div class="chat-window-actions"><button type="button" data-window-rename="${esc(w.id)}">重命名</button>
       ${w.archived ? `<button type="button" data-window-restore="${esc(w.id)}">恢复</button>` : `<button type="button" data-window-archive="${esc(w.id)}">归档</button>`}
@@ -428,11 +442,13 @@ async function aiReply(text) {
   const replyWindowId = currentChannel;
   aiReplyWindowId = replyWindowId;
   const replyWindow = () => getChatWindows().find(w => w.id === replyWindowId);
-  const replyMessages = () => replyWindow()?.messages || [];
+  const replyMessages = () => getWindowMessages(replyWindow());
   const saveReplyMessages = msgs => {
     const win = replyWindow(); if (!win) return;
-    win.messages = msgs; win.updatedAt = Date.now(); save('chatWindows');
+    win.updatedAt = Date.now();
     if (win.legacyKey) { S.chatMsgsByChannel = S.chatMsgsByChannel || {}; S.chatMsgsByChannel[win.legacyKey] = msgs; save('chatMsgsByChannel'); }
+    else win.messages = msgs;
+    save('chatWindows');
   };
   const body = $('c-body');
   $('c-typing').classList.add('show');
@@ -722,7 +738,7 @@ function bindEvents() {
     $('chat-cal-title').textContent = y + '年' + (m+1) + '月';
     $('chat-date-label').textContent = selectedSearchDate || '不限日期';
     const counts = {};
-    getChatWindows().forEach(win => (win.messages || []).forEach(msg => {
+    getChatWindows().forEach(win => getWindowMessages(win).forEach(msg => {
       const key = dateKey(msg.t); counts[key] = (counts[key] || 0) + 1;
     }));
     const first = new Date(y,m,1).getDay(), days = new Date(y,m+1,0).getDate();
@@ -745,7 +761,7 @@ function bindEvents() {
     }
     const all = [];
     getChatWindows().forEach(win => {
-      const ch = win.id, list = win.messages || [];
+      const ch = win.id, list = getWindowMessages(win);
       list.forEach((m, i) => {
         if (searchWho !== 'all' && m.who !== searchWho) return;
         if (selectedSearchDate && dateKey(m.t) !== selectedSearchDate) return;
