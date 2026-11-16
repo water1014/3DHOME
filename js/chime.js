@@ -271,19 +271,19 @@ function drawUmbrella() {
   }
   ctx.closePath();
   const film = ctx.createRadialGradient(0, 0, R * 0.05, 0, 0, curR);
-  film.addColorStop(0, 'rgba(230, 240, 252, .22)');
-  film.addColorStop(0.7, 'rgba(210, 225, 244, .28)');
-  film.addColorStop(1, 'rgba(180, 200, 228, .38)');
+  film.addColorStop(0, 'rgba(238, 238, 240, .22)');
+  film.addColorStop(0.7, 'rgba(205, 205, 208, .28)');
+  film.addColorStop(1, 'rgba(155, 155, 160, .38)');
   ctx.fillStyle = film;
   ctx.fill();
 
   // 伞面边缘
-  ctx.strokeStyle = 'rgba(140, 160, 190, .45)';
+  ctx.strokeStyle = 'rgba(120, 120, 126, .45)';
   ctx.lineWidth = 1.4;
   ctx.stroke();
 
   // 伞骨
-  ctx.strokeStyle = 'rgba(100, 120, 150, .55)';
+  ctx.strokeStyle = 'rgba(88, 88, 94, .55)';
   ctx.lineWidth = 1;
   for (let i = 0; i < RIB_N; i++) {
     const a = i * seg;
@@ -294,7 +294,7 @@ function drawUmbrella() {
   }
 
   // 伞骨间细线（像 Yume 那种交叉感）
-  ctx.strokeStyle = 'rgba(130, 150, 180, .25)';
+  ctx.strokeStyle = 'rgba(130, 130, 136, .25)';
   ctx.lineWidth = 0.8;
   for (let i = 0; i < RIB_N; i++) {
     const a1 = i * seg;
@@ -306,9 +306,9 @@ function drawUmbrella() {
   }
 
   // 中心枢纽
-  ctx.fillStyle = 'rgba(60, 55, 50, .92)';
+  ctx.fillStyle = 'rgba(52, 52, 54, .92)';
   ctx.beginPath(); ctx.arc(0, 0, 5 * o + 2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(140, 130, 120, .8)';
+  ctx.fillStyle = 'rgba(142, 142, 145, .8)';
   ctx.beginPath(); ctx.arc(0, 0, 2.5 * o + 1, 0, Math.PI * 2); ctx.fill();
 
   // 伞沿小珠
@@ -316,7 +316,7 @@ function drawUmbrella() {
     const a = i * seg;
     const x = Math.cos(a) * curR;
     const y = Math.sin(a) * curR;
-    ctx.fillStyle = 'rgba(120, 110, 100, .7)';
+    ctx.fillStyle = 'rgba(118, 118, 122, .7)';
     ctx.beginPath(); ctx.arc(x, y, 2 * o, 0, Math.PI * 2); ctx.fill();
   }
 
@@ -337,7 +337,7 @@ function draw() {
   // 地面水雾
   const mg = ctx.createLinearGradient(0, GROUND() - 40, 0, H);
   mg.addColorStop(0, 'rgba(255,255,255,0)');
-  mg.addColorStop(1, 'rgba(226,232,240,.65)');
+  mg.addColorStop(1, 'rgba(226,226,230,.65)');
   ctx.fillStyle = mg;
   ctx.fillRect(0, GROUND() - 40, W, H - GROUND() + 40);
   ctx.strokeStyle = 'rgba(150,166,188,.3)';
@@ -355,13 +355,13 @@ function draw() {
   ctx.lineWidth = 1; ctx.lineCap = 'round';
   for (const p of drops) {
     const a = 0.18 + Math.min(0.18, p.vy / 4200);
-    ctx.strokeStyle = `rgba(148,166,190,${a})`;
+    ctx.strokeStyle = `rgba(148,148,154,${a})`;
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
     ctx.lineTo(p.x - (p.vx || wind * 60) * 0.016, p.y - p.len);
     ctx.stroke();
   }
-  ctx.strokeStyle = 'rgba(136,156,186,.55)';
+  ctx.strokeStyle = 'rgba(136,136,144,.55)';
   for (const g of drips) {
     ctx.beginPath();
     ctx.moveTo(g.x, g.y);
@@ -371,8 +371,8 @@ function draw() {
   for (const g of bigs) {
     const gr = ctx.createRadialGradient(g.x - 2, g.y - 3, 1, g.x, g.y, g.r);
     gr.addColorStop(0, 'rgba(255,255,255,.95)');
-    gr.addColorStop(0.55, 'rgba(186,206,230,.5)');
-    gr.addColorStop(1, 'rgba(150,175,205,.25)');
+    gr.addColorStop(0.55, 'rgba(186,186,192,.5)');
+    gr.addColorStop(1, 'rgba(150,150,158,.25)');
     ctx.fillStyle = gr;
     ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2); ctx.fill();
   }
