@@ -751,3 +751,36 @@ html.dark #pg-chat .input-bar .tool-panel .tp-btn svg {
 }
 #pg-chat .msg.me .msg-col { align-self:flex-end; }
 #pg-chat .msg.ta .msg-col { align-self:flex-start; }
+
+/* Final QQ-style two-sided stack: avatar above, message aligned to its side. */
+#pg-chat .msg.ta,
+#pg-chat .msg.me {
+  flex-direction:column !important;
+  align-items:stretch;
+  gap:.22rem;
+}
+#pg-chat .msg.ta {
+  align-items:flex-start;
+  justify-content:flex-start;
+}
+#pg-chat .msg.me {
+  align-items:flex-end;
+  justify-content:flex-end;
+}
+#pg-chat .msg.ta > .msg-ava,
+#pg-chat .msg.me > .msg-ava,
+#pg-chat .msg.ta > .msg-ava-spacer,
+#pg-chat .msg.me > .msg-ava-spacer {
+  order:0;
+  align-self:inherit;
+}
+#pg-chat .msg.ta > .msg-col,
+#pg-chat .msg.me > .msg-col {
+  order:1;
+  width:fit-content;
+  max-width:min(82%, 28rem);
+}
+#pg-chat .msg.ta .msg-meta-stack { margin-left:.08rem; margin-right:0; }
+#pg-chat .msg.me .msg-meta-stack { margin-left:0; margin-right:.08rem; }
+#pg-chat .msg.ta .msg-time { align-self:flex-start; }
+#pg-chat .msg.me .msg-time { align-self:flex-end; }
