@@ -10,6 +10,8 @@ const DEF = {
   loveDate: '2025-01-01',
   hisName: '他',
   herName: '她',
+  chatSplitMode: 'split',
+  chatBubbleBg: true,
   chatMsgsByChannel: {
     general: [
       { who: 'ta', text: '欢迎来到我们的小窝～这里是我们的秘密基地 ♡', t: Date.now() - 3600000 },
