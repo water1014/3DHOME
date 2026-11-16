@@ -363,3 +363,46 @@ html.dark #pg-chat .chat-search { background:var(--page-bg, #19191c); }
 #pg-chat .chat-window-actions button.danger {color:#a36c6c;}
 #pg-chat .chat-window-create {display:block;width:100%;margin-top:.65rem;padding:.65rem;border:1px dashed var(--ink-3);border-radius:.7rem;background:transparent;color:var(--ink-2);font:.6rem var(--serif);}
 @media (min-width:600px) {#pg-chat .chat-window-panel {left:50%;right:auto;width:min(34rem,92%);transform:translateX(-50%);bottom:1rem;border-radius:1.25rem;}}
+
+
+/* Personal chat skins: image assets stay scoped to the conversation page. */
+#pg-chat .chat-body {
+  background-color:transparent;
+  background-repeat:no-repeat;
+  background-attachment:local;
+  background-size:cover;
+  background-position:center;
+}
+#pg-chat .msg.ta .bubble {
+  background-image:var(--chat-ta-bubble-image,none);
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+#pg-chat .msg.me .bubble {
+  background-image:var(--chat-my-bubble-image,none);
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+#pg-chat .chat-appearance-row {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:.28rem;
+  padding:.48rem 0;
+  border-bottom:1px solid var(--line);
+}
+#pg-chat .chat-appearance-row>div {display:flex;flex-direction:column;gap:.12rem;min-width:0}
+#pg-chat .chat-appearance-row b {color:var(--ink-2);font:.62rem var(--serif);font-weight:500}
+#pg-chat .chat-appearance-row small {color:var(--ink-3);font:.42rem/1.4 var(--serif)}
+#pg-chat .chat-appearance-row button {
+  padding:.34rem .48rem;border:1px solid var(--line);border-radius:2rem;
+  background:rgba(128,128,128,.045);color:var(--ink-2);font:.5rem var(--serif);
+  white-space:nowrap;
+}
+#pg-chat .chat-appearance-row button:first-of-type {border-color:var(--glass-brd);background:var(--glass-strong)}
+#pg-chat .chat-appearance-foot {padding:.5rem .1rem 0;color:var(--ink-3);font:.44rem/1.65 var(--serif)}
+#pg-chat .chat-pref {width:min(20rem,calc(100vw - 2 * var(--page-pad)))}
+#pg-chat .msg.ta .bubble:has(+ .msg-time) {background-color:rgba(255,255,255,.72)}
+#pg-chat .msg.me .bubble:has(+ .msg-time) {background-color:var(--dark)}
