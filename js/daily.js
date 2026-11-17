@@ -32,7 +32,7 @@
   let built = false;
   function render() {
     const page = document.getElementById('pg-daily');
-    const item = sections[current] || sections.accounting;
+    const item = current === 'calendar' ? { zh: '日常总览', en: 'DAILY LIFE', group: 'DAILY LIFE' } : (sections[current] || sections.accounting);
     if (!page) return;
     const beauty = current === 'beautify';
     const worldbook = current === 'worldbook';
@@ -304,7 +304,7 @@
 
   window.Daily = {
     build() { if (built) return; built = true; render(); },
-    select(key) { if (!sections[key]) return; current = key; render(); window.go?.('daily'); },
+    select(key) { const overviewKeys = ['calendar','plans','mood','timetable','todos','life','events','countdown']; if (overviewKeys.includes(key)) key = 'calendar'; if (!sections[key]) return; current = key; render(); window.go?.('daily'); },
     showCurrent() { if (built) render(); },
     step(delta) {
       const keys = Object.keys(sections), index = keys.indexOf(current);
