@@ -110,11 +110,11 @@
     const allEntries=[];
     books.filter(b=>selected.has(b.id)).forEach(book=>(book.entries||[]).forEach((entry,index)=>allEntries.push({book,entry,index,raw:entry.raw||{}})));
     const activated=new Map(),diagnostics=[],maxRounds=8;
-    const splitKeys=value=>(Array.isArray(value)?value:String(value??'').split(/[,，\\n]/)).map(v=>String(v||'').trim()).filter(Boolean);
+    const splitKeys=value=>(Array.isArray(value)?value:String(value??'').split(/[,，\n]/)).map(v=>String(v||'').trim()).filter(Boolean);
     const contains=(text,term,whole)=>{
       if(!term)return false;let at=text.indexOf(term);
       while(at>=0){const before=at?text[at-1]:'';const after=text[at+term.length]||'';
-        const word=c=>!!c&&/[A-Za-z0-9_\\u0080-\\uFFFF]/.test(c);
+        const word=c=>!!c&&/[A-Za-z0-9_\u0080-\uFFFF]/.test(c);
         if(!whole||(!word(before)&&!word(after)))return true;
         at=text.indexOf(term,at+1);
       }return false;
@@ -143,7 +143,7 @@
       const delay=Math.max(0,Number(raw.delay)||0);
       if(messages.length<delay)return false;
       const scanDepth=Math.max(1,Math.min(100,Number(raw.scanDepth)||20));
-      const scoped=recursive?scan:messages.slice(-scanDepth).join('\\n');
+      const scoped=recursive?scan:messages.slice(-scanDepth).join('\n');
       if(!matches(raw,scoped))return false;
       const probability=Math.max(0,Math.min(100,Number(raw.probability??100)));
       if(raw.useProbability&&Math.random()*100>=probability)return false;
@@ -153,13 +153,13 @@
       diagnostics.push({book:book.name,title:value.title,reason:recursive?'递归触发':raw.constant?'常驻触发':'关键词触发',round});
       return true;
     };
-    const initial=messages.slice(-20).join('\\n');
+    const initial=messages.slice(-20).join('\n');
     allEntries.forEach(item=>attempt(item,initial,false,0));
     let recursiveScan='';
     for(let round=1;round<=maxRounds;round++){
       const fresh=[...activated.values()].filter(v=>v.round===round-1&&!v.preventRecursion);
       if(!fresh.length)break;
-      recursiveScan=fresh.map(v=>v.content).join('\\n');
+      recursiveScan=fresh.map(v=>v.content).join('\n');
       let added=0;
       allEntries.forEach(item=>{if(attempt(item,recursiveScan,true,round))added++;});
       if(!added)break;
@@ -169,8 +169,8 @@
     matched.forEach(item=>{if(item.group){const old=groups.get(item.group);if(!old||item.groupWeight>old.groupWeight)groups.set(item.group,item);}});
     matched=matched.filter(item=>!item.group||groups.get(item.group)===item);
     matched.sort((a,b)=>a.order-b.order);
-    const system=matched.filter(x=>x.position!==4).map(x=>'【'+x.book+' / '+x.title+'】\\n'+x.content).join('\\n\\n');
-    const depth=matched.filter(x=>x.position===4).map(x=>({depth:x.depth,order:x.order,text:'【'+x.book+' / '+x.title+'】\\n'+x.content}));
+    const system=matched.filter(x=>x.position!==4).map(x=>'【'+x.book+' / '+x.title+'】\n'+x.content).join('\n\n');
+    const depth=matched.filter(x=>x.position===4).map(x=>({depth:x.depth,order:x.order,text:'【'+x.book+' / '+x.title+'】\n'+x.content}));
     return {system,depth,matched:matched.map(x=>({book:x.book,title:x.title,position:x.position,depth:x.depth})),diagnostics};
   }
   function mount(){
@@ -205,9 +205,9 @@
       const b=activeBook(),e=b?.entries.find(x=>x.id===el.dataset.saveEntry);if(!e)return;
       const card=el.closest('.wb-entry'),raw=e.raw;
       raw.comment=card.querySelector('[data-edit-title]').value;
-      raw.key=card.querySelector('[data-edit-keys]').value.split(/[,，\\n]/).map(x=>x.trim()).filter(Boolean);
+      raw.key=card.querySelector('[data-edit-keys]').value.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean);
       raw.content=card.querySelector('[data-edit-content]').value;
-      raw.keysecondary=card.querySelector('[data-edit-secondary]').value.split(/[,，\\n]/).map(x=>x.trim()).filter(Boolean);
+      raw.keysecondary=card.querySelector('[data-edit-secondary]').value.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean);
       card.querySelectorAll('[data-rule]').forEach(field=>{
         const key=field.dataset.rule;
         if(field.type==='checkbox')raw[key]=field.checked;
