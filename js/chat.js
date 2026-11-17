@@ -643,7 +643,7 @@ async function aiReply(text) {
       body:JSON.stringify({
         model:S.aiModel || 'gpt-4o-mini',
         messages:[
-          {role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\\n\\n' + S.globalPrompt : '')},
+          {role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '')},
           ...history
         ],
         stream:true
