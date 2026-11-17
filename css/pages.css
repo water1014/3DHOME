@@ -455,7 +455,7 @@ html.dark .v-core { background: var(--dark); border-color: rgba(255,255,255,.25)
 /* ═══════════ 聊天页 ═══════════ */
 
 #pg-chat {
-  display: flex; flex-direction: column;
+  flex-direction: column;
   height: 100%;
 }
 
