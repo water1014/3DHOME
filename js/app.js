@@ -38,44 +38,13 @@ function initSide() {
   const btn = $('side-btn'), overlay = $('side-overlay'), drawer = $('side-drawer');
   if (!btn || !overlay || !drawer) return;
   let returnFocus = btn, scrollY = 0;
-  const groups = Array.from(drawer.querySelectorAll('[data-sidebar-group]'));
-  const groupFor = item => item?.closest('.sd-group-panel')?.previousElementSibling?.dataset.sidebarGroup || null;
-  const setPanel = (toggle, expand) => {
-    const panel = $(toggle.getAttribute('aria-controls'));
-    if (!panel) return;
-    toggle.setAttribute('aria-expanded', expand ? 'true' : 'false');
-    toggle.querySelector('svg')?.classList.toggle('is-open', expand);
-    if (expand) {
-      panel.hidden = false; panel.style.height = '0px'; panel.style.overflow = 'hidden';
-      requestAnimationFrame(() => { panel.style.height = panel.scrollHeight + 'px'; });
-      panel.addEventListener('transitionend', function done(e) {
-        if (e.propertyName !== 'height') return;
-        panel.removeEventListener('transitionend', done);
-        if (toggle.getAttribute('aria-expanded') === 'true') { panel.style.height = 'auto'; panel.style.overflow = 'visible'; }
-      });
-    } else if (!panel.hidden) {
-      panel.style.height = panel.scrollHeight + 'px'; panel.style.overflow = 'hidden';
-      requestAnimationFrame(() => { panel.style.height = '0px'; });
-      panel.addEventListener('transitionend', function done(e) {
-        if (e.propertyName !== 'height') return;
-        panel.removeEventListener('transitionend', done);
-        if (toggle.getAttribute('aria-expanded') === 'false') { panel.hidden = true; panel.style.removeProperty('height'); panel.style.removeProperty('overflow'); }
-      });
-    }
-  };
-  const expandOnly = group => groups.forEach(toggle => {
-    const shouldOpen = toggle.dataset.sidebarGroup === group;
-    if ((toggle.getAttribute('aria-expanded') === 'true') !== shouldOpen) setPanel(toggle, shouldOpen);
-  });
-  const visibleControls = () => Array.from(drawer.querySelectorAll('button:not([disabled])')).filter(node =>
+    const visibleControls = () => Array.from(drawer.querySelectorAll('button:not([disabled])')).filter(node =>
     !node.closest('[hidden]') && !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length));
   const open = () => {
     returnFocus = D.activeElement instanceof HTMLElement ? D.activeElement : btn;
     drawer.classList.add('show'); overlay.classList.add('show');
     btn.setAttribute('aria-expanded', 'true'); overlay.setAttribute('aria-hidden', 'false');
     scrollY = window.scrollY; D.body.style.position = 'fixed'; D.body.style.top = '-' + scrollY + 'px'; D.body.style.width = '100%';
-    const activeSub = drawer.querySelector('.sd-subitem.active');
-    if (activeSub) expandOnly(groupFor(activeSub));
     requestAnimationFrame(() => (visibleControls()[0] || drawer).focus());
   };
   const close = () => {
@@ -87,10 +56,6 @@ function initSide() {
     if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
   };
   btn.onclick = open; overlay.onclick = close;
-  groups.forEach(toggle => toggle.onclick = () => {
-    const key = toggle.dataset.sidebarGroup;
-    expandOnly(toggle.getAttribute('aria-expanded') === 'true' ? null : key);
-  });
   const syncActive = (target, kind) => {
     drawer.querySelectorAll('.sd-item[data-go]').forEach(item => {
       const active = kind === 'main' && item.dataset.go === target;
