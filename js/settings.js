@@ -49,33 +49,6 @@
             <div class="settings-row">
               <div><b>当前字体</b><small>小窝默认字体组合</small></div><span class="settings-value">Noto Serif · Cormorant</span>
             </div>
-            <label class="settings-field settings-select-field"><span>卡片圆角</span>
-              <select id="set-card-radius" aria-label="卡片圆角">
-                <option value="0">直角</option>
-                <option value=".55rem">微圆角</option>
-                <option value="1.15rem">标准圆角</option>
-                <option value="1.8rem">大圆角</option>
-              </select>
-              <small>统一调整首页、设置及功能卡片的边角形状</small>
-            </label>
-          </div>
-          <div class="settings-wallpaper-group">
-            <div class="settings-wallpaper-heading"><b>空间壁纸</b><small>分别装饰首页与侧栏，图片会自动压缩并保存在本机。</small></div>
-            <div class="settings-wallpaper-card">
-              <div class="settings-wallpaper-preview" id="set-home-wallpaper-preview"><span>首页</span></div>
-              <div class="settings-wallpaper-info"><b>首页壁纸</b><small>主页背景图片</small>
-                <div class="settings-wallpaper-actions"><button class="settings-btn primary" id="set-home-wallpaper" type="button">选择图片</button><button class="settings-btn" id="reset-home-wallpaper" type="button">恢复默认</button></div>
-              </div>
-              <input class="settings-file-input" id="set-home-wallpaper-file" type="file" accept="image/*">
-            </div>
-            <div class="settings-wallpaper-card">
-              <div class="settings-wallpaper-preview sidebar-preview" id="set-sidebar-wallpaper-preview"><span>侧栏</span></div>
-              <div class="settings-wallpaper-info"><b>侧栏壁纸</b><small>菜单抽屉背景，保留柔和遮罩确保文字清晰</small>
-                <div class="settings-wallpaper-actions"><button class="settings-btn primary" id="set-sidebar-wallpaper" type="button">选择图片</button><button class="settings-btn" id="reset-sidebar-wallpaper" type="button">恢复默认</button></div>
-              </div>
-              <input class="settings-file-input" id="set-sidebar-wallpaper-file" type="file" accept="image/*">
-            </div>
-          </div>
         </section>
 
         <section class="settings-section settings-panel" id="settings-profile" data-settings-page="1">
@@ -167,71 +140,6 @@
       }, { passive: true });
       window.addEventListener('resize', () => showPage(activePage, false));
     }
-    $('set-card-radius').onchange = (event) => {
-      const allowed = ['0', '.55rem', '1.15rem', '1.8rem'];
-      const value = allowed.includes(event.target.value) ? event.target.value : '1.15rem';
-      S.cardRadius = value;
-      save('cardRadius');
-      D.documentElement.style.setProperty('--surface-radius', value);
-      UI.toast('卡片圆角已更新');
-    };
-    const previewWallpaper = (key, id) => {
-      const el = $(id);
-      if (!el) return;
-      el.style.backgroundImage = S[key] ? 'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.12)),url("' + S[key] + '")' : '';
-      el.classList.toggle('has-image', !!S[key]);
-    };
-    previewWallpaper('homeWallpaper', 'set-home-wallpaper-preview');
-    previewWallpaper('sidebarWallpaper', 'set-sidebar-wallpaper-preview');
-
-    const compressWallpaper = (file) => new Promise((resolve, reject) => {
-      const image = new Image();
-      const objectUrl = URL.createObjectURL(file);
-      image.onload = () => {
-        const scale = Math.min(1, 1800 / Math.max(image.naturalWidth, image.naturalHeight));
-        const canvas = D.createElement('canvas');
-        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-        const context = canvas.getContext('2d');
-        if (!context) { URL.revokeObjectURL(objectUrl); reject(new Error('图片处理失败')); return; }
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(objectUrl);
-        resolve(canvas.toDataURL('image/jpeg', .78));
-      };
-      image.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('无法读取这张图片')); };
-      image.src = objectUrl;
-    });
-
-    const bindWallpaper = (key, buttonId, inputId, previewId, resetId, label) => {
-      const button = $(buttonId), input = $(inputId), reset = $(resetId);
-      if (!button || !input || !reset) return;
-      button.onclick = () => input.click();
-      input.onchange = async () => {
-        const file = input.files && input.files[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) { UI.toast('请选择图片文件'); return; }
-        try {
-          const data = await compressWallpaper(file);
-          S[key] = data;
-          save(key);
-          previewWallpaper(key, previewId);
-          window.XW.applyWallpapers?.();
-          UI.toast(label + '已更新');
-        } catch (error) {
-          UI.toast(error.message || '壁纸保存失败');
-        }
-        input.value = '';
-      };
-      reset.onclick = () => {
-        S[key] = '';
-        save(key);
-        previewWallpaper(key, previewId);
-        window.XW.applyWallpapers?.();
-        UI.toast(label + '已恢复默认');
-      };
-    };
-    bindWallpaper('homeWallpaper', 'set-home-wallpaper', 'set-home-wallpaper-file', 'set-home-wallpaper-preview', 'reset-home-wallpaper', '首页壁纸');
-    bindWallpaper('sidebarWallpaper', 'set-sidebar-wallpaper', 'set-sidebar-wallpaper-file', 'set-sidebar-wallpaper-preview', 'reset-sidebar-wallpaper', '侧栏壁纸');
     $('set-theme').onclick = () => {
       S.theme = S.theme === 'dark' ? 'light' : 'dark';
       save('theme');
