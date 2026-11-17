@@ -127,6 +127,14 @@ function build() {
           </div>
         </section>
 
+        <!-- 聊天入口 -->
+        <a class="home-chat-entry" data-act="chat" aria-label="进入聊天">
+          <span class="hce-icon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 3.5z"/></svg></span>
+          <span class="hce-label">聊天</span>
+          <span class="hce-en">OPEN CHAT</span>
+          <svg class="ic hce-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+
         <!-- 快捷入口 — 紧凑 pill 行 -->
         <nav class="fe-nav">
           <a class="fn-pill" data-act="daily">
@@ -146,14 +154,6 @@ function build() {
             <span>相册</span>
           </a>
         </nav>
-
-        <!-- 聊天入口 -->
-        <a class="home-chat-entry" data-act="chat" aria-label="进入聊天">
-          <span class="hce-icon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 3.5z"/></svg></span>
-          <span class="hce-label">聊天</span>
-          <span class="hce-en">OPEN CHAT</span>
-          <svg class="ic hce-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
 
         <!-- 翻面信纸 -->
         <section class="fe-letter" id="h-letter">
