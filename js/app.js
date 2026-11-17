@@ -33,9 +33,8 @@ function go(name) {
 }
 window.go = go;
 
-// ── 占位页（记忆 / 日常 / 阅读） ──
+// ── 占位页（阅读） ──
 const PLACEHOLDER = {
-  daily: { en: 'DAILY',  zh: '日常', desc: '便签墙与每一天的小确幸，筹备中。' },
   read:  { en: 'READ',   zh: '阅读', desc: '一起读的书单与进度，即将上线。' },
 };
 const builtPh = {};
