@@ -29,12 +29,12 @@ function go(name) {
 
   cur = name;
   if (cur === 'home') window.Home?.startClock();
+  if (cur === 'daily') window.Daily?.showCurrent();
 }
 window.go = go;
 
-// ── 占位页（记忆 / 日常 / 阅读） ──
+// ── 占位页（阅读） ──
 const PLACEHOLDER = {
-  daily: { en: 'DAILY',  zh: '日常', desc: '便签墙与每一天的小确幸，筹备中。' },
   read:  { en: 'READ',   zh: '阅读', desc: '一起读的书单与进度，即将上线。' },
 };
 const builtPh = {};
@@ -69,9 +69,25 @@ function initSide() {
   drawer.querySelectorAll('[data-go]').forEach(item => {
     item.onclick = () => {
       const name = item.dataset.go;
+      if (name === 'daily') {
+        const group = $('sd-daily-group');
+        const expanded = item.getAttribute('aria-expanded') === 'true';
+        item.setAttribute('aria-expanded', String(!expanded));
+        group?.classList.toggle('expanded', !expanded);
+        go('daily');
+        return;
+      }
       drawer.querySelectorAll('.sd-item').forEach(i => i.classList.toggle('on', i === item));
       if (name === 'mine') { window.Mine?.build(); }
       go(name);
+      close();
+    };
+  });
+
+  drawer.querySelectorAll('[data-daily-go]').forEach(item => {
+    item.onclick = () => {
+      window.Daily?.select(item.dataset.dailyGo);
+      drawer.querySelectorAll('[data-daily-go]').forEach(link => link.classList.toggle('active', link === item));
       close();
     };
   });
@@ -92,16 +108,64 @@ function initSide() {
   if (n) n.textContent = `${XW.S.hisName || '他'} & ${XW.S.herName || '她'}`;
 }
 
+
+const MAIN_ORDER = ['home', 'mem', 'chat', 'daily', 'read'];
+function initGestures() {
+  let start = null;
+  const drawer = $('side-drawer');
+  const overlay = $('side-overlay');
+  const closeDrawer = () => { drawer.classList.remove('show'); overlay.classList.remove('show'); };
+  D.addEventListener('touchstart', e => {
+    if (!e.touches || e.touches.length !== 1) { start = null; return; }
+    const t = e.touches[0];
+    start = { x: t.clientX, y: t.clientY, target: e.target, time: Date.now() };
+  }, { passive: true });
+  D.addEventListener('touchcancel', () => { start = null; }, { passive: true });
+  D.addEventListener('touchend', e => {
+    if (!start || !e.changedTouches || e.changedTouches.length !== 1) return;
+    const t = e.changedTouches[0];
+    const originX = start.x;
+    const dx = t.clientX - originX, dy = t.clientY - start.y;
+    const elapsed = Date.now() - start.time;
+    const target = start.target;
+    start = null;
+    if (elapsed > 700 || Math.abs(dx) < 58 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
+
+    const drawerOpen = drawer.classList.contains('show');
+    if (drawerOpen) {
+      if (dx < -55 && startSafeArea(target)) closeDrawer();
+      return;
+    }
+    if (target.closest?.('input,textarea,select,button,a,img,video,canvas,[contenteditable="true"],[data-no-page-swipe],.chat-input,.chat-search,.chat-pref,.chat-window-sheet,.chat-media-filters,.overlay')) return;
+
+    // 左边缘右滑呼出侧栏
+    if (dx > 70 && originX < 28) {
+      drawer.classList.add('show'); overlay.classList.add('show'); return;
+    }
+
+    if (cur === 'daily' && window.Daily?.step(dx < 0 ? 1 : -1)) return;
+    const index = MAIN_ORDER.indexOf(cur);
+    if (index < 0) return;
+    const next = index + (dx < 0 ? 1 : -1);
+    if (next >= 0 && next < MAIN_ORDER.length) go(MAIN_ORDER[next]);
+  }, { passive: true });
+}
+function startSafeArea(target) {
+  return !!target && !!target.closest?.('#side-drawer');
+}
+
 function init() {
   window.Mine?.applyTheme();
   window.Home?.build();
   window.Chat?.build();
   window.Mine?.build();
   window.Memory?.build();
-  Object.keys(PLACEHOLDER).forEach(buildPlaceholder);
+  window.Daily?.build();
+  buildPlaceholder('read');
 
   tabs.forEach(t => t.addEventListener('click', () => go(t.dataset.go)));
   initSide();
+  initGestures();
   go('home');
 }
 
