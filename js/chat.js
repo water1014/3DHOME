@@ -359,7 +359,7 @@ function syncWorldbookBindings(){
     save('chatWindows');toast(input.checked?'已为当前窗口启用这本世界书':'已从当前窗口移除这本世界书');
   }));
 }
-\nfunction updateHeader() {
+function updateHeader() {
   const ava = $('ch-ava');
   const name = $('ch-name');
   if (!ava || !name) return;
