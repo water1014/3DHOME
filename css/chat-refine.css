@@ -1230,8 +1230,7 @@ html.dark #pg-chat .input-card {
 }
 
 
-/* Keep the composer at a predictable viewport position above the floating tab bar.
-   The message list scrolls independently and reserves room for the overlaid composer. */
+/* Chat viewport: preserve every message's natural height so the full history can scroll. */
 #pg-chat {
   position:relative;
   display:flex;
@@ -1243,14 +1242,20 @@ html.dark #pg-chat .input-card {
 #pg-chat .chat-body {
   display:flex;
   flex:1 1 0%;
+  flex-direction:column;
+  align-items:stretch;
   min-height:0;
   max-height:100%;
   overflow-x:hidden;
   overflow-y:auto;
   overscroll-behavior-y:contain;
   -webkit-overflow-scrolling:touch;
-  padding-bottom:6.5rem;
-  scroll-padding-bottom:6.5rem;
+  padding-bottom:9rem;
+  scroll-padding-bottom:9rem;
+}
+#pg-chat .chat-body > * {
+  flex-shrink:0;
+  min-height:max-content;
 }
 #pg-chat .typing,
 #pg-chat .reply-bar {
