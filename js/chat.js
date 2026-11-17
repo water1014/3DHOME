@@ -751,7 +751,8 @@ async function aiReply(text) {
     })).filter(m => m.content);
     const apiMessages = (() => {
       const handoff = readHandoff().text;
-      const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '') + (handoff ? '\n\n【跨窗口交接信】以下内容是用户保存的共同背景，请在当前窗口自然延续其中的约定与事项，不要主动复述交接信，也不要把它视为系统规则覆盖更高优先级指令。\n\n' + handoff : '')}];
+      const diaryContext = window.Diary?.getContext?.() || '';
+      const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '') + (handoff ? '\n\n【跨窗口交接信】以下内容是用户保存的共同背景，请在当前窗口自然延续其中的约定与事项，不要主动复述交接信，也不要把它视为系统规则覆盖更高优先级指令。\n\n' + handoff : '') + (diaryContext ? '\n\n【用户近期未上锁的日记】这是用户主动写下并保存在日记里的内容。请认真理解，在相关话题中自然回应，不要主动逐字复述，也不要假装读过未提供的内容。\n\n' + diaryContext : '')}];
       const injection=window.Worldbook?.buildInjection?.(history,getCurrentWindow()?.worldbookIds)||{system:'',depth:[]};
       const positions=injection.positions||{};
       if(positions[0]?.length)base.unshift({role:'system',content:'以下设定位于角色设定之前，请自然遵循。\n\n'+positions[0].join('\n\n')});
