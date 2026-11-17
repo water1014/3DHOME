@@ -358,3 +358,43 @@ html.dark #pg-home .fn-pill { background: transparent; }
   box-shadow: none;
 }
 html.dark #pg-home .fe-vinyl { background: rgba(255,255,255,.025); }
+
+
+/* Home chat entry: a quiet, direct route into the conversation. */
+#pg-home .home-chat-entry {
+  display: flex;
+  align-items: center;
+  gap: .62rem;
+  min-height: 3.05rem;
+  margin: -.35rem 0 1rem;
+  padding: .35rem .15rem;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  transition: opacity .18s, transform .18s;
+}
+#pg-home .hce-icon {
+  width: 1.85rem;
+  height: 1.85rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink-2);
+}
+#pg-home .hce-icon .ic { width: .9rem; height: .9rem; }
+#pg-home .hce-label {
+  font-family: var(--serif);
+  font-size: .76rem;
+  letter-spacing: .12em;
+}
+#pg-home .hce-en {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-family: var(--display);
+  font-size: .68rem;
+  font-style: italic;
+  letter-spacing: .1em;
+}
+#pg-home .hce-arrow { width: .85rem; height: .85rem; color: var(--ink-3); }
+#pg-home .home-chat-entry:active { opacity: .62; transform: translateX(2px); }
