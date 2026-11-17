@@ -834,38 +834,38 @@ html.dark #pg-home .home-chat-entry .hce-icon {
 :root{
   --material-opacity:76%;
   --material-blur:22px;
-  --material-texture-opacity:.34;
+  --material-texture-opacity:34%;
   --material-base:#fff;
   --material-edge:rgba(80,86,96,.15);
   --material-shadow:0 8px 26px rgba(20,20,24,.055),inset 0 1px 0 rgba(255,255,255,.82);
-  --material-texture:repeating-linear-gradient(0deg,transparent 0 5px,rgba(90,90,100,.025) 5px 6px);
+  --material-texture:repeating-linear-gradient(0deg,transparent 0 5px,color-mix(in srgb,rgba(90,90,100,.16) var(--material-texture-opacity),transparent) 5px 6px);
 }
 html.dark{
   --material-base:#303034;
   --material-edge:rgba(255,255,255,.13);
   --material-shadow:0 10px 28px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08);
-  --material-texture:repeating-linear-gradient(0deg,transparent 0 5px,rgba(255,255,255,.025) 5px 6px);
+  --material-texture:repeating-linear-gradient(0deg,transparent 0 5px,color-mix(in srgb,rgba(255,255,255,.16) var(--material-texture-opacity),transparent) 5px 6px);
 }
 html[data-surface-material="glass"]{
-  --material-texture:repeating-linear-gradient(0deg,transparent 0 5px,rgba(110,120,135,.025) 5px 6px);
+  --material-texture:repeating-linear-gradient(0deg,transparent 0 5px,color-mix(in srgb,rgba(110,120,135,.16) var(--material-texture-opacity),transparent) 5px 6px);
 }
 html[data-surface-material="paper"]{
   --material-base:#f5f3ef;
   --material-edge:rgba(100,94,84,.19);
   --material-shadow:0 5px 18px rgba(35,32,27,.045),inset 0 1px 0 rgba(255,255,255,.82);
-  --material-texture:repeating-linear-gradient(0deg,transparent 0 4px,rgba(110,100,85,.055) 4px 5px),repeating-linear-gradient(90deg,transparent 0 17px,rgba(110,100,85,.018) 17px 18px);
+  --material-texture:repeating-linear-gradient(0deg,transparent 0 4px,color-mix(in srgb,rgba(110,100,85,.16) var(--material-texture-opacity),transparent) 4px 5px),repeating-linear-gradient(90deg,transparent 0 17px,color-mix(in srgb,rgba(110,100,85,.07) var(--material-texture-opacity),transparent) 17px 18px);
 }
 html.dark[data-surface-material="paper"]{
   --material-base:#343230;
   --material-edge:rgba(255,255,255,.12);
   --material-shadow:0 6px 20px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.07);
-  --material-texture:repeating-linear-gradient(0deg,transparent 0 4px,rgba(255,255,255,.035) 4px 5px);
+  --material-texture:repeating-linear-gradient(0deg,transparent 0 4px,color-mix(in srgb,rgba(255,255,255,.13) var(--material-texture-opacity),transparent) 4px 5px);
 }
 html[data-surface-material="acrylic"]{
   --material-base:#fff;
   --material-edge:rgba(255,255,255,.86);
   --material-shadow:0 12px 32px rgba(40,48,60,.075),inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(255,255,255,.45);
-  --material-texture:linear-gradient(115deg,rgba(255,255,255,.38),transparent 36%,rgba(255,255,255,.16) 58%,transparent 78%);
+  --material-texture:linear-gradient(115deg,color-mix(in srgb,rgba(255,255,255,.65) var(--material-texture-opacity),transparent),transparent 36%,color-mix(in srgb,rgba(255,255,255,.28) var(--material-texture-opacity),transparent) 58%,transparent 78%);
 }
 html.dark[data-surface-material="acrylic"]{
   --material-base:#3b3b40;
@@ -876,13 +876,13 @@ html[data-surface-material="ceramic"]{
   --material-base:#e9e9e8;
   --material-edge:rgba(90,90,90,.12);
   --material-shadow:0 5px 16px rgba(20,20,24,.045),inset 0 1px 1px rgba(255,255,255,.8),inset 0 -1px 1px rgba(0,0,0,.025);
-  --material-texture:radial-gradient(ellipse at 22% 12%,rgba(255,255,255,.42),transparent 62%);
+  --material-texture:radial-gradient(ellipse at 22% 12%,color-mix(in srgb,rgba(255,255,255,.55) var(--material-texture-opacity),transparent),transparent 62%);
 }
 html.dark[data-surface-material="ceramic"]{
   --material-base:#343438;
   --material-edge:rgba(255,255,255,.1);
   --material-shadow:0 6px 20px rgba(0,0,0,.24),inset 0 1px 1px rgba(255,255,255,.08);
-  --material-texture:radial-gradient(ellipse at 22% 12%,rgba(255,255,255,.09),transparent 62%);
+  --material-texture:radial-gradient(ellipse at 22% 12%,color-mix(in srgb,rgba(255,255,255,.18) var(--material-texture-opacity),transparent),transparent 62%);
 }
 #pg-home .fe-profile,#pg-home .home-chat-entry,#pg-home .fe-vinyl,
 .side-drawer .sd-head,.settings-card,.beautify-wallpaper-card,.beautify-option-card,
