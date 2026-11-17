@@ -179,7 +179,7 @@
           ${windowToolsOpen ? `<div class="engawa-tools-list">
             <span>web_read</span><span>rss_read</span><span>shelf / shelf_add / shelf_suggest / shelf_remove</span>
             <span>sky_tonight</span><span>apod</span><span>daily_art</span><span>daily_poem</span>
-            <span>arxiv_new</span><span>on_this_day</span><span>hobby_corner / hobby_add / hobby_remove</span>
+            <span>arxiv_new</span><span>on_this_day</span><span>hobby_corner</span><span>hobby_add / hobby_remove</span>
           </div>` : ''}
         </section>
         <p class="engawa-footnote">窗廊不是搜索框。它是一条慢慢走出去、再带着故事回来的路。</p>
