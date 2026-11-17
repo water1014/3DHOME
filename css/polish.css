@@ -983,3 +983,6 @@ html.dark .sd-theme-item { border-top-color:rgba(255,255,255,.08) !important; }
 @media (prefers-reduced-motion:reduce) {
   .side-drawer,.side-overlay,.sd-group-panel,.sd-group-toggle svg,.side-drawer button { transition-duration:.01ms !important; }
 }
+
+.side-drawer .sd-subitem.on { background:rgba(0,0,0,.055) !important;color:#171717 !important; }
+html.dark .side-drawer .sd-subitem.on { background:rgba(255,255,255,.08) !important;color:#f3f3f3 !important; }
