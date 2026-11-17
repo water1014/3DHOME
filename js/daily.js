@@ -22,25 +22,106 @@
     'image-studio': { zh: '生图室', en: 'IMAGE STUDIO', group: 'PLAY & CREATE' },
   };
   let current = 'accounting';
+  const { S, save } = window.XW;
   let built = false;
   function render() {
     const page = document.getElementById('pg-daily');
     const item = sections[current] || sections.accounting;
     if (!page) return;
+    const beauty = current === 'beautify';
     page.innerHTML = `
-      <main class="daily-page">
+      <main class="daily-page ${beauty ? 'beautify-page' : ''}">
         <header class="daily-heading">
           <div class="daily-kicker">XIAOWO / ${item.group}</div>
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        <section class="daily-empty" aria-label="${item.zh}"><span class="daily-empty-mark"></span></section>
+        ${beauty ? `
+          <section class="beautify-content" aria-label="美化设置">
+            <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
+            <section class="beautify-block">
+              <div class="beautify-block-head"><div><b>空间壁纸</b><small>WALLPAPERS</small></div><span>01</span></div>
+              <article class="beautify-wallpaper-card">
+                <div class="beautify-preview home-preview" id="beautify-home-preview"><span>HOME</span></div>
+                <div class="beautify-wallpaper-info"><b>首页壁纸</b><small>为主页选择一张背景图片</small><div class="beautify-actions"><button type="button" class="beautify-btn primary" id="beautify-home-pick">选择图片</button><button type="button" class="beautify-btn" id="beautify-home-reset">恢复默认</button></div></div>
+                <input type="file" accept="image/*" id="beautify-home-file" hidden>
+              </article>
+              <article class="beautify-wallpaper-card">
+                <div class="beautify-preview sidebar-preview" id="beautify-sidebar-preview"><span>SIDEBAR</span></div>
+                <div class="beautify-wallpaper-info"><b>侧栏壁纸</b><small>为左侧菜单单独设置背景</small><div class="beautify-actions"><button type="button" class="beautify-btn primary" id="beautify-sidebar-pick">选择图片</button><button type="button" class="beautify-btn" id="beautify-sidebar-reset">恢复默认</button></div></div>
+                <input type="file" accept="image/*" id="beautify-sidebar-file" hidden>
+              </article>
+              <p class="beautify-hint">图片会自动压缩并保存在当前设备。侧栏会保留柔和遮罩，让菜单文字保持清晰。</p>
+            </section>
+            <section class="beautify-block">
+              <div class="beautify-block-head"><div><b>界面细节</b><small>INTERFACE DETAILS</small></div><span>02</span></div>
+              <div class="beautify-option-card">
+                <div class="beautify-option-copy"><b>卡片圆角</b><small>统一调整主要卡片的边角形状</small></div>
+                <select id="beautify-card-radius" aria-label="卡片圆角">
+                  <option value="0">直角</option><option value=".55rem">微圆角</option><option value="1.15rem">标准圆角</option><option value="1.8rem">大圆角</option>
+                </select>
+              </div>
+            </section>
+          </section>` : `
+          <section class="daily-empty" aria-label="${item.zh}"><span class="daily-empty-mark"></span></section>`}
       </main>`;
+    if (beauty) bindBeautify();
     document.querySelectorAll('[data-daily-go]').forEach(link => {
       link.classList.toggle('active', link.dataset.dailyGo === current);
       link.setAttribute('aria-current', link.dataset.dailyGo === current ? 'page' : 'false');
     });
   }
+  function bindBeautify() {
+    const $ = id => document.getElementById(id);
+    const radius = $('beautify-card-radius');
+    if (radius) {
+      radius.value = ['0','.55rem','1.15rem','1.8rem'].includes(S.cardRadius) ? S.cardRadius : '1.15rem';
+      radius.onchange = () => {
+        S.cardRadius = radius.value;
+        save('cardRadius');
+        document.documentElement.style.setProperty('--surface-radius', radius.value);
+        UI.toast('卡片圆角已更新');
+      };
+    }
+    const preview = (key,id) => {
+      const el=$(id); if(!el) return;
+      el.style.backgroundImage=S[key]?'linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.12)),url("'+S[key]+'")':'';
+      el.classList.toggle('has-image',!!S[key]);
+    };
+    preview('homeWallpaper','beautify-home-preview');
+    preview('sidebarWallpaper','beautify-sidebar-preview');
+    const compress=file=>new Promise((resolve,reject)=>{
+      const img=new Image(),url=URL.createObjectURL(file);
+      img.onload=()=>{
+        const scale=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight));
+        const canvas=document.createElement('canvas');
+        canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+        canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+        const ctx=canvas.getContext('2d');
+        if(!ctx){URL.revokeObjectURL(url);reject(new Error('图片处理失败'));return;}
+        ctx.drawImage(img,0,0,canvas.width,canvas.height); URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg',.78));
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('无法读取这张图片'));};
+      img.src=url;
+    });
+    const bind=(key,pickId,fileId,previewId,resetId,label)=>{
+      const pick=$(pickId),file=$(fileId),reset=$(resetId);
+      if(!pick||!file||!reset)return;
+      pick.onclick=()=>file.click();
+      file.onchange=async()=>{
+        const selected=file.files&&file.files[0];if(!selected)return;
+        if(!selected.type.startsWith('image/')){UI.toast('请选择图片文件');return;}
+        try{S[key]=await compress(selected);save(key);preview(key,previewId);window.XW.applyWallpapers?.();UI.toast(label+'已更新');}
+        catch(error){UI.toast(error.message||'壁纸保存失败');}
+        file.value='';
+      };
+      reset.onclick=()=>{S[key]='';save(key);preview(key,previewId);window.XW.applyWallpapers?.();UI.toast(label+'已恢复默认');};
+    };
+    bind('homeWallpaper','beautify-home-pick','beautify-home-file','beautify-home-preview','beautify-home-reset','首页壁纸');
+    bind('sidebarWallpaper','beautify-sidebar-pick','beautify-sidebar-file','beautify-sidebar-preview','beautify-sidebar-reset','侧栏壁纸');
+  }
+
   window.Daily = {
     build() { if (built) return; built = true; render(); },
     select(key) { if (!sections[key]) return; current = key; render(); window.go?.('daily'); },
