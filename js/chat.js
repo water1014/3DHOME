@@ -545,6 +545,7 @@ function sendMsg() {
   if (replyingTo) { msg.quote = replyingTo; cancelReply(); }
   pushMsgObj(msg);
   inp.value = ''; inp.style.height = 'auto';
+  inp.closest('.input-card')?.classList.remove('has-text');
   aiReply(text);
 }
 
