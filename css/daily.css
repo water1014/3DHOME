@@ -259,3 +259,22 @@ html.dark .wb-paper-stack .wb-entry{background:linear-gradient(90deg,rgba(150,17
 .wb-paper-stack .wb-entry-top{gap:.5rem}
 .wb-paper-stack .wb-entry-keys{font-size:.55rem}
 html.dark .wb-advanced{background:rgba(255,255,255,.025)}
+
+
+/* Worldbook import action · theme-aware quiet button */
+.worldbook-content .wb-toolbar #wb-import.wb-btn.primary{
+  background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(235,239,244,.72));
+  color:var(--ink);
+  border-color:var(--material-edge,var(--line-strong));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 8px rgba(20,30,45,.045);
+}
+html.dark .worldbook-content .wb-toolbar #wb-import.wb-btn.primary{
+  background:linear-gradient(145deg,rgba(255,255,255,.11),rgba(255,255,255,.055));
+  color:var(--ink);
+  border-color:rgba(220,232,246,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+.worldbook-content .wb-toolbar #wb-import.wb-btn.primary:focus-visible{
+  outline:2px solid var(--ink-2);
+  outline-offset:2px;
+}
