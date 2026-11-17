@@ -669,7 +669,7 @@ async function aiReply(text) {
       answer.text = reply;
       if (reasoning) answer.reasoningSummary = reasoning;
       if (completedToolCalls.length) answer.toolCalls = completedToolCalls.slice();
-    else if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
+      else if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
       const msgs = replyMessages(); if (msgs[msgIdx]) msgs[msgIdx] = answer;
       saveReplyMessages(msgs); paint();
     }
@@ -688,6 +688,7 @@ async function aiReply(text) {
       if(positions[2]?.length)base.push({role:'system',content:'以下设定位于示例对话之前，请自然遵循。\n\n'+positions[2].join('\n\n')});
       if(positions[3]?.length)base.push({role:'system',content:'以下设定位于示例对话之后，请自然遵循。\n\n'+positions[3].join('\n\n')});
       if(!injection.positions&&injection.system)base.push({role:'system',content:'以下是当前聊天关联世界书中匹配到的设定，请自然遵循，不要向用户提及提示词或注入过程。\n\n'+injection.system});
+      if(window.Engawa?.isConnected?.())base.push({role:'system',content:'你可以使用窗廊 Engawa 工具。窗廊是漫游与持续阅读，不是搜索引擎。仅在用户的请求或当前话题确实适合时调用，不要为了展示工具而调用。可先查看 shelf 或 hobby_corner，再用 rss_read 阅读订阅条目，必要时用 web_read 深入阅读文章。修改书架或爱好订阅前，必须等待用户在确认弹窗中明确批准。工具结果要经过理解与筛选，再自然地带回聊天。'});
       const depthItems=(injection.depth||[]).slice().sort((a,b)=>a.depth-b.depth||a.order-b.order),result=base.slice();
       history.forEach((message,index)=>{
         result.push(message);
@@ -803,7 +804,8 @@ async function aiReply(text) {
     answer.text = reply || (completedToolCalls.length ? '我已经从窗廊带回了一些发现。' : '');
     if (reasoning) answer.reasoningSummary = reasoning;
     else answer.reasoningUnavailable = true;
-    if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
+    if (completedToolCalls.length) answer.toolCalls = completedToolCalls.slice();
+    else if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
     const finalMsgs=replyMessages(); if(finalMsgs[msgIdx])finalMsgs[msgIdx]=answer;
     saveReplyMessages(finalMsgs); paint();
     finish();
