@@ -1,22 +1,17 @@
 /* Daily navigation and section shell */
 (function () {
   const sections = {
-    today: { zh: '今天', en: 'TODAY', group: 'DAILY LIFE' },
-    accounting: { zh: '记账', en: 'QUICK EXPENSES', group: 'DAILY LIFE' },
-    weather: { zh: '天气', en: 'WEATHER', group: 'DAILY LIFE' },
+    diary: { zh: '日记', en: 'DIARY', group: 'DAILY LIFE' },
     health: { zh: '健康', en: 'WELLNESS', group: 'DAILY LIFE' },
-    cycle: { zh: '经期', en: 'CYCLE', group: 'DAILY LIFE' },
+    cycle: { zh: '生理期', en: 'CYCLE', group: 'DAILY LIFE' },
+    abyss: { zh: '深渊区', en: 'ABYSS', group: 'DAILY LIFE' },
+    games: { zh: '游戏', en: 'GAMES', group: 'DAILY LIFE' },
     calendar: { zh: '日历', en: 'CALENDAR', group: 'DAILY LIFE' },
-    timetable: { zh: '课表与倒数', en: 'SCHEDULE', group: 'DAILY LIFE' },
-    todos: { zh: '待办清单', en: 'TO-DO LIST', group: 'DAILY LIFE' },
-    events: { zh: '日程与约定', en: 'AGENDA', group: 'DAILY LIFE' },
-    life: { zh: '生活记录', en: 'LIFE NOTES', group: 'DAILY LIFE' },
-    countdown: { zh: '重要倒数', en: 'COUNTDOWN', group: 'DAILY LIFE' },
+    plans: { zh: '安排', en: 'PLANS', group: 'DAILY LIFE' },
     study: { zh: '学习', en: 'STUDY', group: 'DAILY LIFE' },
-    diary: { zh: '日记', en: 'PRIVATE JOURNAL', group: 'COLLECTIONS' },
+    drawer: { zh: '抽屉', en: 'DRAWER', group: 'DAILY LIFE' },
     quotes: { zh: '语录', en: 'QUOTES', group: 'COLLECTIONS' },
     worldbook: { zh: '世界书', en: 'WORLDBOOK', group: 'OUR SPACE' },
-    games: { zh: '游戏', en: 'GAMES', group: 'PLAY & CREATE' },
     music: { zh: '音乐', en: 'MUSIC', group: 'PLAY & CREATE' },
     windows: { zh: '窗廊', en: 'WINDOW GALLERY', group: 'OUR SPACE' },
     moments: { zh: '动态', en: 'MOMENTS', group: 'COLLECTIONS' },
@@ -26,20 +21,19 @@
     album: { zh: '相册', en: 'ALBUM', group: 'COLLECTIONS' },
     'image-studio': { zh: '生图室', en: 'IMAGE STUDIO', group: 'PLAY & CREATE' },
   };
-  let current = 'today';
+  let current = 'diary';
   let windowTab = 'tonight';
   let windowToolsOpen = false;
   const { S, save } = window.XW;
   let built = false;
   function render() {
     const page = document.getElementById('pg-daily');
-    const overviewKeys = ['today','calendar','timetable','todos','life','events','countdown','plans','mood'];
-    const item = overviewKeys.includes(current) ? { zh: '日常总览', en: 'DAILY LIFE', group: 'DAILY LIFE' } : (sections[current] || sections.accounting);
+    const item = sections[current] || sections.diary;
     if (!page) return;
     const beauty = current === 'beautify';
     const worldbook = current === 'worldbook';
     const windows = current === 'windows';
-    const calendar = ['today','calendar','timetable','todos','life','events','countdown'].includes(current);
+    const calendar = current === 'calendar';
     page.innerHTML = `
       <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : windows ? 'engawa-page' : ''}">
         <header class="daily-heading">
@@ -47,7 +41,7 @@
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render(current) || '') : beauty ? `
+        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('today') || '') : beauty ? `
           <section class="beautify-content" aria-label="美化设置">
             <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
             <section class="beautify-block">
@@ -471,7 +465,7 @@
 
   window.Daily = {
     build() { if (built) return; built = true; render(); },
-    select(key) { const overviewKeys = ['today','calendar','plans','mood','timetable','todos','life','events','countdown']; if (overviewKeys.includes(key)) key = 'today'; if (!sections[key]) return; current = key; render(); window.go?.('daily'); },
+    select(key) { if (!sections[key]) return; current = key; render(); window.go?.('daily'); },
     showCurrent() { if (built) render(); },
     step(delta) {
       const keys = Object.keys(sections), index = keys.indexOf(current);
