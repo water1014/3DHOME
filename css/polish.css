@@ -248,3 +248,23 @@ html.dark #pg-chat .chat-header { background: rgba(255,255,255,.025); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* Home scroll fix: let the whole home page move as one surface. */
+#pg-home .fe-home {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding-bottom: calc(var(--tabbar-h) + 1.6rem + env(safe-area-inset-bottom));
+}
+#pg-home .fe-body {
+  overflow: visible;
+  flex: none;
+}
+#pg-home .fe-foot {
+  padding-bottom: .8rem;
+}
