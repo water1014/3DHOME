@@ -104,34 +104,3 @@
 .settings-card { border-radius: var(--surface-radius, 1.15rem); }
 
 
-/* Wallpaper controls inside appearance settings. */
-.settings-wallpaper-group { display:flex; flex-direction:column; gap:.55rem; margin-top:.85rem; }
-.settings-wallpaper-heading { display:flex; flex-direction:column; gap:.16rem; padding:.1rem .15rem; }
-.settings-wallpaper-heading b { font-family:'Noto Serif SC',var(--serif); font-size:.82rem; font-weight:500; letter-spacing:.07em; color:var(--ink); }
-.settings-wallpaper-heading small { color:var(--ink-3); font-size:.58rem; line-height:1.55; }
-.settings-wallpaper-card {
-  display:flex; align-items:center; gap:.75rem; min-width:0; padding:.62rem;
-  border:1px solid var(--line); border-radius:.9rem;
-  background:linear-gradient(145deg,rgba(255,255,255,.82),rgba(246,246,248,.62));
-  box-shadow:0 5px 16px rgba(0,0,0,.035),inset 0 1px 0 rgba(255,255,255,.92);
-}
-html.dark .settings-wallpaper-card { background:linear-gradient(145deg,rgba(48,48,52,.72),rgba(29,29,33,.62)); border-color:rgba(255,255,255,.1); }
-.settings-wallpaper-preview {
-  flex:0 0 5.1rem; width:5.1rem; height:4.2rem; display:flex; align-items:center; justify-content:center;
-  overflow:hidden; border-radius:.62rem; border:1px solid rgba(0,0,0,.08);
-  background:radial-gradient(circle at 30% 20%,#fff,#e6e6e8 75%,#d7d7da);
-  background-size:cover; background-position:center; color:#555; font:.56rem var(--mono); letter-spacing:.12em;
-}
-.settings-wallpaper-preview.has-image { color:#fff; text-shadow:0 1px 5px rgba(0,0,0,.6); }
-.settings-wallpaper-preview.sidebar-preview { background-image:linear-gradient(135deg,#f8f8f9,#dcdcdf); }
-.settings-wallpaper-info { flex:1; min-width:0; display:flex; flex-direction:column; gap:.16rem; }
-.settings-wallpaper-info>b { color:var(--ink); font-size:.7rem; font-weight:500; }
-.settings-wallpaper-info>small { color:var(--ink-3); font-size:.55rem; line-height:1.45; }
-.settings-wallpaper-actions { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.2rem; }
-.settings-wallpaper-actions .settings-btn { min-height:1.95rem; padding:.34rem .62rem; font-size:.58rem; }
-.settings-file-input { display:none; }
-@media(max-width:360px) {
-  .settings-wallpaper-preview { flex-basis:4.35rem; width:4.35rem; height:3.8rem; }
-  .settings-wallpaper-card { gap:.55rem; padding:.5rem; }
-  .settings-wallpaper-actions .settings-btn { padding:.32rem .5rem; }
-}
