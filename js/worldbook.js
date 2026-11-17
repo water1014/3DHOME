@@ -59,7 +59,7 @@
           '<label class="wb-field"><span>次级逻辑</span><select data-rule="selectiveLogic">'+options([[0,'任一命中'],[1,'全部命中'],[2,'全部不命中'],[3,'并非全部命中']],val('selectiveLogic',0))+'</select></label>'+
           '<label class="wb-field"><span>注入位置</span><select data-rule="position">'+options([[0,'角色设定前'],[1,'角色设定后'],[2,'示例对话前'],[3,'示例对话后'],[4,'按深度插入']],val('position',0))+'</select></label>'+
           '<label class="wb-field"><span>插入深度</span><input type="number" min="0" max="100" data-rule="depth" value="'+esc(val('depth',0))+'"></label>'+
-          '<label class="wb-field"><span>排序权重</span><input type="number" data-rule="order" value="'+esc(val('order',val('insertion_order',100)))+'"></label>'+
+          '<label class="wb-field"><span>排序权重</span><input type="number" data-rule="order" value="'+esc(val('order',val('insertion_order',val('insertorder',100))))+'"></label>'+
           '<label class="wb-field"><span>扫描消息数</span><input type="number" min="1" max="100" data-rule="scanDepth" value="'+esc(val('scanDepth',20))+'"></label>'+
           '<label class="wb-field"><span>触发概率 %</span><input type="number" min="0" max="100" data-rule="probability" value="'+esc(val('probability',100))+'"></label>'+
           '<label class="wb-field"><span>延迟消息数</span><input type="number" min="0" data-rule="delay" value="'+esc(val('delay',0))+'"></label>'+
@@ -170,7 +170,7 @@
         if(roll>=probability)return false;
       }
       const group=String(raw.group||'').trim();
-      const value={book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??raw.insertorder??0),depth:Math.max(0,Number(raw.depth)||0),order:Number(raw.order??raw.insertion_order??100),uid:key,group,groupWeight:Number(raw.groupWeight)||100,groupOverride:!!raw.groupOverride,preventRecursion:!!raw.preventRecursion,reason:recursive?'递归触发':raw.constant?'常驻触发':'关键词触发',round};
+      const value={book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??0),depth:Math.max(0,Number(raw.depth)||0),order:Number(raw.order??raw.insertion_order??raw.insertorder??100),uid:key,group,groupWeight:Number(raw.groupWeight)||100,groupOverride:!!raw.groupOverride,preventRecursion:!!raw.preventRecursion,reason:recursive?'递归触发':raw.constant?'常驻触发':'关键词触发',round};
       activated.set(key,value);
       diagnostics.push({book:book.name,title:value.title,reason:recursive?'递归触发':raw.constant?'常驻触发':'关键词触发',round});
       return true;
