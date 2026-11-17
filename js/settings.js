@@ -37,7 +37,9 @@
           <button type="button" data-settings-target="settings-data">数据</button>
         </nav>
 
-        <section class="settings-section" id="settings-appearance">
+        <div class="settings-viewport" id="settings-viewport">
+          <div class="settings-track" id="settings-track">
+        <section class="settings-section settings-panel" id="settings-appearance" data-settings-page="0">
           <div class="settings-section-head"><span>01</span><div><b>外观与显示</b><small>APPEARANCE</small></div></div>
           <div class="settings-card">
             <div class="settings-row">
@@ -50,7 +52,7 @@
           </div>
         </section>
 
-        <section class="settings-section" id="settings-profile">
+        <section class="settings-section settings-panel" id="settings-profile" data-settings-page="1">
           <div class="settings-section-head"><span>02</span><div><b>双人档案</b><small>OUR PROFILE</small></div></div>
           <div class="settings-card">
             <label class="settings-field"><span>你的称呼</span><input id="set-her-name" maxlength="24" value=""></label>
@@ -60,7 +62,7 @@
           </div>
         </section>
 
-        <section class="settings-section" id="settings-api">
+        <section class="settings-section settings-panel" id="settings-api" data-settings-page="2">
           <div class="settings-section-head"><span>03</span><div><b>AI 连接</b><small>GLOBAL API</small></div></div>
           <div class="settings-card">
             <label class="settings-field"><span>接口地址</span><input id="set-api-url" type="url" placeholder="https://api.openai.com/v1/chat/completions" autocomplete="url"></label>
@@ -72,7 +74,7 @@
           </div>
         </section>
 
-        <section class="settings-section" id="settings-prompt">
+        <section class="settings-section settings-panel" id="settings-prompt" data-settings-page="3">
           <div class="settings-section-head"><span>04</span><div><b>全局提示词</b><small>COMPANION INSTRUCTIONS</small></div></div>
           <div class="settings-card">
             <p class="settings-note">这里的内容会附加到聊天系统提示词中，作为宋祁在小窝里的长期行为与表达约定。</p>
@@ -81,7 +83,7 @@
           </div>
         </section>
 
-        <section class="settings-section" id="settings-data">
+        <section class="settings-section settings-panel" id="settings-data" data-settings-page="4">
           <div class="settings-section-head"><span>05</span><div><b>数据管理</b><small>LOCAL DATA</small></div></div>
           <div class="settings-card">
             <div class="settings-row"><div><b>本地数据占用</b><small id="set-storage-detail">正在统计</small></div><span class="settings-value" id="set-storage-size">—</span></div>
@@ -90,6 +92,8 @@
           </div>
         </section>
 
+          </div>
+        </div>
         <footer class="settings-footer">XIAOWO · PRIVATE SPACE<br><span>所有更改仅作用于当前设备</span></footer>
       </main>`;
     $('set-her-name').value = S.herName || '';
@@ -109,14 +113,31 @@
 
   function bind() {
     const jump = D.querySelector('.settings-jump');
-    if (jump) jump.querySelectorAll('[data-settings-target]').forEach(button => {
-      button.onclick = () => {
-        const target = $(button.dataset.settingsTarget);
-        if (!target) return;
-        jump.querySelectorAll('button').forEach(item => item.classList.toggle('is-active', item === button));
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      };
-    });
+    const viewport = $('settings-viewport');
+    const pages = Array.from(D.querySelectorAll('.settings-panel'));
+    const navButtons = jump ? Array.from(jump.querySelectorAll('[data-settings-target]')) : [];
+    let activePage = 0;
+    const showPage = (index, smooth = true) => {
+      activePage = Math.max(0, Math.min(pages.length - 1, index));
+      if (viewport) viewport.scrollTo({ left: activePage * viewport.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+      navButtons.forEach((button, i) => {
+        button.classList.toggle('is-active', i === activePage);
+        button.setAttribute('aria-current', i === activePage ? 'page' : 'false');
+      });
+      navButtons[activePage]?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
+    };
+    navButtons.forEach((button, index) => { button.onclick = () => showPage(index); });
+    if (viewport) {
+      let settle;
+      viewport.addEventListener('scroll', () => {
+        clearTimeout(settle);
+        settle = setTimeout(() => {
+          const index = Math.round(viewport.scrollLeft / Math.max(1, viewport.clientWidth));
+          if (index !== activePage) showPage(index, false);
+        }, 70);
+      }, { passive: true });
+      window.addEventListener('resize', () => showPage(activePage, false));
+    }
     $('set-theme').onclick = () => {
       S.theme = S.theme === 'dark' ? 'light' : 'dark';
       save('theme');
