@@ -1,0 +1,26 @@
+{$ENGAWA_DOMAIN} {
+  @preflight method OPTIONS
+  handle @preflight {
+    header Access-Control-Allow-Origin "https://water1014.github.io"
+    header Access-Control-Allow-Methods "POST, OPTIONS"
+    header Access-Control-Allow-Headers "Content-Type, Authorization, Mcp-Session-Id"
+    header Access-Control-Max-Age "86400"
+    respond "" 204
+  }
+
+  @authenticated header Authorization "Bearer {$ENGAWA_TOKEN}"
+  handle @authenticated {
+    header Access-Control-Allow-Origin "https://water1014.github.io"
+    header Access-Control-Allow-Methods "POST, OPTIONS"
+    header Access-Control-Allow-Headers "Content-Type, Authorization, Mcp-Session-Id"
+    header Access-Control-Expose-Headers "Mcp-Session-Id"
+    reverse_proxy engawa:8799 {
+      flush_interval -1
+    }
+  }
+
+  handle {
+    header Access-Control-Allow-Origin "https://water1014.github.io"
+    respond "Unauthorized" 401
+  }
+}
