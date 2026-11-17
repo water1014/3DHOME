@@ -341,6 +341,7 @@ function build() {
   updateHeader();
   syncWindowLabel();
   syncChatPrefs();
+  syncWorldbookBindings();
   renderMsgs();
   bindEvents();
 }
