@@ -1352,8 +1352,12 @@ function bindEvents() {
       toast('窗廊已连接，宋祁可以调用工具了');
     } catch (error) {
       engawaStatus.textContent = '连接失败';
-      engawaToolsHost.textContent = error.message || '连接失败，请检查服务地址';
-      toast(error.message || '窗廊连接失败');
+      const reason = error.message || '连接失败，请检查服务地址';
+      const friendly = /Failed to fetch|Load failed|NetworkError/i.test(reason)
+        ? '浏览器无法访问这个 MCP 地址。请检查 HTTPS、服务是否在线，以及网关是否允许小窝网页跨域访问（CORS）。'
+        : reason;
+      engawaToolsHost.textContent = friendly;
+      toast(friendly);
     } finally {
       $('chat-engawa-connect').disabled = false;
     }
