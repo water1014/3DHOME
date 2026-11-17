@@ -43,5 +43,11 @@
     build() { if (built) return; built = true; render(); },
     select(key) { if (!sections[key]) return; current = key; render(); window.go?.('daily'); },
     showCurrent() { if (built) render(); },
+    step(delta) {
+      const keys = Object.keys(sections);
+      const index = keys.indexOf(current);
+      const next = Math.max(0, Math.min(keys.length - 1, index + delta));
+      if (next !== index) { current = keys[next]; render(); }
+    },
   };
 })();
