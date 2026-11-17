@@ -60,7 +60,8 @@
     const start=new Date(first.getFullYear(),first.getMonth(),1-offset);
     return Array.from({length:42},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return iso(d);});
   }
-  function dayHasRecords(day) { return !!day && ((day.todos||[]).length>0 || (day.events||[]).length>0 || Object.values(day.meals||{}).some(value=>String(value||'').trim()) || !!(day.mood && (day.mood.value || day.mood.note))); }\n  function monthMarkup() {
+  function dayHasRecords(day) { return !!day && ((day.todos||[]).length>0 || (day.events||[]).length>0 || Object.values(day.meals||{}).some(value=>String(value||'').trim()) || !!(day.mood && (day.mood.value || day.mood.note))); }
+  function monthMarkup() {
     const month=iso(firstMonth(cursor)).slice(0,7), today=iso(new Date());
     const cells=monthGrid().map(date=>{
       const day=data.days[date] || {events:[],todos:[]}, d=parse(date), count=(day.events||[]).length+(day.todos||[]).length;
