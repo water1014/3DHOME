@@ -33,83 +33,53 @@ function go(name) {
 }
 window.go = go;
 
-// ── 侧栏：抽屉、单组折叠、键盘焦点与导航状态 ──
+// ── 侧栏 ──
 function initSide() {
   const btn = $('side-btn'), overlay = $('side-overlay'), drawer = $('side-drawer');
-  if (!btn || !overlay || !drawer) return;
-  let returnFocus = btn, scrollY = 0;
-    const visibleControls = () => Array.from(drawer.querySelectorAll('button:not([disabled])')).filter(node =>
-    !node.closest('[hidden]') && !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length));
-  const open = () => {
-    returnFocus = D.activeElement instanceof HTMLElement ? D.activeElement : btn;
-    drawer.classList.add('show'); overlay.classList.add('show');
-    btn.setAttribute('aria-expanded', 'true'); overlay.setAttribute('aria-hidden', 'false');
-    scrollY = window.scrollY; D.body.style.position = 'fixed'; D.body.style.top = '-' + scrollY + 'px'; D.body.style.width = '100%';
-    requestAnimationFrame(() => (visibleControls()[0] || drawer).focus());
-  };
-  const close = () => {
-    if (!drawer.classList.contains('show')) return;
-    drawer.classList.remove('show'); overlay.classList.remove('show');
-    btn.setAttribute('aria-expanded', 'false'); overlay.setAttribute('aria-hidden', 'true');
-    D.body.style.position = ''; D.body.style.top = ''; D.body.style.width = '';
-    window.scrollTo(0, scrollY);
-    if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
-  };
-  btn.onclick = open; overlay.onclick = close;
-  const syncActive = (target, kind) => {
-    drawer.querySelectorAll('.sd-item[data-go]').forEach(item => {
-      const active = kind === 'main' && item.dataset.go === target;
-      item.classList.toggle('on', active);
-      if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
-    });
-    drawer.querySelectorAll('.sd-subitem').forEach(item => {
-      const active = (kind === 'daily' && item.dataset.dailyGo === target) || (kind === 'settings' && item.dataset.settingsSection === target);
-      item.classList.toggle('active', active);
-      if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
-    });
-  };
-  drawer.querySelectorAll('[data-go]').forEach(item => item.onclick = () => {
-    const name = item.dataset.go;
-    if (name === 'settings') window.Settings?.build();
-    if (name === 'daily') window.Daily?.showCurrent();
-    syncActive(name, 'main'); go(name); close();
+  const open = () => { drawer.classList.add('show'); overlay.classList.add('show'); };
+  const close = () => { drawer.classList.remove('show'); overlay.classList.remove('show'); };
+  btn.onclick = open;
+  overlay.onclick = close;
+
+  // 导航
+  drawer.querySelectorAll('[data-go]').forEach(item => {
+    item.onclick = () => {
+      const name = item.dataset.go;
+      if (name === 'daily') {
+        window.Daily?.showCurrent();
+        go('daily');
+        close();
+        return;
+      }
+      drawer.querySelectorAll('.sd-item').forEach(i => i.classList.toggle('on', i === item));
+      if (name === 'settings') { window.Settings?.build(); }
+      go(name);
+      close();
+    };
   });
-  drawer.querySelectorAll('[data-settings-section]').forEach(item => item.onclick = () => {
-    const section = item.dataset.settingsSection;
-    syncActive(section, 'settings');
-    window.Settings?.build();
-    window.Settings?.openSection(section);
-    go('settings');
-    close();
+
+  drawer.querySelectorAll('[data-daily-go]').forEach(item => {
+    item.onclick = () => {
+      window.Daily?.select(item.dataset.dailyGo);
+      drawer.querySelectorAll('[data-daily-go]').forEach(link => link.classList.toggle('active', link === item));
+      close();
+    };
   });
-  drawer.querySelectorAll('[data-daily-go]').forEach(item => item.onclick = () => {
-    const key = item.dataset.dailyGo;
-    syncActive(key, 'daily'); window.Daily?.select(key); close();
-  });
-  drawer.addEventListener('keydown', event => {
-    if (event.key === 'Escape') { event.preventDefault(); close(); return; }
-    if (event.key !== 'Tab') return;
-    const controls = visibleControls();
-    if (!controls.length) { event.preventDefault(); drawer.focus(); return; }
-    const first = controls[0], last = controls[controls.length - 1];
-    if (event.shiftKey && D.activeElement === first) { event.preventDefault(); last.focus(); }
-    else if (!event.shiftKey && D.activeElement === last) { event.preventDefault(); first.focus(); }
-  });
+
+  // 深色模式
   const sw = $('sd-switch');
-  const syncTheme = () => sw?.classList.toggle('on', D.documentElement.classList.contains('dark'));
+  const syncTheme = () => sw.classList.toggle('on', D.documentElement.classList.contains('dark'));
   $('sd-theme').onclick = () => {
     const dark = D.documentElement.classList.toggle('dark');
-    XW.S.theme = dark ? 'dark' : 'light'; XW.save('theme'); syncTheme();
+    XW.S.theme = dark ? 'dark' : 'light';
+    XW.save('theme');
+    syncTheme();
   };
   syncTheme();
+
+  // 侧栏名字
   const n = $('sd-names');
   if (n) n.textContent = `${XW.S.hisName || '他'} & ${XW.S.herName || '她'}`;
-  const dayCount = $('sd-day-count');
-  if (dayCount) {
-    const start = new Date((XW.S.loveDate || '2025-01-01') + 'T00:00:00');
-    const now = new Date(); now.setHours(0,0,0,0);
-    dayCount.textContent = `TOGETHER · DAY ${Math.max(1, Math.floor((now - start) / 86400000) + 1)}`;
-  }
 }
 
 
@@ -118,7 +88,7 @@ function initGestures() {
   let start = null;
   const drawer = $('side-drawer');
   const overlay = $('side-overlay');
-  const closeDrawer = () => $('side-overlay')?.click();
+  const closeDrawer = () => { drawer.classList.remove('show'); overlay.classList.remove('show'); };
   D.addEventListener('touchstart', e => {
     if (!e.touches || e.touches.length !== 1) { start = null; return; }
     const t = e.touches[0];
@@ -144,7 +114,7 @@ function initGestures() {
 
     // 左边缘右滑呼出侧栏
     if (dx > 70 && originX < 28) {
-      $('side-btn')?.click(); return;
+      drawer.classList.add('show'); overlay.classList.add('show'); return;
     }
 
     if (cur === 'daily' && window.Daily?.step(dx < 0 ? 1 : -1)) return;
