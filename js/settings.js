@@ -155,6 +155,12 @@
       S.hisName = $('set-his-name').value.trim() || '他';
       S.loveDate = date || S.loveDate;
       ['herName','hisName','loveDate'].forEach(save);
+      const dayCount = $('sd-day-count');
+      if (dayCount) {
+        const start = new Date((S.loveDate || '2025-01-01') + 'T00:00:00');
+        const now = new Date(); now.setHours(0,0,0,0);
+        dayCount.textContent = 'TOGETHER · DAY ' + Math.max(1, Math.floor((now - start) / 86400000) + 1);
+      }
       const names = $('sd-names'); if (names) names.textContent = S.hisName + ' & ' + S.herName;
       UI.toast('双人档案已保存');
     };
