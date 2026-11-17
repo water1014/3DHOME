@@ -1,9 +1,6 @@
 services:
   engawa:
-    image: python:3.12-slim
-    command: >-
-      sh -c "pip install --no-cache-dir git+https://github.com/tsuru0805/engawa-mcp.git
-      && engawa-mcp --http"
+    build: .
     environment:
       ENGAWA_HOST: 0.0.0.0
       ENGAWA_PORT: "8799"
