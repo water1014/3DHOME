@@ -257,19 +257,22 @@ function build() {
     <!-- 输入区 -->
     <div class="input-bar">
       <div class="input-card">
-        <button class="ib-btn ib-plus" id="ib-plus" title="更多">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <textarea class="input-field" id="c-inp" rows="1" placeholder="ring the chime ..."></textarea>
-        <button class="ib-btn ib-emoji" id="ib-emoji" title="表情">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-        </button>
-        <button class="ib-btn ib-mic" id="ib-mic" title="语音">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </button>
-        <button class="send-btn" id="c-send">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 2L11 13"/></svg>
-        </button>
+        <textarea class="input-field" id="c-inp" rows="1" placeholder="Message..."></textarea>
+        <div class="input-actions">
+          <button class="ib-btn ib-plus" id="ib-plus" title="添加附件" aria-label="添加附件">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <span class="input-actions-spacer"></span>
+          <button class="ib-btn ib-emoji" id="ib-emoji" title="表情" aria-label="表情">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </button>
+          <button class="ib-btn ib-mic" id="ib-mic" title="语音" aria-label="语音">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <button class="send-btn" id="c-send" aria-label="发送消息">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14"/><path d="m21 3-7 18-4-7-7-4 18-7Z"/></svg>
+          </button>
+        </div>
       </div>
       <div class="emoji-panel" id="emoji-panel" aria-label="选择表情">
         <div class="emoji-panel-head"><span>表情</span><small>轻轻点一下，放进输入框</small></div>
@@ -904,7 +907,11 @@ function bindEvents() {
   $('c-send').onclick = () => aiTyping ? stopAIReply() : sendMsg();
   updateSendControl();
   $('c-inp').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } });
-  $('c-inp').addEventListener('input', function() { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 112) + 'px'; });
+  $('c-inp').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 144) + 'px';
+    this.closest('.input-card')?.classList.toggle('has-text', !!this.value.trim());
+  });
 
   // 工具面板
   $('ib-plus').onclick = () => {
