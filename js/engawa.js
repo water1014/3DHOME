@@ -5,6 +5,7 @@
   let endpoint = localStorage.getItem(STORAGE_URL) || '';
   let token = localStorage.getItem(STORAGE_TOKEN) || '';
   let sessionId = '';
+  let initialized = false;
   let tools = [];
   let connected = false;
   let serverInfo = null;
@@ -16,6 +17,7 @@
       'Accept': 'application/json, text/event-stream'
     };
     if (sessionId) value['Mcp-Session-Id'] = sessionId;
+    if (initialized) value['MCP-Protocol-Version'] = '2025-03-26';
     if (token) value.Authorization = 'Bearer ' + token;
     return value;
   }
@@ -64,6 +66,7 @@
     if (!/^https?:\/\//i.test(endpoint)) throw new Error('服务地址需要以 https:// 或 http:// 开头');
     endpoint = endpoint.replace(/\/$/, '');
     sessionId = '';
+    initialized = false;
     connected = false;
     tools = [];
     localStorage.setItem(STORAGE_URL, endpoint);
@@ -74,6 +77,7 @@
       clientInfo: { name: 'xiaowo-engawa-client', version: '1.0.0' }
     });
     serverInfo = initialized?.serverInfo || null;
+    initialized = true;
     await rpc('notifications/initialized', undefined, true);
     const listed = await rpc('tools/list', {});
     tools = Array.isArray(listed?.tools) ? listed.tools : [];
@@ -114,6 +118,7 @@
     connected = false;
     tools = [];
     sessionId = '';
+    initialized = false;
   }
 
   window.Engawa = {
