@@ -1310,6 +1310,45 @@ function bindEvents() {
     toast(S.aiKey ? 'AI 连接设置已保存' : '已保存接口与模型，请补充 API Key');
   };
 
+  // Engawa MCP connection and tool discovery.
+  const engawaSaved = window.Engawa?.getSavedSettings?.() || { endpoint:'', token:'' };
+  $('chat-engawa-url').value = engawaSaved.endpoint || '';
+  $('chat-engawa-token').value = engawaSaved.token || '';
+  const engawaStatus = $('chat-engawa-status');
+  const engawaToolsHost = $('chat-engawa-tools');
+  const showEngawaTools = names => {
+    engawaToolsHost.textContent = names.length ? '可用工具：' + names.join(' · ') : '服务已连接，但没有发现可用工具。';
+  };
+  const savedEngawaStatus = window.Engawa?.getStatus?.();
+  if (savedEngawaStatus?.connected) {
+    engawaStatus.textContent = '已连接 · ' + savedEngawaStatus.toolCount + ' 个工具';
+    showEngawaTools(savedEngawaStatus.toolNames);
+  } else if (engawaSaved.endpoint) {
+    engawaStatus.textContent = '已保存，待连接';
+  }
+  $('chat-engawa-connect').onclick = async () => {
+    const endpoint = $('chat-engawa-url').value.trim();
+    const accessToken = $('chat-engawa-token').value.trim();
+    if (!endpoint) { toast('请填写 Engawa MCP 服务地址'); return; }
+    engawaStatus.textContent = '正在连接…';
+    engawaToolsHost.textContent = '正在读取服务端工具目录…';
+    $('chat-engawa-connect').disabled = true;
+    try {
+      if (!window.Engawa) throw new Error('MCP 客户端尚未加载，请刷新页面后重试');
+      const result = await window.Engawa.connect(endpoint, accessToken);
+      const names = result.tools.map(tool => tool.name);
+      engawaStatus.textContent = '已连接 · ' + names.length + ' 个工具';
+      showEngawaTools(names);
+      toast('窗廊已连接，宋祁可以调用工具了');
+    } catch (error) {
+      engawaStatus.textContent = '连接失败';
+      engawaToolsHost.textContent = error.message || '连接失败，请检查服务地址';
+      toast(error.message || '窗廊连接失败');
+    } finally {
+      $('chat-engawa-connect').disabled = false;
+    }
+  };
+
   // 上传头像、气泡与壁纸：全部属于 Chat 页面，图片压缩后保存在本机。
   let pendingAppearanceKey = '';
   const appearanceFile = $('chat-appearance-file');
