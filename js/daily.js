@@ -47,7 +47,8 @@
       const keys = Object.keys(sections);
       const index = keys.indexOf(current);
       const next = Math.max(0, Math.min(keys.length - 1, index + delta));
-      if (next !== index) { current = keys[next]; render(); }
+      if (next !== index) { current = keys[next]; render(); return true; }
+      return false;
     },
   };
 })();
