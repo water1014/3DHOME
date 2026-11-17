@@ -733,3 +733,58 @@ html.dark .side-drawer .sd-item:hover, html.dark .side-drawer .sd-item.on { back
 #pg-home .fe-home.has-home-wallpaper { background-repeat:no-repeat; background-attachment:scroll; }
 #pg-home .fe-home.has-home-wallpaper::before { opacity:.48; }
 .side-drawer[style*="background-image"] { background-repeat:no-repeat; }
+
+
+/* Sidebar identity slip: borrow the light, layered paper-glass finish of the home letter. */
+.side-drawer .sd-head {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: .12rem 0 .12rem;
+  padding: .78rem .72rem .9rem;
+  border: 1px solid rgba(255,255,255,.78) !important;
+  border-radius: .62rem;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 1.18rem,
+      rgba(90,96,106,.028) 1.18rem calc(1.18rem + 1px)
+    ),
+    radial-gradient(ellipse at 14% 0%, rgba(255,255,255,.82), transparent 72%),
+    linear-gradient(135deg, rgba(255,255,255,.54), rgba(245,246,248,.24));
+  -webkit-backdrop-filter: blur(24px) saturate(1.08);
+  backdrop-filter: blur(24px) saturate(1.08);
+  box-shadow:
+    0 5px 16px rgba(20,24,30,.035),
+    inset 0 1px 0 rgba(255,255,255,.92);
+}
+.side-drawer .sd-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(112deg, rgba(255,255,255,.26), transparent 48%, rgba(255,255,255,.1));
+}
+.side-drawer .sd-ava {
+  background: linear-gradient(145deg, rgba(255,255,255,.74), rgba(225,227,231,.36)) !important;
+  border: 1px solid rgba(255,255,255,.86) !important;
+  box-shadow: 0 3px 10px rgba(20,24,30,.055), inset 0 1px 0 rgba(255,255,255,.94) !important;
+}
+html.dark .side-drawer .sd-head {
+  border-color: rgba(255,255,255,.13) !important;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 1.18rem,
+      rgba(255,255,255,.022) 1.18rem calc(1.18rem + 1px)
+    ),
+    radial-gradient(ellipse at 14% 0%, rgba(255,255,255,.09), transparent 72%),
+    linear-gradient(135deg, rgba(54,54,59,.56), rgba(31,31,35,.36));
+  box-shadow: 0 5px 18px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.09);
+}
+html.dark .side-drawer .sd-ava {
+  background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.045)) !important;
+  border-color: rgba(255,255,255,.16) !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.12) !important;
+}
