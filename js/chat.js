@@ -95,7 +95,7 @@ function createChatWindow() {
   const clean = title.trim().slice(0,32) || '新的聊天';
   const win = { id:'win_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7), title:clean, messages:[], worldbookIds:[], createdAt:Date.now(), updatedAt:Date.now(), archived:false };
   getChatWindows().push(win); save('chatWindows'); currentChannel = win.id; localStorage.setItem('xw_chatCurrentWindowId', currentChannel);
-  syncWindowLabel(); renderMsgs(); closeWindowManager(); toast('新会话已创建');
+  syncWorldbookBindings(); syncWindowLabel(); renderMsgs(); closeWindowManager(); toast('新会话已创建');
 }
 function activateWindow(id) {
   const win = getChatWindows().find(w => w.id === id && !w.archived); if (!win) return;
@@ -1318,5 +1318,5 @@ function bindEvents() {
   };
 }
 
-window.Chat = { build };
+window.Chat = { build, refreshWorldbooks: syncWorldbookBindings };
 })();
