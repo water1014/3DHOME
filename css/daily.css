@@ -1,4 +1,6 @@
 /* Daily section shell and always-visible sidebar subnavigation */
+.sd-nav { overflow-y:auto; min-height:0; scrollbar-width:none; }
+.sd-nav::-webkit-scrollbar { display:none; }
 .sd-daily-wrap { display:flex; flex-direction:column; }
 .sd-daily-toggle { position:relative; }
 .sd-daily-group {
