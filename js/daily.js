@@ -1,6 +1,7 @@
 /* Daily navigation and section shell */
 (function () {
   const sections = {
+    today: { zh: '今天', en: 'TODAY', group: 'DAILY LIFE' },
     accounting: { zh: '记账', en: 'QUICK EXPENSES', group: 'DAILY LIFE' },
     weather: { zh: '天气', en: 'WEATHER', group: 'DAILY LIFE' },
     health: { zh: '健康', en: 'WELLNESS', group: 'DAILY LIFE' },
@@ -24,7 +25,7 @@
     album: { zh: '相册', en: 'ALBUM', group: 'COLLECTIONS' },
     'image-studio': { zh: '生图室', en: 'IMAGE STUDIO', group: 'PLAY & CREATE' },
   };
-  let current = 'accounting';
+  let current = 'today';
   let windowTab = 'tonight';
   let windowToolsOpen = false;
   const { S, save } = window.XW;
@@ -36,7 +37,7 @@
     const beauty = current === 'beautify';
     const worldbook = current === 'worldbook';
     const windows = current === 'windows';
-    const calendar = ['calendar','timetable','todos','life','events','countdown'].includes(current);
+    const calendar = ['today','calendar','timetable','todos','life','events','countdown'].includes(current);
     page.innerHTML = `
       <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : windows ? 'engawa-page' : ''}">
         <header class="daily-heading">
