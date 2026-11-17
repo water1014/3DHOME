@@ -102,9 +102,6 @@
     $('set-api-model').value = S.aiModel || '';
     $('set-api-key').value = S.aiKey || '';
     $('set-global-prompt').value = S.globalPrompt || '';
-    const radius = S.cardRadius || '1.15rem';
-    $('set-card-radius').value = radius;
-    D.documentElement.style.setProperty('--surface-radius', radius);
     $('set-api-state').textContent = S.aiKey ? 'API Key 已配置' : '尚未配置 API Key';
     const stats = storageStats();
     $('set-storage-size').textContent = stats.label;
