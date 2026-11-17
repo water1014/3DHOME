@@ -351,14 +351,25 @@ function syncWorldbookBindings(){
   const host=$('chat-worldbook-options');if(!host)return;
   const books=window.Worldbook?.listBooks?.()||[],win=getCurrentWindow();if(!win)return;
   if(!Array.isArray(win.worldbookIds))win.worldbookIds=[];
-  if(!books.length){host.innerHTML='<div class="chat-worldbook-empty">还没有世界书。先到侧栏「世界书」导入或创建一本。</div>';return;}
+  if(!books.length){host.innerHTML='<div class="chat-worldbook-empty">还没有世界书。先到侧栏「世界书」导入或创建一本。</div>';updateWorldbookPreview();return;}
   host.innerHTML=books.map(book=>'<label class="chat-worldbook-option"><input type="checkbox" data-chat-worldbook="'+esc(book.id)+'" '+(win.worldbookIds.includes(book.id)?'checked':'')+'><span><b>'+esc(book.name)+'</b><small>'+book.count+' 个条目</small></span></label>').join('');
   host.querySelectorAll('[data-chat-worldbook]').forEach(input=>input.addEventListener('change',()=>{
     const current=getCurrentWindow();if(!current)return;const id=input.dataset.chatWorldbook;
     current.worldbookIds=Array.isArray(current.worldbookIds)?current.worldbookIds:[];
     current.worldbookIds=input.checked?[...new Set([...current.worldbookIds,id])]:current.worldbookIds.filter(x=>x!==id);
-    save('chatWindows');toast(input.checked?'已为当前窗口启用这本世界书':'已从当前窗口移除这本世界书');
+    save('chatWindows');updateWorldbookPreview();toast(input.checked?'已为当前窗口启用这本世界书':'已从当前窗口移除这本世界书');
   }));
+  updateWorldbookPreview();
+}
+function updateWorldbookPreview(){
+  const host=$('chat-worldbook-preview');if(!host)return;
+  const win=getCurrentWindow(),messages=getWindowMessages(win);
+  const history=messages.filter(m=>!m._typing).map(m=>({role:m.who==='ta'?'assistant':'user',content:String(m.text||'')})).filter(m=>m.content);
+  const result=window.Worldbook?.buildInjection?.(history,win?.worldbookIds)||{matched:[]};
+  const matched=result.matched||[];
+  host.innerHTML=win?.worldbookIds?.length
+    ? '<div class="chat-worldbook-preview-head">当前触发 <b>'+matched.length+'</b> 条</div>'+(matched.length?'<div class="chat-worldbook-preview-list">'+matched.map(x=>'<span>'+esc(x.book)+' · '+esc(x.title)+'</span>').join('')+'</div>':'<small>暂时没有条目命中。继续聊天后会自动检查。</small>')
+    : '<small>尚未为这个聊天窗口选择世界书。</small>';
 }
 function updateHeader() {
   const ava = $('ch-ava');
@@ -522,6 +533,7 @@ function renderMsgs() {
   }).join('');
   if (followLatest) body.scrollTop = body.scrollHeight;
   hydrateChatMedia(body);
+  updateWorldbookPreview();
 }
 function renderVoiceBubble(m) {
   const dur = m.dur || 3;
