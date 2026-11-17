@@ -1494,3 +1494,27 @@ html.dark #pg-chat .input-bar {
 @media (prefers-reduced-motion:reduce) {
   #pg-chat .chat-body { scroll-behavior:auto; }
 }
+
+
+/* Composer comfort pass: give the writing area more vertical room without enlarging the footer. */
+#pg-chat .input-card {
+  min-height:3.55rem;
+  padding:.42rem .42rem .42rem .62rem;
+  gap:.38rem;
+  border-radius:1.5rem;
+}
+#pg-chat .input-field {
+  min-height:2.55rem;
+  padding:.5rem .28rem;
+  line-height:1.6;
+}
+#pg-chat .ib-btn {
+  flex-basis:2.08rem;
+  width:2.08rem;
+  height:2.08rem;
+}
+#pg-chat .send-btn {
+  flex-basis:2.12rem;
+  width:2.12rem;
+  height:2.12rem;
+}
