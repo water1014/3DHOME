@@ -22,6 +22,8 @@
     'image-studio': { zh: '生图室', en: 'IMAGE STUDIO', group: 'PLAY & CREATE' },
   };
   let current = 'accounting';
+  let windowTab = 'tonight';
+  let windowToolsOpen = false;
   const { S, save } = window.XW;
   let built = false;
   function render() {
@@ -30,14 +32,15 @@
     if (!page) return;
     const beauty = current === 'beautify';
     const worldbook = current === 'worldbook';
+    const windows = current === 'windows';
     page.innerHTML = `
-      <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : ''}">
+      <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : windows ? 'engawa-page' : ''}">
         <header class="daily-heading">
           <div class="daily-kicker">XIAOWO / ${item.group}</div>
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        ${worldbook ? (window.Worldbook?.render() || '') : beauty ? `
+        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : beauty ? `
           <section class="beautify-content" aria-label="美化设置">
             <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
             <section class="beautify-block">
@@ -92,11 +95,104 @@
       </main>`;
     if (beauty) bindBeautify();
     if (worldbook) window.Worldbook?.mount();
+    if (windows) bindWindows();
     document.querySelectorAll('[data-daily-go]').forEach(link => {
       link.classList.toggle('active', link.dataset.dailyGo === current);
       link.setAttribute('aria-current', link.dataset.dailyGo === current ? 'page' : 'false');
     });
   }
+  function renderWindows() {
+    const panels = {
+      tonight: {
+        kicker: 'THE SKY ABOVE US',
+        title: '今夜，抬头看看',
+        intro: '月亮、日落与夜空里的行星。天象会根据设定的观测地点计算。',
+        cards: [
+          ['月相与月升落', 'SKY TONIGHT', '月相、照明度、月升月落、日落与夜间可见行星。'],
+          ['NASA 每日天文图', 'ASTRONOMY PICTURE', '一张来自宇宙的影像，以及天文学家的说明。']
+        ]
+      },
+      daily: {
+        kicker: 'SMALL DAILY DISCOVERIES',
+        title: '每日一页',
+        intro: '每天一幅画、一首诗，还有历史上的今天。让日子有一点意外的光。',
+        cards: [
+          ['每日艺术', 'DAILY ART', '来自开放馆藏的一幅作品，可了解作者与作品背景。'],
+          ['今日诗笺', 'DAILY POEM', '按时令挑选的古诗词，附出处与全文。'],
+          ['历史上的今天', 'ON THIS DAY', '沿着日期，看看世界曾经发生过什么。']
+        ]
+      },
+      shelf: {
+        kicker: 'A SHELF OF OPEN WINDOWS',
+        title: '檐下书架',
+        intro: '这里放的是你愿意长期关注的来源。不是临时搜索，而是慢慢积累的阅读路径。',
+        cards: [
+          ['精选书架', 'CURATED FEEDS', '浏览科学、海洋、建筑、长文与奇想等主题来源。'],
+          ['订阅来源', 'YOUR SOURCES', '添加 RSS / Atom 网站，或从候选来源中挑选。'],
+          ['网页阅读', 'WEB READING', '打开文章正文，长文可以分段继续阅读。']
+        ]
+      },
+      hobby: {
+        kicker: 'THINGS WE KEEP NOTICING',
+        title: '爱好角',
+        intro: '把真正感兴趣的主题留下来。宋祁可以沿着这些线索持续发现新内容。',
+        cards: [
+          ['主题订阅', 'HOBBY CORNER', '查看已订阅主题的最新内容。'],
+          ['发现新来源', 'SUGGESTIONS', '从候选 RSS 来源里挑选想关注的方向。']
+        ]
+      }
+    };
+    const panel = panels[windowTab] || panels.tonight;
+    const tabs = [['tonight','今夜'],['daily','每日'],['shelf','书架'],['hobby','爱好角']];
+    return `
+      <section class="engawa-content">
+        <div class="engawa-intro">
+          <div class="engawa-overline">ENGAWA / A PORCH FOR THE WORLD</div>
+          <p>半在屋里，半向着世界。让宋祁也有一处可以独自漫游、再把见闻带回来的地方。</p>
+        </div>
+        <div class="engawa-status">
+          <span class="engawa-status-dot"></span>
+          <div><b>等待连接 Engawa 服务</b><small>页面已就位，实时天象、诗画与订阅内容将在 MCP 服务接通后加载。</small></div>
+          <span class="engawa-status-tag">NOT CONNECTED</span>
+        </div>
+        <nav class="engawa-tabs" aria-label="窗廊分类">
+          ${tabs.map(([key,label]) => `<button type="button" data-window-tab="${key}" class="${windowTab===key?'active':''}" aria-pressed="${windowTab===key?'true':'false'}">${label}</button>`).join('')}
+        </nav>
+        <section class="engawa-feature">
+          <div class="engawa-feature-top"><span>${panel.kicker}</span><i>✳</i></div>
+          <h2>${panel.title}</h2>
+          <p>${panel.intro}</p>
+          <div class="engawa-feature-rule"></div>
+          <div class="engawa-card-list">
+            ${panel.cards.map(([title,en,desc],i) => `
+              <article class="engawa-item">
+                <span class="engawa-item-index">0${i+1}</span>
+                <div class="engawa-item-copy"><b>${title}</b><small>${en}</small><p>${desc}</p></div>
+                <span class="engawa-item-lock" aria-label="等待服务连接">⌁</span>
+              </article>`).join('')}
+          </div>
+        </section>
+        <section class="engawa-tools">
+          <button type="button" class="engawa-tools-toggle" id="engawa-tools-toggle" aria-expanded="${windowToolsOpen?'true':'false'}">
+            <span><b>Engawa 工具目录</b><small>READ · DISCOVER · KEEP</small></span><span>${windowToolsOpen?'−':'＋'}</span>
+          </button>
+          ${windowToolsOpen ? `<div class="engawa-tools-list">
+            <span>web_read</span><span>rss_read</span><span>shelf / shelf_add / shelf_suggest / shelf_remove</span>
+            <span>sky_tonight</span><span>apod</span><span>daily_art</span><span>daily_poem</span>
+            <span>arxiv_new</span><span>on_this_day</span><span>hobby_corner / hobby_add / hobby_remove</span>
+          </div>` : ''}
+        </section>
+        <p class="engawa-footnote">窗廊不是搜索框。它是一条慢慢走出去、再带着故事回来的路。</p>
+      </section>`;
+  }
+  function bindWindows() {
+    document.querySelectorAll('[data-window-tab]').forEach(button => {
+      button.onclick = () => { windowTab = button.dataset.windowTab; render(); };
+    });
+    const toggle = document.getElementById('engawa-tools-toggle');
+    if (toggle) toggle.onclick = () => { windowToolsOpen = !windowToolsOpen; render(); };
+  }
+
   function bindBeautify() {
     const $ = id => document.getElementById(id);
     const radius = $('beautify-card-radius');
