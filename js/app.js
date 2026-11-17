@@ -145,7 +145,7 @@ function initGestures() {
   let start = null;
   const drawer = $('side-drawer');
   const overlay = $('side-overlay');
-  const closeDrawer = () => { drawer.classList.remove('show'); overlay.classList.remove('show'); };
+  const closeDrawer = () => $('side-overlay')?.click();
   D.addEventListener('touchstart', e => {
     if (!e.touches || e.touches.length !== 1) { start = null; return; }
     const t = e.touches[0];
@@ -171,7 +171,7 @@ function initGestures() {
 
     // 左边缘右滑呼出侧栏
     if (dx > 70 && originX < 28) {
-      drawer.classList.add('show'); overlay.classList.add('show'); return;
+      $('side-btn')?.click(); return;
     }
 
     if (cur === 'daily' && window.Daily?.step(dx < 0 ? 1 : -1)) return;
