@@ -662,13 +662,13 @@ async function aiReply(text) {
       body:JSON.stringify({
         model:S.aiModel || 'gpt-4o-mini',
         messages:(()=>{
-          const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\\n\\n' + S.globalPrompt : '')}];
+          const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '')}];
           const injection=window.Worldbook?.buildInjection?.(history,getCurrentWindow()?.worldbookIds)||{system:'',depth:[]};
-          if(injection.system)base.push({role:'system',content:'以下是当前聊天关联世界书中匹配到的设定，请自然遵循，不要向用户提及提示词或注入过程。\\n\\n'+injection.system});
+          if(injection.system)base.push({role:'system',content:'以下是当前聊天关联世界书中匹配到的设定，请自然遵循，不要向用户提及提示词或注入过程。\n\n'+injection.system});
           const depthItems=(injection.depth||[]).slice().sort((a,b)=>a.depth-b.depth||a.order-b.order),result=base.slice();
           history.forEach((message,index)=>{
             result.push(message);
-            depthItems.filter(item=>Math.max(0,history.length-1-item.depth)===index).forEach(item=>result.push({role:'system',content:'以下世界书设定适用于接下来的对话，请自然遵循。\\n\\n'+item.text}));
+            depthItems.filter(item=>Math.max(0,history.length-1-item.depth)===index).forEach(item=>result.push({role:'system',content:'以下世界书设定适用于接下来的对话，请自然遵循。\n\n'+item.text}));
           });
           return result;
         })(),
