@@ -2,7 +2,7 @@
 (function () {
   const D = document, $ = D.getElementById.bind(D);
   const { S, save } = XW;
-  let built = false;
+  let built = false;\n  let openSectionHandler = null;
 
   function storageStats() {
     let bytes = 0, entries = 0;
@@ -125,6 +125,10 @@
       });
       navButtons[activePage]?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
     };
+    openSectionHandler = id => {
+      const index = pages.findIndex(page => page.id === id);
+      if (index >= 0) showPage(index, false);
+    };
     navButtons.forEach((button, index) => { button.onclick = () => showPage(index); });
     if (viewport) {
       let settle;
@@ -209,5 +213,5 @@
     input.click();
   }
 
-  window.Settings = { build };
+  window.Settings = { build, openSection(id) { openSectionHandler?.(id); } };
 })();
