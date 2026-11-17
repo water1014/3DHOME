@@ -1195,3 +1195,36 @@ html.dark #pg-chat .chat-pref-fold-icon {background:rgba(218,229,242,.09);color:
 #pg-chat .chat-pref-fold > summary small {color:var(--ink-3)}
 #pg-chat .chat-pref-fold .chat-pref-section {border-color:color-mix(in srgb,var(--ink-3) 12%,transparent)}
 #pg-chat .chat-pref-note {color:var(--ink-3)}
+
+
+/* Anchor the composer to the bottom edge of the Chat viewport, just above the floating tab bar.
+   Absolute positioning avoids the flex-content height making it float halfway up the screen. */
+#pg-chat .input-bar {
+  position:absolute;
+  z-index:12;
+  left:0;
+  right:0;
+  bottom:calc(var(--tabbar-h) + 1.15rem + env(safe-area-inset-bottom));
+  width:100%;
+  margin:0;
+  padding:.3rem max(.85rem,var(--page-pad));
+  border:0;
+  background:transparent;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+#pg-chat .chat-body {
+  padding-bottom:calc(var(--tabbar-h) + 6.2rem + env(safe-area-inset-bottom));
+}
+#pg-chat .input-card {
+  background:rgba(247,249,252,.9);
+  border:1px solid rgba(255,255,255,.72);
+  box-shadow:0 5px 18px rgba(25,38,54,.12),inset 0 1px 0 rgba(255,255,255,.82);
+  -webkit-backdrop-filter:blur(14px) saturate(1.08);
+  backdrop-filter:blur(14px) saturate(1.08);
+}
+html.dark #pg-chat .input-card {
+  background:rgba(35,40,48,.92);
+  border-color:rgba(225,234,245,.16);
+  box-shadow:0 5px 18px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06);
+}
