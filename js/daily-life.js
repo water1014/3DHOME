@@ -4,7 +4,7 @@
   const LEGACY_KEY = 'xiaowo_calendar_events_v1';
   const WEEK = ['一','二','三','四','五','六','日'];
   const MEALS = [['breakfast','早餐'],['lunch','午餐'],['dinner','晚餐']];
-  const MOODS = [['calm','◯','平静'],['happy','☼','愉快'],['tired','⌁','疲惫'],['low','⋯','低落'],['excited','✳','期待']];
+  const MOODS = [['calm','😌','平静'],['happy','😊','开心'],['tired','😴','疲惫'],['low','🥺','低落'],['excited','🤩','期待']];
   const $ = id => document.getElementById(id);
   let data = load();
   let cursor = firstMonth(new Date());
@@ -87,10 +87,10 @@
     return '<section class="dh-panel"><div class="dh-panel-head"><div><span class="dh-en">SMALL THINGS, DONE</span><h3>今日待办</h3></div><button type="button" class="dh-text-btn" data-add="todo">＋ 添加</button></div>'+(day.todos.length?'<div class="dh-todo-list">'+open.map(row).join('')+done.map(row).join('')+'</div>':'<p class="dh-muted dh-small">还没有待办，今天可以慢慢来</p>')+'</section>';
   }
   function mealsMarkup(day) {
-    return '<section class="dh-panel"><div class="dh-panel-head"><div><span class="dh-en">A LITTLE CARE</span><h3>今天吃什么</h3></div></div><div class="dh-meals">'+MEALS.map(([key,label])=>'<label><span>'+label+'</span><input type="text" data-meal="'+key+'" maxlength="80" value="'+esc(day.meals[key]||'')+'" placeholder="还没决定"></label>').join('')+'</div></section>';
+    return '<section class="dh-panel"><div class="dh-panel-head"><div><span class="dh-en">A LITTLE CARE</span><h3>今天吃什么</h3></div></div><div class="dh-meals">'+MEALS.map(([key,label])=>'<label class="meal-'+key+'"><span>'+({breakfast:'☀️',lunch:'🍱',dinner:'🌙'}[key])+' '+label+'</span><input type="text" data-meal="'+key+'" maxlength="80" value="'+esc(day.meals[key]||'')+'" placeholder="还没决定"></label>').join('')+'</div></section>';
   }
   function moodMarkup(day) {
-    return '<section class="dh-panel"><div class="dh-panel-head"><div><span class="dh-en">HOW ARE YOU FEELING</span><h3>今天的心情</h3></div></div><div class="dh-moods">'+MOODS.map(([key,symbol,label])=>'<button type="button" data-mood="'+key+'" class="'+(day.mood.value===key?'active':'')+'" aria-pressed="'+(day.mood.value===key)+'"><i>'+symbol+'</i><span>'+label+'</span></button>').join('')+'</div><textarea class="dh-mood-note" data-mood-note maxlength="180" placeholder="留一句给今天的话…">'+esc(day.mood.note||'')+'</textarea></section>';
+    return '<section class="dh-panel"><div class="dh-panel-head"><div><span class="dh-en">HOW ARE YOU FEELING</span><h3>今天的心情</h3></div></div><div class="dh-mood-prompt">此刻的你，是什么心情？</div><div class="dh-moods">'+MOODS.map(([key,symbol,label])=>'<button type="button" data-mood="'+key+'" class="mood-'+key+' '+(day.mood.value===key?'active':'')+'" aria-label="'+label+'" aria-pressed="'+(day.mood.value===key)+'"><i>'+symbol+'</i><span>'+label+'</span></button>').join('')+'</div><textarea class="dh-mood-note" data-mood-note maxlength="180" placeholder="留一句给今天的话…">'+esc(day.mood.note||'')+'</textarea></section>';
   }
   function eventsMarkup(day) {
     const events=day.events.slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
