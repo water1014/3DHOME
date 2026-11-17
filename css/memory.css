@@ -73,3 +73,34 @@
 .mem-cancel { border:1px solid var(--line); background:transparent; color:var(--ink-2); }
 .mem-save { border:1px solid var(--dark); background:var(--dark); color:var(--on-dark); }
 @media (min-width:480px) { .mem-page { padding-left:1.4rem; padding-right:1.4rem; } }
+
+
+/* Memory editorial system: journal, magazine and archive folders */
+.mem-view-tabs { display:flex; gap:1.35rem; align-items:center; border-bottom:1px solid var(--line); margin:.15rem 0 1.15rem; }
+.mem-view-tabs button { position:relative; padding:.7rem .08rem .75rem; border:0; background:none; color:var(--ink-3); font:.67rem var(--sans); letter-spacing:.08em; }
+.mem-view-tabs button.active { color:var(--ink); }
+.mem-view-tabs button.active:after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:1px; background:var(--ink); }
+.mem-view[hidden] { display:none !important; }
+.mem-feature { position:relative; overflow:hidden; padding:1.1rem 1.1rem 1rem; border:1px solid var(--line); border-radius:.9rem; background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(128,128,128,.045)); box-shadow:var(--card-shadow); }
+.mem-feature:after { content:"✳"; position:absolute; right:.8rem; top:.55rem; color:var(--ink-3); opacity:.18; font:4rem 'Cormorant Garamond',var(--serif); pointer-events:none; }
+.mem-feature-label,.mem-section-heading { display:flex; justify-content:space-between; color:var(--ink-3); font:.44rem var(--mono); letter-spacing:.16em; }
+.mem-feature-label span { margin-left:.3rem; }
+.mem-feature-date { margin-top:1.4rem; color:var(--ink-3); font:.49rem var(--mono); letter-spacing:.08em; }
+.mem-feature h2 { position:relative; z-index:1; max-width:85%; margin:.45rem 0 .4rem; font:500 1.18rem/1.5 'Noto Serif SC',var(--serif); letter-spacing:.06em; }
+.mem-feature p { max-width:92%; color:var(--ink-2); font:.67rem/1.8 var(--sans); }
+.mem-feature button { margin-top:.8rem; padding:.45rem 0 .1rem; border:0; border-bottom:1px solid var(--line); background:transparent; color:var(--ink); font:.58rem var(--sans); letter-spacing:.04em; }
+.mem-section-heading { margin:1.25rem .05rem .65rem; }
+.mem-folder-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.55rem; }
+.mem-folder { position:relative; display:flex; flex-direction:column; align-items:flex-start; min-height:6rem; padding:.8rem .8rem .7rem; border:1px solid var(--line); border-radius:.7rem; background:var(--glass); color:var(--ink); text-align:left; cursor:pointer; transition:transform .18s,border-color .18s; }
+.mem-folder:active { transform:scale(.975); }
+.mem-folder-icon { display:grid; place-items:center; width:1.55rem; height:1.55rem; border:1px solid var(--line); border-radius:.48rem; color:var(--ink-2); font:1rem var(--serif); }
+.mem-folder-name { margin-top:.55rem; font:.72rem 'Noto Serif SC',var(--serif); letter-spacing:.07em; }
+.mem-folder-en { margin-top:.18rem; color:var(--ink-3); font:.4rem var(--mono); letter-spacing:.13em; }
+.mem-folder b { position:absolute; right:.8rem; bottom:.75rem; color:var(--ink-3); font: .85rem 'Cormorant Garamond',var(--serif); font-weight:400; }
+.mem-folder-grid-large { margin-top:.85rem; gap:.7rem; }
+.mem-folder-grid-large .mem-folder { min-height:7rem; padding:1rem; }
+.mem-view-journal { padding-top:.2rem; }
+.mem-view[data-panel="journal"] .mem-tools { padding-top:0; }
+@media (prefers-color-scheme:dark) {
+ .mem-feature { background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(128,128,128,.025)); }
+}
