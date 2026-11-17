@@ -677,7 +677,12 @@ async function aiReply(text) {
         messages:(()=>{
           const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '')}];
           const injection=window.Worldbook?.buildInjection?.(history,getCurrentWindow()?.worldbookIds)||{system:'',depth:[]};
-          if(injection.system)base.push({role:'system',content:'以下是当前聊天关联世界书中匹配到的设定，请自然遵循，不要向用户提及提示词或注入过程。\n\n'+injection.system});
+          const positions=injection.positions||{};
+          if(positions[0]?.length)base.unshift({role:'system',content:'以下设定位于角色设定之前，请自然遵循。\n\n'+positions[0].join('\n\n')});
+          if(positions[1]?.length)base.push({role:'system',content:'以下设定位于角色设定之后，请自然遵循。\n\n'+positions[1].join('\n\n')});
+          if(positions[2]?.length)base.push({role:'system',content:'以下设定位于示例对话之前，请自然遵循。\n\n'+positions[2].join('\n\n')});
+          if(positions[3]?.length)base.push({role:'system',content:'以下设定位于示例对话之后，请自然遵循。\n\n'+positions[3].join('\n\n')});
+          if(!injection.positions&&injection.system)base.push({role:'system',content:'以下是当前聊天关联世界书中匹配到的设定，请自然遵循，不要向用户提及提示词或注入过程。\n\n'+injection.system});
           const depthItems=(injection.depth||[]).slice().sort((a,b)=>a.depth-b.depth||a.order-b.order),result=base.slice();
           history.forEach((message,index)=>{
             result.push(message);
