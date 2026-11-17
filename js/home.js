@@ -328,6 +328,7 @@ function build() {
     });
   });
 
+  window.XW.applyWallpapers?.();
   renderInfo();
 }
 
