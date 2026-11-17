@@ -31,43 +31,46 @@
   function activeBook(){return books.find(b=>b.id===activeId)||null}
   function entryMarkup(book,e,i){
     normalizeEntry(e,i);
-    const raw=e.raw||{},title=titleOf(raw,i),keys=keysOf(raw),content=raw.content||'';
+    const raw=e.raw||{},title=titleOf(raw,i),keys=keysOf(raw),content=String(raw.content||'');
     const val=(key,fallback='')=>raw[key]??fallback;
     const checked=key=>raw[key]?'checked':'';
     const options=(items,current)=>items.map(([v,label])=>'<option value="'+v+'" '+(String(current)===String(v)?'selected':'')+'>'+label+'</option>').join('');
+    const preview=content.replace(/\s+/g,' ').trim();
     return '<article class="wb-entry" data-entry-id="'+esc(e.id)+'">'+
-      '<div class="wb-entry-top"><label><input type="checkbox" data-entry-toggle="'+esc(e.id)+'" '+(e.enabled?'checked':'')+'><span><span class="wb-entry-title">'+esc(title)+'</span><span class="wb-entry-keys">'+esc(keys||'无关键词')+'</span></span></label><span class="wb-entry-count">'+String(content).length+' 字</span></div>'+
+      '<div class="wb-entry-top"><label><input type="checkbox" data-entry-toggle="'+esc(e.id)+'" '+(e.enabled?'checked':'')+'><span><span class="wb-entry-title">'+esc(title)+'</span><span class="wb-entry-keys">'+esc(keys||'未设置关键词')+'</span><span class="wb-entry-excerpt">'+esc(preview||'暂无内容')+'</span></span></label><span class="wb-entry-count">'+content.length+' 字</span></div>'+
       '<div class="wb-meta"><span class="wb-tag">'+(raw.constant?'常驻':raw.selective?'选择性':'关键词触发')+'</span><span class="wb-tag">位置 '+esc(val('position',0))+'</span>'+(raw.useProbability?'<span class="wb-tag">概率触发</span>':'')+'</div>'+
-      '<details><summary>查看与编辑条目</summary>'+
-        '<label class="wb-field"><span>条目名称 / 注释</span><input data-edit-title value="'+esc(title)+'"></label>'+
-        '<label class="wb-field"><span>主关键词（逗号分隔）</span><input data-edit-keys value="'+esc(keys)+'"></label>'+
-        '<label class="wb-field"><span>次级关键词（逗号分隔）</span><input data-edit-secondary value="'+esc(Array.isArray(raw.keysecondary)?raw.keysecondary.join(', '):raw.keysecondary||'')+'"></label>'+
+      '<details class="wb-entry-editor"><summary>编辑条目内容</summary>'+
+        '<label class="wb-field"><span>条目名称</span><input data-edit-title value="'+esc(title)+'"></label>'+
+        '<label class="wb-field"><span>主关键词</span><input data-edit-keys value="'+esc(keys)+'" placeholder="多个关键词用逗号分隔"></label>'+
         '<label class="wb-field"><span>条目内容</span><textarea data-edit-content>'+esc(content)+'</textarea></label>'+
-        '<div class="wb-rule-grid">'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="constant" '+checked('constant')+'>常驻注入</label>'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="selective" '+checked('selective')+'>启用次级关键词筛选</label>'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="caseSensitive" '+checked('caseSensitive')+'>区分大小写</label>'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="matchWholeWords" '+checked('matchWholeWords')+'>整词匹配</label>'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="useProbability" '+checked('useProbability')+'>启用触发概率</label>'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="use_regex" '+checked('use_regex')+'>关键词按正则表达式匹配</label>'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="groupOverride" '+checked('groupOverride')+'>允许覆盖同组条目</label>'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="preventRecursion" '+checked('preventRecursion')+'>阻止本条目继续递归</label>'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="excludeRecursion" '+checked('excludeRecursion')+'>不允许递归内容触发本条</label>'+
-          '<label class="wb-rule-check"><input type="checkbox" data-rule="delayUntilRecursion" '+checked('delayUntilRecursion')+'>仅递归触发时生效</label>'+
-        '</div>'+
-        '<div class="wb-field-grid">'+
-          '<label class="wb-field"><span>次级逻辑</span><select data-rule="selectiveLogic">'+options([[0,'任一命中'],[1,'全部命中'],[2,'全部不命中'],[3,'并非全部命中']],val('selectiveLogic',0))+'</select></label>'+
-          '<label class="wb-field"><span>注入位置</span><select data-rule="position">'+options([[0,'角色设定前'],[1,'角色设定后'],[2,'示例对话前'],[3,'示例对话后'],[4,'按深度插入']],val('position',0))+'</select></label>'+
-          '<label class="wb-field"><span>插入深度</span><input type="number" min="0" max="100" data-rule="depth" value="'+esc(val('depth',0))+'"></label>'+
-          '<label class="wb-field"><span>排序权重</span><input type="number" data-rule="order" value="'+esc(val('order',val('insertion_order',val('insertorder',100))))+'"></label>'+
-          '<label class="wb-field"><span>扫描消息数</span><input type="number" min="1" max="100" data-rule="scanDepth" value="'+esc(val('scanDepth',20))+'"></label>'+
-          '<label class="wb-field"><span>触发概率 %</span><input type="number" min="0" max="100" data-rule="probability" value="'+esc(val('probability',100))+'"></label>'+
-          '<label class="wb-field"><span>延迟消息数</span><input type="number" min="0" data-rule="delay" value="'+esc(val('delay',0))+'"></label>'+
-          '<label class="wb-field"><span>冷却消息数</span><input type="number" min="0" data-rule="cooldown" value="'+esc(val('cooldown',0))+'"></label>'+
-          '<label class="wb-field"><span>黏性消息数</span><input type="number" min="0" data-rule="sticky" value="'+esc(val('sticky',0))+'"></label>'+
-          '<label class="wb-field"><span>互斥分组</span><input data-rule="group" value="'+esc(val('group',''))+'"></label>'+
-          '<label class="wb-field"><span>分组权重</span><input type="number" data-rule="groupWeight" value="'+esc(val('groupWeight',100))+'"></label>'+
-        '</div>'+
+        '<details class="wb-advanced"><summary>高级触发与注入规则</summary>'+
+          '<label class="wb-field"><span>次级关键词（逗号分隔）</span><input data-edit-secondary value="'+esc(Array.isArray(raw.keysecondary)?raw.keysecondary.join(', '):raw.keysecondary||'')+'"></label>'+
+          '<div class="wb-rule-grid">'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="constant" '+checked('constant')+'>常驻注入</label>'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="selective" '+checked('selective')+'>启用次级关键词筛选</label>'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="caseSensitive" '+checked('caseSensitive')+'>区分大小写</label>'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="matchWholeWords" '+checked('matchWholeWords')+'>整词匹配</label>'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="useProbability" '+checked('useProbability')+'>启用触发概率</label>'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="use_regex" '+checked('use_regex')+'>正则匹配</label>'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="groupOverride" '+checked('groupOverride')+'>允许覆盖同组条目</label>'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="preventRecursion" '+checked('preventRecursion')+'>阻止继续递归</label>'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="excludeRecursion" '+checked('excludeRecursion')+'>排除递归触发</label>'+
+            '<label class="wb-rule-check"><input type="checkbox" data-rule="delayUntilRecursion" '+checked('delayUntilRecursion')+'>仅递归触发</label>'+
+          '</div>'+
+          '<div class="wb-field-grid">'+
+            '<label class="wb-field"><span>次级逻辑</span><select data-rule="selectiveLogic">'+options([[0,'任一命中'],[1,'全部命中'],[2,'全部不命中'],[3,'并非全部命中']],val('selectiveLogic',0))+'</select></label>'+
+            '<label class="wb-field"><span>注入位置</span><select data-rule="position">'+options([[0,'角色设定前'],[1,'角色设定后'],[2,'示例对话前'],[3,'示例对话后'],[4,'按深度插入']],val('position',0))+'</select></label>'+
+            '<label class="wb-field"><span>插入深度</span><input type="number" min="0" max="100" data-rule="depth" value="'+esc(val('depth',0))+'"></label>'+
+            '<label class="wb-field"><span>排序权重</span><input type="number" data-rule="order" value="'+esc(val('order',val('insertion_order',val('insertorder',100))))+'"></label>'+
+            '<label class="wb-field"><span>扫描消息数</span><input type="number" min="1" max="100" data-rule="scanDepth" value="'+esc(val('scanDepth',20))+'"></label>'+
+            '<label class="wb-field"><span>触发概率 %</span><input type="number" min="0" max="100" data-rule="probability" value="'+esc(val('probability',100))+'"></label>'+
+            '<label class="wb-field"><span>延迟消息数</span><input type="number" min="0" data-rule="delay" value="'+esc(val('delay',0))+'"></label>'+
+            '<label class="wb-field"><span>冷却消息数</span><input type="number" min="0" data-rule="cooldown" value="'+esc(val('cooldown',0))+'"></label>'+
+            '<label class="wb-field"><span>黏性消息数</span><input type="number" min="0" data-rule="sticky" value="'+esc(val('sticky',0))+'"></label>'+
+            '<label class="wb-field"><span>互斥分组</span><input data-rule="group" value="'+esc(val('group',''))+'"></label>'+
+            '<label class="wb-field"><span>分组权重</span><input type="number" data-rule="groupWeight" value="'+esc(val('groupWeight',100))+'"></label>'+
+          '</div>'+
+        '</details>'+
         '<div class="wb-entry-actions"><button class="wb-btn" type="button" data-save-entry="'+esc(e.id)+'">保存条目</button></div>'+
       '</details></article>';
   }
