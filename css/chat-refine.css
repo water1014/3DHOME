@@ -808,3 +808,95 @@ html.dark #pg-chat .input-bar .tool-panel .tp-btn svg {
   font-size:.62rem;
   line-height:1.6;
 }
+
+/* A quieter conversation surface: metadata should feel attached to the message,
+   while the wallpaper stays still as the message list scrolls. */
+#pg-chat .chat-body {
+  background-attachment:fixed !important;
+}
+
+/* Reasoning is a small, understated disclosure rather than a separate card. */
+#pg-chat .msg-meta-stack { gap:.08rem; }
+#pg-chat .msg-meta.reasoning-meta {
+  display:inline-block;
+  width:fit-content;
+  max-width:100%;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent !important;
+  box-shadow:none;
+  color:var(--ink-2) !important;
+}
+#pg-chat .msg-meta.reasoning-meta summary {
+  display:inline-flex;
+  align-items:center;
+  min-height:1.35rem;
+  gap:.28rem;
+  padding:.12rem .42rem;
+  border:1px solid rgba(104,122,145,.15);
+  border-radius:2rem;
+  background:rgba(132,149,171,.09);
+  color:var(--ink-2) !important;
+  font:500 .58rem/1.3 var(--sans);
+}
+#pg-chat .msg-meta.reasoning-meta summary::after {
+  font-size:.56rem;
+  opacity:.48;
+}
+#pg-chat .msg-meta.reasoning-meta .meta-mark {
+  font-size:.65rem;
+  color:#8294aa !important;
+}
+#pg-chat .msg-meta.reasoning-meta .meta-content {
+  max-width:min(76vw,24rem);
+  margin-top:.24rem;
+  padding:.48rem .62rem;
+  border:0 !important;
+  border-left:2px solid rgba(125,145,169,.48) !important;
+  border-radius:.15rem .65rem .65rem .15rem;
+  background:rgba(226,232,240,.68) !important;
+  color:#465365 !important;
+  box-shadow:none;
+  font:400 .66rem/1.65 var(--serif);
+}
+html.dark #pg-chat .msg-meta.reasoning-meta summary {
+  background:rgba(155,173,197,.1);
+  border-color:rgba(185,200,220,.13);
+  color:#c2cad5 !important;
+}
+html.dark #pg-chat .msg-meta.reasoning-meta .meta-content {
+  background:rgba(55,64,77,.72) !important;
+  color:#dce3ec !important;
+  border-left-color:rgba(169,187,208,.55) !important;
+}
+
+/* Blend the composer into the chat canvas: one soft surface, no hard toolbar seam. */
+#pg-chat .input-bar {
+  border-top:0;
+  background:linear-gradient(180deg,rgba(246,247,249,.72),rgba(246,247,249,.94));
+  padding-top:.42rem;
+}
+#pg-chat .input-card {
+  min-height:3rem;
+  border:1px solid rgba(117,133,153,.16);
+  border-radius:1.35rem;
+  background:rgba(255,255,255,.88);
+  box-shadow:0 3px 14px rgba(35,48,64,.055),inset 0 1px 0 rgba(255,255,255,.9);
+}
+#pg-chat .input-card:focus-within {
+  border-color:rgba(112,133,159,.3);
+  box-shadow:0 4px 16px rgba(35,48,64,.075),inset 0 1px 0 rgba(255,255,255,.95);
+}
+html.dark #pg-chat .input-bar {
+  background:linear-gradient(180deg,rgba(28,30,34,.72),rgba(28,30,34,.96));
+}
+html.dark #pg-chat .input-card {
+  background:rgba(42,46,53,.94);
+  border-color:rgba(205,216,230,.13);
+  box-shadow:0 3px 14px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.035);
+}
+html.dark #pg-chat .input-card:focus-within {
+  border-color:rgba(169,187,208,.3);
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+}
