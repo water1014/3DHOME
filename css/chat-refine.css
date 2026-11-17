@@ -1230,21 +1230,24 @@ html.dark #pg-chat .input-card {
 }
 
 
-/* Keep the existing Chat composer placement; sidebar-only visual update must not alter chat layout. */
+/* Restore the composer to the normal Chat flex flow.
+   The chat body grows above it; the composer itself must not be absolutely pinned,
+   which can make it float upward when the page viewport/safe-area changes. */
 #pg-chat .input-bar {
-  position:absolute;
+  position:relative;
+  inset:auto;
   z-index:12;
-  left:0;
-  right:0;
-  bottom:calc(var(--tabbar-h) + 1.15rem + env(safe-area-inset-bottom));
+  flex:0 0 auto;
   width:100%;
-  margin:0;
-  padding:.3rem max(.85rem,var(--page-pad));
+  margin:0 0 calc(var(--tabbar-h) + .7rem + env(safe-area-inset-bottom));
+  padding:.3rem max(.85rem,var(--page-pad)) .35rem;
   border:0;
   background:transparent;
   -webkit-backdrop-filter:none;
   backdrop-filter:none;
 }
 #pg-chat .chat-body {
-  padding-bottom:calc(var(--tabbar-h) + 6.2rem + env(safe-area-inset-bottom));
+  flex:1 1 auto;
+  min-height:0;
+  padding-bottom:1.25rem;
 }
