@@ -109,6 +109,14 @@ function initSide() {
     if (name === 'daily') window.Daily?.showCurrent();
     syncActive(name, 'main'); go(name); close();
   });
+  drawer.querySelectorAll('[data-settings-section]').forEach(item => item.onclick = () => {
+    const section = item.dataset.settingsSection;
+    syncActive(section, 'settings');
+    window.Settings?.build();
+    window.Settings?.openSection(section);
+    go('settings');
+    close();
+  });
   drawer.querySelectorAll('[data-daily-go]').forEach(item => item.onclick = () => {
     const key = item.dataset.dailyGo;
     syncActive(key, 'daily'); window.Daily?.select(key); close();
