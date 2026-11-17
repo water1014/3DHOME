@@ -13,6 +13,7 @@
     life: { zh: '生活记录', en: 'LIFE NOTES', group: 'DAILY LIFE' },
     countdown: { zh: '重要倒数', en: 'COUNTDOWN', group: 'DAILY LIFE' },
     study: { zh: '学习', en: 'STUDY', group: 'DAILY LIFE' },
+    diary: { zh: '日记', en: 'PRIVATE JOURNAL', group: 'COLLECTIONS' },
     quotes: { zh: '语录', en: 'QUOTES', group: 'COLLECTIONS' },
     worldbook: { zh: '世界书', en: 'WORLDBOOK', group: 'OUR SPACE' },
     games: { zh: '游戏', en: 'GAMES', group: 'PLAY & CREATE' },
@@ -46,7 +47,7 @@
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : calendar ? (window.DailyLife?.render(current) || '') : beauty ? `
+        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render(current) || '') : beauty ? `
           <section class="beautify-content" aria-label="美化设置">
             <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
             <section class="beautify-block">
@@ -102,6 +103,7 @@
     if (beauty) bindBeautify();
     if (worldbook) window.Worldbook?.mount();
     if (windows) bindWindows();
+    if (current === 'diary') bindDiary();
     if (calendar) window.DailyLife?.mount();
     document.querySelectorAll('[data-daily-go]').forEach(link => {
       link.classList.toggle('active', link.dataset.dailyGo === current);
@@ -200,6 +202,170 @@
     const toggle = document.getElementById('engawa-tools-toggle');
     if (toggle) toggle.onclick = () => { windowToolsOpen = !windowToolsOpen; render(); };
   }
+
+
+  // Private diary journal. Locked entries are encrypted locally with AES-GCM.
+  const DIARY_KEY = 'xw_diary_journal_v1';
+  const diaryUnlocked = Object.create(null);
+  let diaryEditingId = '';
+  function diaryRead() {
+    try { const v=JSON.parse(localStorage.getItem(DIARY_KEY)||'[]'); return Array.isArray(v)?v:[]; }
+    catch { return []; }
+  }
+  function diarySave(items) {
+    try { localStorage.setItem(DIARY_KEY,JSON.stringify(items)); return true; }
+    catch { UI.toast('日记保存失败，可能是设备存储空间不足'); return false; }
+  }
+  function diaryEsc(value) {
+    return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function diaryId() { return (crypto.randomUUID?crypto.randomUUID():'d'+Date.now().toString(36)+Math.random().toString(36).slice(2)); }
+  function diaryPrivate(entry) {
+    return diaryUnlocked[entry.id] || {body:entry.body||'',annotations:entry.annotations||[],favorites:entry.favorites||[]};
+  }
+  function bytesToB64(bytes) { let s=''; new Uint8Array(bytes).forEach(b=>s+=String.fromCharCode(b)); return btoa(s); }
+  function b64ToBytes(value) { return Uint8Array.from(atob(value),c=>c.charCodeAt(0)); }
+  async function diaryKey(pin,salt) {
+    const material=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
+    return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:180000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  }
+  async function diaryEncrypt(payload,pin,existingSalt) {
+    const salt=existingSalt?b64ToBytes(existingSalt):crypto.getRandomValues(new Uint8Array(16));
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const key=await diaryKey(pin,salt);
+    const encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(payload)));
+    return {salt:bytesToB64(salt),iv:bytesToB64(iv),ciphertext:bytesToB64(encrypted)};
+  }
+  async function diaryDecrypt(vault,pin) {
+    const salt=b64ToBytes(vault.salt),iv=b64ToBytes(vault.iv),key=await diaryKey(pin,salt);
+    const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,b64ToBytes(vault.ciphertext));
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+  async function diaryPersistPrivate(entry) {
+    if(!entry.locked) {
+      const p=diaryPrivate(entry); entry.body=p.body; entry.annotations=p.annotations; entry.favorites=p.favorites;
+      return true;
+    }
+    const p=diaryUnlocked[entry.id];
+    if(!p||!p.pin) return false;
+    entry.vault=await diaryEncrypt({body:p.body,annotations:p.annotations,favorites:p.favorites},p.pin,entry.vault?.salt);
+    return true;
+  }
+  function renderDiary() {
+    const entries=diaryRead().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.updatedAt||0)-(a.updatedAt||0));
+    const count=entries.length,locked=entries.filter(x=>x.locked).length;
+    let cards='';
+    entries.forEach((entry,i)=>{
+      const p=diaryPrivate(entry),isOpen=!entry.locked||!!diaryUnlocked[entry.id],id=diaryEsc(entry.id);
+      cards+='<article class="diary-entry '+(entry.locked?'is-locked':'')+'" data-diary-entry="'+id+'">';
+      cards+='<div class="diary-entry-top"><span class="diary-entry-no">'+String(i+1).padStart(2,'0')+'</span><div class="diary-entry-meta"><span>'+diaryEsc(entry.date||'未标日期')+'</span><i>'+(entry.locked?'PRIVATE / LOCKED':'PERSONAL NOTE')+'</i></div><button type="button" class="diary-entry-menu" data-diary-lock="'+id+'">'+(entry.locked?(isOpen?'重新上锁':'解锁'):'加锁')+'</button></div>';
+      cards+='<h3>'+diaryEsc(entry.title||'无题')+'</h3>';
+      if(isOpen){
+        cards+='<p class="diary-entry-body" data-diary-selectable>'+diaryEsc(p.body).replace(/\n/g,'<br>')+'</p>';
+        cards+='<div class="diary-entry-actions"><button type="button" data-diary-edit="'+id+'">编辑</button><button type="button" data-diary-favorite="'+id+'">收藏选中句子</button><button type="button" data-diary-delete="'+id+'">删除</button></div>';
+        if(p.favorites?.length){cards+='<div class="diary-favorites"><span>✳ 收藏的句子</span>';p.favorites.forEach((s,n)=>{cards+='<button type="button" data-diary-unfavorite="'+id+'" data-sentence="'+n+'">“'+diaryEsc(s)+'”　×</button>';});cards+='</div>';}
+        cards+='<div class="diary-annotation"><label for="diary-annotation-'+id+'">批注 · 留给宋祁的回应</label><textarea id="diary-annotation-'+id+'" data-diary-annotation rows="2" placeholder="读完这一页，想留下什么……">'+diaryEsc((p.annotations||[]).join('\n\n'))+'</textarea><button type="button" data-diary-save-annotation="'+id+'">保存批注</button></div>';
+      }else cards+='<div class="diary-locked-note"><span>⌑</span><b>这一页已上锁</b><small>输入密码后才能重新阅读</small></div>';
+      cards+='</article>';
+    });
+    const empty=entries.length?'':'<div class="diary-empty"><span>✳</span><b>这里还没有日记</b><p>第一篇可以从今天开始，也可以写很久以前的事。</p><button type="button" id="diary-empty-new">写下第一篇</button></div>';
+    return '<section class="diary-page"><div class="diary-intro"><div><span>WORDS I LEFT HERE</span><h2>写给生活，也写给你</h2><p>你写下来的每一页，都会被认真读过。</p></div><div class="diary-stats"><b>'+count+'</b><small>篇日记</small><i></i><b>'+locked+'</b><small>把心事锁好</small></div></div>'+
+      '<div class="diary-toolbar"><div><span>PERSONAL JOURNAL</span><small>只属于这个小窝的文字</small></div><button type="button" id="diary-new">＋ 写一篇</button></div>'+
+      '<section class="diary-editor" id="diary-editor" hidden><div class="diary-editor-head"><div><span>NEW PAGE / EDIT PAGE</span><h3 id="diary-editor-title">写下一页</h3></div><button type="button" id="diary-editor-close" aria-label="关闭">×</button></div>'+
+      '<label class="diary-field"><span>这一页的名字</span><input id="diary-title" maxlength="80" placeholder="给今天留下一个标题"></label><label class="diary-field"><span>日期</span><input id="diary-date" type="date"></label>'+
+      '<label class="diary-field"><span>正文</span><textarea id="diary-body" rows="8" maxlength="12000" placeholder="不用整理得很漂亮，想到什么就写什么……"></textarea></label><div class="diary-editor-foot"><span>写完后可以选中喜欢的句子，收藏起来。</span><button type="button" id="diary-save">保存这一页</button></div></section>'+
+      '<div class="diary-list-head"><span>THE PAGES</span><span>'+count+' ENTRIES</span></div><div class="diary-list">'+cards+empty+'</div><p class="diary-footnote">上锁的日记会在本机加密保存，聊天不会读取它们。请牢记每篇日记的密码。</p></section>';
+  }
+  function diaryRefresh() { render(); bindDiary(); }
+  function diaryEditor(entry) {
+    diaryEditingId=entry?.id||'';
+    const editor=document.getElementById('diary-editor');if(!editor)return;
+    if(entry?.locked&&!diaryUnlocked[entry.id]){UI.toast('请先解锁这篇日记');return;}
+    const p=entry?diaryPrivate(entry):{body:''};
+    document.getElementById('diary-editor-title').textContent=entry?'继续写这一页':'写下一页';
+    document.getElementById('diary-title').value=entry?.title||'';
+    document.getElementById('diary-date').value=entry?.date||new Date().toISOString().slice(0,10);
+    document.getElementById('diary-body').value=p.body||'';
+    editor.hidden=false;editor.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('diary-title').focus();
+  }
+  async function diaryToggleLock(id) {
+    const entries=diaryRead(),entry=entries.find(x=>x.id===id);if(!entry)return;
+    if(entry.locked&&diaryUnlocked[id]){delete diaryUnlocked[id];diaryRefresh();UI.toast('这一页已重新上锁');return;}
+    if(entry.locked){
+      const pin=prompt('输入这篇日记的解锁密码');if(pin===null)return;
+      try{const payload=await diaryDecrypt(entry.vault,pin);diaryUnlocked[id]={...payload,pin};diaryRefresh();UI.toast('日记已解锁');}
+      catch{UI.toast('密码不正确，或日记数据无法解密');}
+      return;
+    }
+    const pin=prompt('设置这篇日记的锁定密码（至少 4 位）');if(pin===null)return;
+    if(pin.length<4){UI.toast('密码至少需要 4 位');return;}
+    const again=prompt('再输入一次密码确认');if(again!==pin){UI.toast('两次密码不一致');return;}
+    try{
+      const p=diaryPrivate(entry);entry.vault=await diaryEncrypt({body:p.body,annotations:p.annotations||[],favorites:p.favorites||[]},pin);
+      entry.locked=true;delete entry.body;delete entry.annotations;delete entry.favorites;
+      if(diarySave(entries)){delete diaryUnlocked[id];diaryRefresh();UI.toast('日记已加密上锁');}
+    }catch{UI.toast('加锁失败，请确认浏览器支持安全加密');}
+  }
+  async function diarySaveAnnotation(id) {
+    const entries=diaryRead(),entry=entries.find(x=>x.id===id);if(!entry)return;
+    const card=document.querySelector('[data-diary-entry="'+CSS.escape(id)+'"]');
+    const input=card?.querySelector('[data-diary-annotation]'),p=diaryPrivate(entry);
+    p.annotations=(input?.value||'').split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
+    if(entry.locked){if(!diaryUnlocked[id])return;try{await diaryPersistPrivate(entry);}catch{UI.toast('批注保存失败');return;}}
+    entry.updatedAt=Date.now();if(diarySave(entries))UI.toast('批注已留下');
+  }
+  async function diaryFavorite(id) {
+    const selected=(window.getSelection?.().toString()||'').trim();
+    if(!selected){UI.toast('先在日记正文里选中一句话');return;}
+    const entries=diaryRead(),entry=entries.find(x=>x.id===id);if(!entry)return;
+    const p=diaryPrivate(entry);p.favorites=p.favorites||[];
+    if(!p.favorites.includes(selected))p.favorites.push(selected);
+    if(entry.locked){if(!diaryUnlocked[id])return;try{await diaryPersistPrivate(entry);}catch{UI.toast('句子收藏失败');return;}}
+    entry.updatedAt=Date.now();if(diarySave(entries))diaryRefresh();
+  }
+  function bindDiary() {
+    const root=document.querySelector('.diary-page');if(!root)return;
+    const openNew=()=>diaryEditor(null);
+    document.getElementById('diary-new')?.addEventListener('click',openNew);
+    document.getElementById('diary-empty-new')?.addEventListener('click',openNew);
+    document.getElementById('diary-editor-close')?.addEventListener('click',()=>{document.getElementById('diary-editor').hidden=true;diaryEditingId='';});
+    document.getElementById('diary-save')?.addEventListener('click',async()=>{
+      const entries=diaryRead(),title=document.getElementById('diary-title').value.trim(),body=document.getElementById('diary-body').value.trim();
+      if(!body){UI.toast('先写下这篇日记的内容');return;}
+      const date=document.getElementById('diary-date').value||new Date().toISOString().slice(0,10);
+      let entry=entries.find(x=>x.id===diaryEditingId);
+      if(entry){
+        entry.title=title||'无题';entry.date=date;
+        const p=diaryPrivate(entry);p.body=body;
+        if(entry.locked){try{await diaryPersistPrivate(entry);}catch{UI.toast('保存失败');return;}}
+      }else{
+        entry={id:diaryId(),title:title||'无题',date,body,annotations:[],favorites:[],locked:false,createdAt:Date.now(),updatedAt:Date.now()};
+        entries.push(entry);
+      }
+      entry.updatedAt=Date.now();
+      if(diarySave(entries)){diaryEditingId='';diaryRefresh();UI.toast('这一页已经收好');}
+    });
+    root.querySelectorAll('[data-diary-lock]').forEach(b=>b.addEventListener('click',()=>diaryToggleLock(b.dataset.diaryLock)));
+    root.querySelectorAll('[data-diary-edit]').forEach(b=>b.addEventListener('click',()=>{const e=diaryRead().find(x=>x.id===b.dataset.diaryEdit);if(e)diaryEditor(e);}));
+    root.querySelectorAll('[data-diary-favorite]').forEach(b=>b.addEventListener('click',()=>diaryFavorite(b.dataset.diaryFavorite)));
+    root.querySelectorAll('[data-diary-save-annotation]').forEach(b=>b.addEventListener('click',()=>diarySaveAnnotation(b.dataset.diarySaveAnnotation)));
+    root.querySelectorAll('[data-diary-delete]').forEach(b=>b.addEventListener('click',()=>{
+      if(!confirm('确定删除这篇日记吗？'))return;
+      const id=b.dataset.diaryDelete;delete diaryUnlocked[id];diarySave(diaryRead().filter(x=>x.id!==id));diaryRefresh();
+    }));
+    root.querySelectorAll('[data-diary-unfavorite]').forEach(b=>b.addEventListener('click',async()=>{
+      const entries=diaryRead(),entry=entries.find(x=>x.id===b.dataset.diaryUnfavorite);if(!entry)return;
+      const p=diaryPrivate(entry);p.favorites.splice(Number(b.dataset.sentence),1);
+      if(entry.locked){try{await diaryPersistPrivate(entry);}catch{return;}}
+      diarySave(entries);diaryRefresh();
+    }));
+  }
+  window.Diary = {
+    getContext() {
+      const entries=diaryRead().filter(e=>!e.locked).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
+      return entries.map(e=>'【日记 '+(e.date||'')+' · '+(e.title||'无题')+'】\n'+String(e.body||'').slice(0,1800)+(e.annotations?.length?'\n批注：'+e.annotations.join('\n'):'')).join('\n\n').slice(0,8000);
+    }
+  };
 
   function bindBeautify() {
     const $ = id => document.getElementById(id);
