@@ -35,7 +35,7 @@
     const val=(key,fallback='')=>raw[key]??fallback;
     const checked=key=>raw[key]?'checked':'';
     const options=(items,current)=>items.map(([v,label])=>'<option value="'+v+'" '+(String(current)===String(v)?'selected':'')+'>'+label+'</option>').join('');
-    const preview=content.replace(/\\s+/g,' ').trim();
+    const preview=content.replace(/\s+/g,' ').trim();
     return '<article class="wb-entry" data-entry-id="'+esc(e.id)+'">'+
       '<div class="wb-entry-top"><label><input type="checkbox" data-entry-toggle="'+esc(e.id)+'" '+(e.enabled?'checked':'')+'><span><span class="wb-entry-title">'+esc(title)+'</span><span class="wb-entry-keys">'+esc(keys||'未设置关键词')+'</span><span class="wb-entry-excerpt">'+esc(preview||'暂无内容')+'</span></span></label><span class="wb-entry-count">'+content.length+' 字</span></div>'+
       '<div class="wb-meta"><span class="wb-tag">'+(raw.constant?'常驻':raw.selective?'选择性':'关键词触发')+'</span><span class="wb-tag">位置 '+esc(val('position',0))+'</span>'+(raw.useProbability?'<span class="wb-tag">概率触发</span>':'')+'</div>'+
