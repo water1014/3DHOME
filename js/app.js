@@ -123,7 +123,8 @@ function initGestures() {
   D.addEventListener('touchend', e => {
     if (!start || !e.changedTouches || e.changedTouches.length !== 1) return;
     const t = e.changedTouches[0];
-    const dx = t.clientX - start.x, dy = t.clientY - start.y;
+    const originX = start.x;
+    const dx = t.clientX - originX, dy = t.clientY - start.y;
     const elapsed = Date.now() - start.time;
     const target = start.target;
     start = null;
@@ -137,7 +138,7 @@ function initGestures() {
     if (target.closest?.('input,textarea,select,button,a,[contenteditable="true"],.chat-messages,.chat-input,.overlay')) return;
 
     // 左边缘右滑呼出侧栏
-    if (dx > 70 && start.x < 28) {
+    if (dx > 70 && originX < 28) {
       drawer.classList.add('show'); overlay.classList.add('show'); return;
     }
 
