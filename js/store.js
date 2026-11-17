@@ -113,7 +113,7 @@ function applySurfaceMaterial() {
   root.dataset.surfaceMaterial = material;
   root.style.setProperty('--material-opacity', Math.min(96, Math.max(35, Number(S.materialOpacity) || 76)) + '%');
   root.style.setProperty('--material-blur', Math.min(36, Math.max(0, Number(S.materialBlur) || 0)) + 'px');
-  root.style.setProperty('--material-texture-opacity', Math.min(100, Math.max(0, Number(S.materialTexture) || 0)) / 100);
+  root.style.setProperty('--material-texture-opacity', Math.min(100, Math.max(0, Number(S.materialTexture) || 0)) + '%');
 }
 window.XW.applySurfaceMaterial = applySurfaceMaterial;
 document.addEventListener('DOMContentLoaded', () => { applyWallpapers(); applySurfaceMaterial(); });
