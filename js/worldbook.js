@@ -165,7 +165,7 @@
         if(roll>=probability)return false;
       }
       const group=String(raw.group||'').trim();
-      const value={book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??raw.insertorder??0),depth:Math.max(0,Number(raw.depth)||0),order:Number(raw.order??raw.insertion_order??100),uid:key,group,groupWeight:Number(raw.groupWeight)||100,preventRecursion:!!raw.preventRecursion,round};
+      const value={book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??raw.insertorder??0),depth:Math.max(0,Number(raw.depth)||0),order:Number(raw.order??raw.insertion_order??100),uid:key,group,groupWeight:Number(raw.groupWeight)||100,groupOverride:!!raw.groupOverride,preventRecursion:!!raw.preventRecursion,round};
       activated.set(key,value);
       diagnostics.push({book:book.name,title:value.title,reason:recursive?'递归触发':raw.constant?'常驻触发':'关键词触发',round});
       return true;
@@ -184,7 +184,7 @@
     let matched=[...activated.values()];
     const groups=new Map();
     matched.forEach(item=>{if(item.group){const old=groups.get(item.group);if(!old||item.groupWeight>old.groupWeight)groups.set(item.group,item);}});
-    matched=matched.filter(item=>!item.group||groups.get(item.group)===item);
+    matched=matched.filter(item=>!item.group||item.groupOverride||groups.get(item.group)===item);
     matched.sort((a,b)=>a.order-b.order);
     const positions={0:[],1:[],2:[],3:[]};
     matched.filter(x=>x.position!==4).forEach(x=>{const slot=[0,1,2,3].includes(x.position)?x.position:1;positions[slot].push('【'+x.book+' / '+x.title+'】\n'+x.content);});
