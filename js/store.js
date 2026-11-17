@@ -8,7 +8,7 @@ const DEF = {
   theme: 'light',
   wallpaper: 'water', // water | none | custom
   homeWallpaper: '',
-  sidebarWallpaper: ''
+  sidebarWallpaper: '',
   loveDate: '2025-01-01',
   hisName: '他',
   herName: '她',
