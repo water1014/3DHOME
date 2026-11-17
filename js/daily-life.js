@@ -120,7 +120,7 @@
       '</div>';
   }
   function render(viewKey) {
-    const routeViews={calendar:'calendar',plans:'todos',mood:'life'};
+    const routeViews={calendar:'calendar',plans:'todos',mood:'life',timetable:'timetable',todos:'todos',life:'life',events:'events',countdown:'countdown'};
     if(viewKey && routeViews[viewKey]) activeView=routeViews[viewKey];
     else if(viewKey==='calendar') activeView='calendar';
     const day=getDay(selected), today=iso(new Date());
