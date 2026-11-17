@@ -174,8 +174,10 @@ function build() {
         <button type="button" data-pref="bubble" data-value="on">显示</button>
         <button type="button" data-pref="bubble" data-value="off">无背景</button>
       </div>
-      <div class="chat-pref-section chat-appearance">
-        <span class="chat-pref-label">聊天外观 · PERSONALIZE</span>
+      <details class="chat-pref-fold chat-appearance-fold">
+        <summary><span class="chat-pref-fold-icon">✧</span><span><b>聊天外观</b><small>头像、气泡与壁纸</small></span><i>⌄</i></summary>
+        <div class="chat-pref-section chat-appearance">
+        <span class="chat-pref-label">PERSONALIZE</span>
         <div class="chat-appearance-row"><div><b>TA 的头像</b><small>聊天顶部与对话列表</small></div><button type="button" data-appearance-upload="hisAvatar">更换图片</button><button type="button" data-appearance-reset="hisAvatar">恢复</button></div>
         <div class="chat-appearance-row"><div><b>我的头像</b><small>显示在自己的消息旁</small></div><button type="button" data-appearance-upload="herAvatar">更换图片</button><button type="button" data-appearance-reset="herAvatar">恢复</button></div>
         <div class="chat-appearance-row"><div><b>TA 的气泡</b><small>单独设置对方消息样式</small></div><button type="button" data-appearance-upload="taBubble">上传图片</button><button type="button" data-appearance-reset="taBubble">恢复</button></div>
@@ -183,22 +185,29 @@ function build() {
         <div class="chat-appearance-row"><div><b>聊天壁纸</b><small>只影响聊天内容区域</small></div><button type="button" data-appearance-upload="wallpaper">上传图片</button><button type="button" data-appearance-reset="wallpaper">恢复</button></div>
         <div class="chat-appearance-foot">图片会压缩后保存在当前设备。更换壁纸或气泡不会修改聊天记录。</div>
         <input id="chat-appearance-file" type="file" accept="image/*" hidden/>
-      </div>
-      <p class="chat-pref-note">服务商返回思考摘要或工具调用时，会显示在消息下方；不会伪造缺失内容。</p>
-      <div class="chat-pref-section chat-ai-settings">
+        </div>
+      </details>
+      <p class="chat-pref-note">思考摘要与工具记录会显示在对应消息下方，并可单独展开。</p>
+      <details class="chat-pref-fold chat-ai-fold">
+        <summary><span class="chat-pref-fold-icon">⌘</span><span><b>AI 连接</b><small>接口地址、模型与密钥</small></span><i>⌄</i></summary>
+        <div class="chat-pref-section chat-ai-settings">
         <span class="chat-pref-label">AI 连接</span>
         <label class="chat-ai-field"><span>接口地址</span><input id="chat-ai-url" type="url" placeholder="https://api.openai.com/v1/chat/completions"/></label>
         <label class="chat-ai-field"><span>模型名称</span><input id="chat-ai-model" type="text" placeholder="gpt-4o-mini"/></label>
         <label class="chat-ai-field"><span>API Key</span><input id="chat-ai-key" type="password" autocomplete="new-password" placeholder="粘贴你的 API Key"/></label>
         <div class="chat-ai-actions"><button type="button" id="chat-ai-save">保存连接</button><small id="chat-ai-status">尚未配置</small></div>
         <p class="chat-pref-note">密钥仅保存在当前设备浏览器中。请使用可信的 API 服务商。</p>
-      </div>
-      <div class="chat-pref-section">
-        <span class="chat-pref-label">会话管理</span>
+        </div>
+      </details>
+      <details class="chat-pref-fold chat-session-fold">
+        <summary><span class="chat-pref-fold-icon">≡</span><span><b>会话管理</b><small>清理当前窗口记录</small></span><i>⌄</i></summary>
+        <div class="chat-pref-section">
+        <span class="chat-pref-label">SESSION</span>
         <button type="button" class="chat-pref-action" data-chat-action="clear">
           <span>清空当前频道</span><small>删除此频道的全部消息</small>
         </button>
-      </div>
+        </div>
+      </details>
     </div>
 
     <section class="chat-search" id="chat-search" aria-label="查找聊天记录">
