@@ -277,3 +277,54 @@ html.dark #toast { color: #141414; }
 .overlay-text { font-size: .76rem; color: var(--ink-2); line-height: 1.7; margin-bottom: 1rem; }
 .overlay-btns { display: flex; gap: .6rem; }
 .overlay-btns .btn { flex: 1; }
+
+
+/* Sidebar: solid, readable surface. Keep the identity mark distinct from the menu icon. */
+.side-drawer {
+  background:#f4f6f9;
+  color:#263343;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  border-right:1px solid rgba(75,94,116,.16);
+  box-shadow:12px 0 36px rgba(23,36,52,.16);
+}
+html.dark .side-drawer {
+  background:#242c36;
+  color:#e7edf5;
+  border-right-color:rgba(220,232,246,.13);
+  box-shadow:12px 0 36px rgba(0,0,0,.32);
+}
+.side-drawer .sd-ava {
+  background:#e2e9f1;
+  border:1px solid #cbd6e3;
+  color:#52657b;
+  box-shadow:0 3px 10px rgba(42,58,77,.08);
+}
+.side-drawer .sd-ava svg {
+  width:1.65rem;height:1.65rem;
+  fill:none;stroke:currentColor;stroke-width:1.65;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+html.dark .side-drawer .sd-ava {
+  background:#344252;border-color:#46576b;color:#d5e1ee;
+}
+.side-drawer .sd-names {color:#263343}
+.side-drawer .micro {color:#718096}
+.side-drawer .sd-item {color:#344255}
+.side-drawer .sd-item .ic {color:#667b91}
+.side-drawer .sd-item.on {
+  background:#e3eaf2;
+  color:#243449;
+}
+.side-drawer .sd-item.on .ic {color:#344b65}
+.side-drawer .sd-en {color:#8291a2}
+.side-drawer .sd-head {border-color:rgba(74,94,118,.18)}
+.side-drawer .sd-foot {border-color:rgba(74,94,118,.18)}
+html.dark .side-drawer .sd-names,
+html.dark .side-drawer .sd-item {color:#e1e8f0}
+html.dark .side-drawer .micro,
+html.dark .side-drawer .sd-en {color:#9eafc2}
+html.dark .side-drawer .sd-item .ic {color:#b2c1d2}
+html.dark .side-drawer .sd-item.on {background:#354354;color:#f0f4f8}
+html.dark .side-drawer .sd-head,
+html.dark .side-drawer .sd-foot {border-color:rgba(220,232,246,.14)}
