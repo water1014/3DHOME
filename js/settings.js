@@ -29,7 +29,15 @@
           <p>让小窝按照你喜欢的方式运行。</p>
         </header>
 
-        <section class="settings-section">
+        <nav class="settings-jump" aria-label="设置分类">
+          <button type="button" class="is-active" data-settings-target="settings-appearance">外观</button>
+          <button type="button" data-settings-target="settings-profile">档案</button>
+          <button type="button" data-settings-target="settings-api">AI 连接</button>
+          <button type="button" data-settings-target="settings-prompt">提示词</button>
+          <button type="button" data-settings-target="settings-data">数据</button>
+        </nav>
+
+        <section class="settings-section" id="settings-appearance">
           <div class="settings-section-head"><span>01</span><div><b>外观与显示</b><small>APPEARANCE</small></div></div>
           <div class="settings-card">
             <div class="settings-row">
@@ -42,7 +50,7 @@
           </div>
         </section>
 
-        <section class="settings-section">
+        <section class="settings-section" id="settings-profile">
           <div class="settings-section-head"><span>02</span><div><b>双人档案</b><small>OUR PROFILE</small></div></div>
           <div class="settings-card">
             <label class="settings-field"><span>你的称呼</span><input id="set-her-name" maxlength="24" value=""></label>
@@ -52,7 +60,7 @@
           </div>
         </section>
 
-        <section class="settings-section">
+        <section class="settings-section" id="settings-api">
           <div class="settings-section-head"><span>03</span><div><b>AI 连接</b><small>GLOBAL API</small></div></div>
           <div class="settings-card">
             <label class="settings-field"><span>接口地址</span><input id="set-api-url" type="url" placeholder="https://api.openai.com/v1/chat/completions" autocomplete="url"></label>
@@ -64,7 +72,7 @@
           </div>
         </section>
 
-        <section class="settings-section">
+        <section class="settings-section" id="settings-prompt">
           <div class="settings-section-head"><span>04</span><div><b>全局提示词</b><small>COMPANION INSTRUCTIONS</small></div></div>
           <div class="settings-card">
             <p class="settings-note">这里的内容会附加到聊天系统提示词中，作为宋祁在小窝里的长期行为与表达约定。</p>
@@ -73,7 +81,7 @@
           </div>
         </section>
 
-        <section class="settings-section">
+        <section class="settings-section" id="settings-data">
           <div class="settings-section-head"><span>05</span><div><b>数据管理</b><small>LOCAL DATA</small></div></div>
           <div class="settings-card">
             <div class="settings-row"><div><b>本地数据占用</b><small id="set-storage-detail">正在统计</small></div><span class="settings-value" id="set-storage-size">—</span></div>
@@ -100,6 +108,15 @@
   }
 
   function bind() {
+    const jump = D.querySelector('.settings-jump');
+    if (jump) jump.querySelectorAll('[data-settings-target]').forEach(button => {
+      button.onclick = () => {
+        const target = $(button.dataset.settingsTarget);
+        if (!target) return;
+        jump.querySelectorAll('button').forEach(item => item.classList.toggle('is-active', item === button));
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    });
     $('set-theme').onclick = () => {
       S.theme = S.theme === 'dark' ? 'light' : 'dark';
       save('theme');
