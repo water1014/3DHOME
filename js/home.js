@@ -20,10 +20,9 @@ function tickClock() {
     const now = new Date();
     el.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   }
-  clearTimeout(raf);
   raf = setTimeout(tickClock, 5000);
 }
-function startClock() { clearTimeout(raf); tickClock(); }
+function startClock() { tickClock(); }
 function stopClock() { clearTimeout(raf); }
 
 function compressImg(file, maxW, maxH, quality) {
@@ -86,19 +85,10 @@ function renderInfo() {
 
   const w = weatherNow();
   const hWeather = $('h-weather');
-  if (hWeather) hWeather.textContent = `${w.icon === 'sun' ? '☼' : '◦'} ${w.temp}°`;
-  const hTime = $('h-time');
-  if (hTime) hTime.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  if (hWeather) hWeather.textContent = `${w.temp}°`;
 
   const hGreet = $('h-greet');
   if (hGreet) hGreet.innerHTML = `${greetWord(now.getHours())} · <i>${fmtWeek(now)} ${String(now.getMonth()+1)}月${now.getDate()}日</i>`;
-
-  const dateMonth = $('h-date-month');
-  const dateDay = $('h-date-day');
-  const dateWeek = $('h-date-week');
-  if (dateMonth) dateMonth.textContent = `${String(now.getMonth()+1).padStart(2,'0')} / ${now.getFullYear()}`;
-  if (dateDay) dateDay.textContent = String(now.getDate()).padStart(2,'0');
-  if (dateWeek) dateWeek.textContent = ['SUN','MON','TUE','WED','THU','FRI','SAT'][now.getDay()];
 }
 
 function build() {
@@ -157,27 +147,19 @@ function build() {
           </a>
         </nav>
 
-        <!-- 信纸与日期 -->
-        <div class="fe-mix-grid">
-          <section class="fe-letter" id="h-letter">
-            <div class="flip-inner">
-              <div class="flip-front">
-                <svg class="ic lf-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                <span class="lf-text">一封情书</span>
-                <span class="lf-hint">click to open</span>
-              </div>
-              <div class="flip-back">
-                <div class="flip-lines" id="h-letter-lines"><p>加载中...</p></div>
-              </div>
+        <!-- 翻面信纸 -->
+        <section class="fe-letter" id="h-letter">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <svg class="ic lf-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span class="lf-text">一封情书</span>
+              <span class="lf-hint">click to open</span>
             </div>
-          </section>
-
-          <section class="fe-date-stamp" aria-label="日期">
-            <div class="fd-month" id="h-date-month"></div>
-            <div class="fd-day" id="h-date-day"></div>
-            <div class="fd-week" id="h-date-week"></div>
-          </section>
-        </div>
+            <div class="flip-back">
+              <div class="flip-lines" id="h-letter-lines"><p>加载中...</p></div>
+            </div>
+          </div>
+        </section>
 
         <!-- 相册墙 -->
         <section class="fe-photos" id="h-photos">
@@ -277,8 +259,6 @@ function build() {
 
   // 相册
   const photos = S.photos || [];
-  const photoCount = $("h-photos")?.querySelector(".ph-count");
-  if (photoCount) photoCount.textContent = String(photos.filter(Boolean).length);
   for (let i = 0; i < 3; i++) {
     const imgEl = $(`ph-img-${i+1}`);
     if (imgEl) {
@@ -319,11 +299,6 @@ function build() {
     el.style.cursor = 'pointer';
     el.addEventListener('click', () => {
       const act = el.dataset.act;
-      if (act === 'daily') { window.go('daily'); return; }
-      if (act === 'album') {
-        $('h-photos')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
       if (act === 'chat') { window.go('chat'); return; }
       UI.toast(`${actNames[act]}后续开放`);
     });
