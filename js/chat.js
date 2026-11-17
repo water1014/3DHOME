@@ -165,7 +165,13 @@ function build() {
       </div>
     </section>
 
-    <div class="chat-pref" id="chat-pref" aria-label="聊天显示设置">
+    <div class="chat-pref-backdrop" id="chat-pref-backdrop" aria-hidden="true"></div>
+    <div class="chat-pref" id="chat-pref" role="dialog" aria-modal="true" aria-label="聊天更多功能">
+      <div class="chat-pref-head">
+        <span class="chat-pref-grip"></span>
+        <div><b>更多</b><small>让聊天保持喜欢的样子</small></div>
+        <button type="button" id="chat-pref-close" aria-label="关闭更多">×</button>
+      </div>
       <div class="chat-pref-group"><span class="chat-pref-label">消息排列</span>
         <button type="button" data-pref="split" data-value="split">逐条切分</button>
         <button type="button" data-pref="split" data-value="merge">连续合并</button>
@@ -1223,11 +1229,24 @@ function bindEvents() {
 
   // 顶部按钮
   $('ch-music').onclick = () => toast('一起听功能开发中...');
-  $('ch-menu').onclick = () => {
-    const panel = $('chat-pref');
-    panel.classList.toggle('show');
-    $('ch-menu').setAttribute('aria-expanded', String(panel.classList.contains('show')));
+  const prefPanel = $('chat-pref');
+  const prefBackdrop = $('chat-pref-backdrop');
+  const closeChatMore = () => {
+    prefPanel.classList.remove('show');
+    prefBackdrop.classList.remove('show');
+    $('ch-menu').setAttribute('aria-expanded', 'false');
   };
+  $('ch-menu').onclick = () => {
+    const opening = !prefPanel.classList.contains('show');
+    prefPanel.classList.toggle('show', opening);
+    prefBackdrop.classList.toggle('show', opening);
+    $('ch-menu').setAttribute('aria-expanded', String(opening));
+  };
+  $('chat-pref-close').onclick = closeChatMore;
+  prefBackdrop.onclick = closeChatMore;
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && prefPanel.classList.contains('show')) closeChatMore();
+  });
   $('chat-pref').querySelectorAll('[data-pref]').forEach(btn => {
     btn.onclick = () => {
       if (btn.dataset.pref === 'split') {
@@ -1242,8 +1261,7 @@ function bindEvents() {
     };
   });
   $('chat-pref').querySelector('[data-chat-action="clear"]').onclick = () => {
-    $('chat-pref').classList.remove('show');
-    $('ch-menu').setAttribute('aria-expanded', 'false');
+    closeChatMore();
     clearChat();
   };
 }
