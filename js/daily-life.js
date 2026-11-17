@@ -110,7 +110,7 @@
     return '<div class="dh-overview-grid">'+
       '<section class="dh-overview-main"><span class="dh-en">A DAY TO KEEP</span><h3>'+dateLabel(selected)+'</h3><p>'+todayLabel(selected)+' · '+(selected===iso(new Date())?'今天':'正在查看')+'</p><div class="dh-overview-progress"><b>'+done+'<i> / '+day.todos.length+'</i></b><span>件待办已完成</span><em><i style="width:'+(day.todos.length?Math.round(done/day.todos.length*100):0)+'%"></i></em></div></section>'+
       '<div class="dh-overview-weather"><span>WEATHER</span><b>天气待接入</b><small>连接天气服务后显示</small></div></div>'+
-      '<div class="dh-entry-grid">'+
+      '<div class="dh-entry-list">'+
       viewCard('calendar','日历','CALENDAR','按日期查看生活记录','◷')+
       viewCard('timetable','课表与倒数','SCHEDULE','固定安排 · 重要日子','▤')+
       viewCard('todos','待办清单','TO-DO LIST',day.todos.length+' 项 · '+done+' 项完成','✓')+
