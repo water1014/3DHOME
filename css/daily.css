@@ -29,3 +29,69 @@
 .daily-empty { max-width:42rem; height:min(52vh,24rem); margin:1.5rem auto 0; position:relative; border-top:1px solid var(--line); }
 .daily-empty-mark { position:absolute; top:1.1rem; left:0; width:1.7rem; height:1px; background:var(--ink-3); opacity:.45; }
 @media (max-height:620px) { .daily-page { padding-top:3.5rem; } }
+
+/* Sidebar entry layout · compact two-column feature directory */
+.side-drawer { width:min(18rem, 88vw); }
+.side-drawer .sd-nav {
+  display:block; flex:1; min-height:0; overflow-y:auto;
+  padding:.72rem .05rem .8rem; overscroll-behavior:contain;
+}
+.side-drawer .sd-section {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch; column-gap:.42rem; row-gap:.22rem;
+  padding:.12rem 0 .72rem;
+}
+.side-drawer .sd-section + .sd-section {
+  margin-top:.1rem; padding-top:.68rem;
+  border-top:1px solid rgba(74,94,118,.14);
+}
+.side-drawer .sd-section-title {
+  grid-column:1/-1; padding:.12rem .48rem .35rem;
+  margin-bottom:.05rem; gap:.5rem;
+}
+.side-drawer .sd-section .sd-item {
+  grid-column:1/-1; min-height:2.45rem; margin:0;
+  padding:.55rem .58rem; border-radius:.58rem;
+}
+.side-drawer .sd-section .sd-subitem {
+  display:flex; align-items:center; min-width:0; min-height:2.25rem;
+  padding:.42rem .55rem; border:1px solid rgba(105,125,148,.13);
+  border-left:1px solid rgba(105,125,148,.13); border-radius:.52rem;
+  background:rgba(255,255,255,.28); color:var(--ink-2);
+  font-size:.72rem; line-height:1.35; letter-spacing:.015em;
+  white-space:normal; overflow-wrap:anywhere;
+}
+.side-drawer .sd-section .sd-subitem::before {
+  content:''; width:.25rem; height:.25rem; flex:0 0 auto;
+  margin-right:.42rem; border-radius:50%;
+  background:#9aaabd; opacity:.85;
+}
+.side-drawer .sd-section .sd-subitem:hover {
+  background:rgba(130,151,174,.13); border-color:rgba(105,125,148,.24);
+  color:var(--ink);
+}
+.side-drawer .sd-section .sd-subitem.active {
+  border:1px solid rgba(105,125,148,.3);
+  background:rgba(130,151,174,.18); color:var(--ink); font-weight:600;
+}
+.side-drawer .sd-section .sd-subitem.active::before { background:currentColor; }
+html.dark .side-drawer .sd-section .sd-subitem {
+  background:rgba(255,255,255,.035); border-color:rgba(220,232,246,.1);
+  color:#cbd6e3;
+}
+html.dark .side-drawer .sd-section .sd-subitem:hover,
+html.dark .side-drawer .sd-section .sd-subitem.active {
+  background:rgba(155,178,204,.13); border-color:rgba(220,232,246,.2);
+  color:#f0f4f8;
+}
+html.dark .side-drawer .sd-section .sd-subitem::before { background:#9eafc2; }
+.side-drawer .sd-foot { padding-top:.55rem; }
+.side-drawer .sd-foot .sd-item { min-height:2.45rem; }
+@media (max-height:700px) {
+  .side-drawer { padding-top:calc(.85rem + env(safe-area-inset-top)); padding-bottom:.7rem; }
+  .side-drawer .sd-head { padding-bottom:.7rem; }
+  .side-drawer .sd-nav { padding-top:.5rem; }
+  .side-drawer .sd-section { row-gap:.16rem; padding-bottom:.55rem; }
+  .side-drawer .sd-section + .sd-section { padding-top:.52rem; }
+  .side-drawer .sd-section .sd-subitem { min-height:2rem; padding:.34rem .48rem; }
+}
