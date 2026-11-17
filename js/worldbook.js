@@ -63,6 +63,7 @@
           '<label class="wb-field"><span>扫描消息数</span><input type="number" min="1" max="100" data-rule="scanDepth" value="'+esc(val('scanDepth',20))+'"></label>'+
           '<label class="wb-field"><span>触发概率 %</span><input type="number" min="0" max="100" data-rule="probability" value="'+esc(val('probability',100))+'"></label>'+
           '<label class="wb-field"><span>延迟消息数</span><input type="number" min="0" data-rule="delay" value="'+esc(val('delay',0))+'"></label>'+
+          '<label class="wb-field"><span>冷却消息数</span><input type="number" min="0" data-rule="cooldown" value="'+esc(val('cooldown',0))+'"></label>'+
           ''+
           '<label class="wb-field"><span>黏性消息数</span><input type="number" min="0" data-rule="sticky" value="'+esc(val('sticky',0))+'"></label>'+
           '<label class="wb-field"><span>互斥分组</span><input data-rule="group" value="'+esc(val('group',''))+'"></label>'+
@@ -157,6 +158,11 @@
       const scanDepth=Math.max(1,Math.min(100,Number(raw.scanDepth)||20));
       const scoped=recursive?scan:messages.slice(-scanDepth).join('\n');
       if(!matches(raw,scoped))return false;
+      const cooldown=Math.max(0,Number(raw.cooldown)||0);
+      if(!recursive&&cooldown>0){
+        const hits=messages.map((message,i)=>matches(raw,message)?i:-1).filter(i=>i>=0);
+        if(hits.length>1&&hits[hits.length-1]===messages.length-1&&hits[hits.length-1]-hits[hits.length-2]<=cooldown)return false;
+      }
       const probability=Math.max(0,Math.min(100,Number(raw.probability??100)));
       if(raw.useProbability){
         let seed=2166136261;const sample=scan+'|'+key;
