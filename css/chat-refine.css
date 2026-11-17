@@ -1282,3 +1282,30 @@ html.dark #pg-chat .input-card {
   -webkit-backdrop-filter:none;
   backdrop-filter:none;
 }
+
+
+/* Chat composer: anchor to the actual screen bottom now that the global tab bar is gone. */
+#pg-chat .input-bar {
+  position:absolute;
+  z-index:12;
+  left:0;
+  right:0;
+  bottom:0;
+  width:100%;
+  margin:0;
+  padding:.3rem max(.85rem,var(--page-pad)) calc(.45rem + env(safe-area-inset-bottom));
+  border:0;
+  background:linear-gradient(180deg,rgba(246,247,249,0),rgba(246,247,249,.94) 24%);
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+html.dark #pg-chat .input-bar {
+  background:linear-gradient(180deg,rgba(28,30,34,0),rgba(28,30,34,.96) 24%);
+}
+#pg-chat .chat-body {
+  padding-bottom:.6rem;
+  scroll-padding-bottom:.6rem;
+}
+#pg-chat .chat-body::after {
+  flex:0 0 calc(5.2rem + env(safe-area-inset-bottom));
+}
