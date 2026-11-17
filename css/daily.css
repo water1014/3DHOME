@@ -234,3 +234,12 @@ html.dark .wb-open-book .wb-detail-head{background:linear-gradient(145deg,rgba(2
 html.dark .wb-paper-stack .wb-entry{background:linear-gradient(90deg,rgba(150,170,194,.1) 0 1.5rem,transparent 1.5rem),repeating-linear-gradient(to bottom,transparent 0 1.72rem,rgba(180,196,214,.075) 1.72rem calc(1.72rem + 1px)),rgba(255,255,255,.025);border-color:rgba(220,232,246,.12)}
 @media(min-width:520px){.wb-shelf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wb-book-card{min-width:0}.wb-cover{flex-basis:3.8rem;width:3.8rem;height:4.95rem}}
 @media(max-width:360px){.wb-cover{flex-basis:3.65rem;width:3.65rem;height:4.8rem}.wb-book-card{gap:.65rem;padding:.55rem}}
+
+
+/* Worldbook rule editor */
+.wb-rule-grid,.wb-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem .65rem;margin:.8rem 0}
+.wb-rule-check{display:flex;align-items:center;gap:.42rem;min-height:2rem;padding:.35rem .48rem;border:1px solid var(--line);border-radius:.55rem;background:color-mix(in srgb,var(--glass) 78%,transparent);font-size:.62rem;color:var(--ink-2)}
+.wb-rule-check input{accent-color:var(--ink);width:.9rem;height:.9rem;flex:0 0 auto}
+.wb-field-grid .wb-field{min-width:0}
+.wb-field-grid .wb-field input,.wb-field-grid .wb-field select{width:100%;min-width:0}
+@media(max-width:420px){.wb-rule-grid,.wb-field-grid{grid-template-columns:1fr}}
