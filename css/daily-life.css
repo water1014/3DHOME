@@ -113,3 +113,7 @@ html.dark .dh-meals input,html.dark .dh-mood-note{background:rgba(255,255,255,.0
  .dh-entry-mark{flex-basis:1.85rem;width:1.85rem;height:1.85rem}
 }
 @media(max-width:340px){.dh-overview-grid{grid-template-columns:1fr}.dh-overview-weather{min-height:auto}.dh-entry-grid{grid-template-columns:1fr}}
+
+/* The daily hub owns its own title hierarchy, so avoid a duplicate outer heading. */
+.daily-page:has(.dh-redesigned)>.daily-heading{display:none}
+.daily-page:has(.dh-redesigned){padding-top:.25rem}
