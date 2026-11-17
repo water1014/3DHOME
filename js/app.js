@@ -48,7 +48,7 @@ function initSide() {
       if (name === 'daily') {
         window.Daily?.showCurrent();
         go('daily');
-        return;
+        close();
         return;
       }
       drawer.querySelectorAll('.sd-item').forEach(i => i.classList.toggle('on', i === item));
