@@ -33,7 +33,7 @@
     const beauty = current === 'beautify';
     const worldbook = current === 'worldbook';
     const windows = current === 'windows';
-    const calendar = current === 'calendar';
+    const calendar = ['calendar','plans','mood'].includes(current);
     page.innerHTML = `
       <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : windows ? 'engawa-page' : ''}">
         <header class="daily-heading">
@@ -41,7 +41,7 @@
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : calendar ? (window.Calendar?.render() || '') : beauty ? `
+        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : calendar ? (window.DailyLife?.render() || '') : beauty ? `
           <section class="beautify-content" aria-label="美化设置">
             <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
             <section class="beautify-block">
@@ -97,7 +97,7 @@
     if (beauty) bindBeautify();
     if (worldbook) window.Worldbook?.mount();
     if (windows) bindWindows();
-    if (calendar) window.Calendar?.mount();
+    if (calendar) window.DailyLife?.mount();
     document.querySelectorAll('[data-daily-go]').forEach(link => {
       link.classList.toggle('active', link.dataset.dailyGo === current);
       link.setAttribute('aria-current', link.dataset.dailyGo === current ? 'page' : 'false');
