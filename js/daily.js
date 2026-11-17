@@ -33,7 +33,7 @@
     const beauty = current === 'beautify';
     const worldbook = current === 'worldbook';
     const windows = current === 'windows';
-    const calendar = ['calendar','plans','mood'].includes(current);
+    const calendar = ['calendar','timetable','todos','life','events','countdown'].includes(current);
     page.innerHTML = `
       <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : windows ? 'engawa-page' : ''}">
         <header class="daily-heading">
