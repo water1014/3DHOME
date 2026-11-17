@@ -49,6 +49,8 @@
           '<label class="wb-rule-check"><input type="checkbox" data-rule="caseSensitive" '+checked('caseSensitive')+'>区分大小写</label>'+
           '<label class="wb-rule-check"><input type="checkbox" data-rule="matchWholeWords" '+checked('matchWholeWords')+'>整词匹配</label>'+
           '<label class="wb-rule-check"><input type="checkbox" data-rule="useProbability" '+checked('useProbability')+'>启用触发概率</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="use_regex" '+checked('use_regex')+'>关键词按正则表达式匹配</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="groupOverride" '+checked('groupOverride')+'>允许覆盖同组条目</label>'+
           '<label class="wb-rule-check"><input type="checkbox" data-rule="preventRecursion" '+checked('preventRecursion')+'>阻止本条目继续递归</label>'+
           '<label class="wb-rule-check"><input type="checkbox" data-rule="excludeRecursion" '+checked('excludeRecursion')+'>不允许递归内容触发本条</label>'+
           '<label class="wb-rule-check"><input type="checkbox" data-rule="delayUntilRecursion" '+checked('delayUntilRecursion')+'>仅递归触发时生效</label>'+
@@ -61,7 +63,7 @@
           '<label class="wb-field"><span>扫描消息数</span><input type="number" min="1" max="100" data-rule="scanDepth" value="'+esc(val('scanDepth',20))+'"></label>'+
           '<label class="wb-field"><span>触发概率 %</span><input type="number" min="0" max="100" data-rule="probability" value="'+esc(val('probability',100))+'"></label>'+
           '<label class="wb-field"><span>延迟消息数</span><input type="number" min="0" data-rule="delay" value="'+esc(val('delay',0))+'"></label>'+
-          '<label class="wb-field"><span>冷却消息数</span><input type="number" min="0" data-rule="cooldown" value="'+esc(val('cooldown',0))+'"></label>'+
+          ''+
           '<label class="wb-field"><span>黏性消息数</span><input type="number" min="0" data-rule="sticky" value="'+esc(val('sticky',0))+'"></label>'+
           '<label class="wb-field"><span>互斥分组</span><input data-rule="group" value="'+esc(val('group',''))+'"></label>'+
           '<label class="wb-field"><span>分组权重</span><input type="number" data-rule="groupWeight" value="'+esc(val('groupWeight',100))+'"></label>'+
@@ -123,9 +125,14 @@
       const primary=splitKeys(raw.key??raw.keys),secondary=splitKeys(raw.keysecondary);
       const sensitive=!!raw.caseSensitive,whole=!!raw.matchWholeWords;
       const source=sensitive?scan:scan.toLocaleLowerCase();
-      const test=term=>contains(source,sensitive?term:term.toLocaleLowerCase(),whole);
+      const test=term=>{
+        if(raw.use_regex){try{return new RegExp(term,sensitive?'u':'iu').test(source);}catch{return false;}}
+        return contains(source,sensitive?term:term.toLocaleLowerCase(),whole);
+      };
       const primaryHit=primary.some(test);
       let hit=!!raw.constant||primaryHit;
+      const sticky=Math.max(0,Number(raw.sticky)||0);
+      if(!hit&&sticky>0){const recent=messages.slice(-(sticky+1)).join('\n');hit=primary.some(term=>testInText(term,recent,raw));}
       if(hit&&raw.selective&&secondary.length){
         const found=secondary.map(test),logic=Number(raw.selectiveLogic||0);
         if(logic===1)hit=found.every(Boolean);
@@ -135,8 +142,13 @@
       }
       return hit;
     };
+    const testInText=(term,text,raw)=>{
+      const sensitive=!!raw.caseSensitive,source=sensitive?text:text.toLocaleLowerCase();
+      if(raw.use_regex){try{return new RegExp(term,sensitive?'u':'iu').test(source);}catch{return false;}}
+      return contains(source,sensitive?term:term.toLocaleLowerCase(),!!raw.matchWholeWords);
+    };
     const attempt=(item,scan,recursive,round)=>{
-      const {book,entry,index,raw}=item,key=String(entry.id||raw.uid||book.id+':'+index);
+      const {book,entry,index,raw}=item,key=String(book.id)+':'+String(entry.id||raw.uid||index);
       if(activated.has(key)||entry.enabled===false||raw.disable||!String(raw.content||'').trim())return false;
       if(recursive&&raw.excludeRecursion)return false;
       if(!recursive&&raw.delayUntilRecursion)return false;
@@ -146,7 +158,12 @@
       const scoped=recursive?scan:messages.slice(-scanDepth).join('\n');
       if(!matches(raw,scoped))return false;
       const probability=Math.max(0,Math.min(100,Number(raw.probability??100)));
-      if(raw.useProbability&&Math.random()*100>=probability)return false;
+      if(raw.useProbability){
+        let seed=2166136261;const sample=scan+'|'+key;
+        for(let i=0;i<sample.length;i++)seed=Math.imul(seed^sample.charCodeAt(i),16777619);
+        const roll=((seed>>>0)/4294967296)*100;
+        if(roll>=probability)return false;
+      }
       const group=String(raw.group||'').trim();
       const value={book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??raw.insertorder??0),depth:Math.max(0,Number(raw.depth)||0),order:Number(raw.order??raw.insertion_order??100),uid:key,group,groupWeight:Number(raw.groupWeight)||100,preventRecursion:!!raw.preventRecursion,round};
       activated.set(key,value);
@@ -169,9 +186,11 @@
     matched.forEach(item=>{if(item.group){const old=groups.get(item.group);if(!old||item.groupWeight>old.groupWeight)groups.set(item.group,item);}});
     matched=matched.filter(item=>!item.group||groups.get(item.group)===item);
     matched.sort((a,b)=>a.order-b.order);
-    const system=matched.filter(x=>x.position!==4).map(x=>'【'+x.book+' / '+x.title+'】\n'+x.content).join('\n\n');
+    const positions={0:[],1:[],2:[],3:[]};
+    matched.filter(x=>x.position!==4).forEach(x=>{const slot=[0,1,2,3].includes(x.position)?x.position:1;positions[slot].push('【'+x.book+' / '+x.title+'】\n'+x.content);});
+    const system=Object.keys(positions).map(k=>positions[k].join('\n\n')).filter(Boolean).join('\n\n');
     const depth=matched.filter(x=>x.position===4).map(x=>({depth:x.depth,order:x.order,text:'【'+x.book+' / '+x.title+'】\n'+x.content}));
-    return {system,depth,matched:matched.map(x=>({book:x.book,title:x.title,position:x.position,depth:x.depth})),diagnostics};
+    return {system,positions,depth,matched:matched.map(x=>({book:x.book,title:x.title,position:x.position,depth:x.depth})),diagnostics};
   }
   function mount(){
     const $=id=>document.getElementById(id);
