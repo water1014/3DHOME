@@ -144,3 +144,18 @@ html.dark .dh-redesigned .dh-moods button{background:rgba(255,255,255,.035)}
 .dh-redesigned .dh-overview-main{background:linear-gradient(135deg,var(--glass),rgba(150,170,184,.10))}
 .dh-redesigned .dh-overview-weather{background:linear-gradient(145deg,var(--glass),rgba(190,180,150,.10))}
 @media(max-width:350px){.dh-redesigned .dh-moods{gap:.2rem}.dh-redesigned .dh-moods button{min-height:3.9rem}.dh-redesigned .dh-moods button i{font-size:1.3rem}}
+
+
+/* Settings-style full-width navigation for the daily hub */
+.dh-entry-list{display:flex;flex-direction:column;gap:0;overflow:hidden;border:1px solid var(--line);border-radius:1rem;background:var(--glass);box-shadow:var(--card-shadow);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.dh-entry-list .dh-entry{position:relative;display:flex;width:100%;min-height:5.1rem;align-items:center;gap:.85rem;padding:.78rem .9rem;border:0;border-radius:0;background:transparent;text-align:left}
+.dh-entry-list .dh-entry+.dh-entry{border-top:1px solid var(--line)}
+.dh-entry-list .dh-entry:active{background:var(--glass-strong);transform:none}
+.dh-entry-list .dh-entry-mark{width:2.55rem;height:2.55rem;flex-basis:2.55rem;border-radius:.82rem;font-size:1.15rem}
+.dh-entry-list .dh-entry-copy{gap:.16rem}
+.dh-entry-list .dh-entry-copy small{font-size:.46rem;letter-spacing:.13em}
+.dh-entry-list .dh-entry-copy b{font-size:.76rem}
+.dh-entry-list .dh-entry-copy i{font-size:.57rem}
+.dh-entry-list .dh-entry-arrow{align-self:center;margin-left:.3rem;font-size:.9rem;opacity:.7}
+.dh-entry-list .dh-entry:hover{background:var(--glass-strong)}
+@media(max-width:360px){.dh-entry-list .dh-entry{min-height:4.7rem;padding:.68rem .72rem;gap:.7rem}.dh-entry-list .dh-entry-mark{width:2.3rem;height:2.3rem;flex-basis:2.3rem}}
