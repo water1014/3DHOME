@@ -135,7 +135,7 @@ function initGestures() {
       if (dx < -55 && startSafeArea(target)) closeDrawer();
       return;
     }
-    if (target.closest?.('input,textarea,select,button,a,[contenteditable="true"],.chat-messages,.chat-input,.overlay')) return;
+    if (target.closest?.('input,textarea,select,button,a,[contenteditable="true"],.chat-input,.overlay')) return;
 
     // 左边缘右滑呼出侧栏
     if (dx > 70 && originX < 28) {
