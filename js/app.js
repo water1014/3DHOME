@@ -98,7 +98,7 @@ function initSide() {
       if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
     drawer.querySelectorAll('.sd-subitem').forEach(item => {
-      const active = kind === 'daily' && item.dataset.dailyGo === target;
+      const active = (kind === 'daily' && item.dataset.dailyGo === target) || (kind === 'settings' && item.dataset.settingsSection === target);
       item.classList.toggle('active', active);
       if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
