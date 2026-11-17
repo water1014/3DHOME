@@ -248,3 +248,106 @@ html.dark #pg-chat .chat-header { background: rgba(255,255,255,.025); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* Home layout pass: rearrange existing components only. No copy or feature changes. */
+#pg-home .fe-body {
+  display: flex;
+  flex-direction: column;
+  gap: .78rem;
+  padding-top: .18rem;
+  padding-bottom: 1rem;
+}
+#pg-home .fe-profile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  column-gap: .65rem;
+  row-gap: .12rem;
+  margin: .18rem 0 0;
+  padding: .95rem 1rem .85rem;
+  text-align: left;
+}
+#pg-home .fp-avatars {
+  grid-column: 1;
+  grid-row: 1;
+  justify-content: flex-start;
+  gap: .42rem;
+  margin: 0 0 .32rem;
+}
+#pg-home .fp-ava {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+#pg-home .fp-amp { font-size: 1.2rem; }
+#pg-home .fp-names {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  margin: 0;
+  text-align: left;
+  font-size: .86rem;
+}
+#pg-home .fp-days-wrap {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  justify-content: flex-end;
+  align-self: center;
+  margin: 0;
+  white-space: nowrap;
+}
+#pg-home .fp-days {
+  font-size: clamp(3.15rem, 14vw, 4.15rem);
+}
+#pg-home .fp-days-label { font-size: .78rem; }
+#pg-home .fp-line {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: .62rem;
+  padding-top: .55rem;
+  border-top: 1px solid var(--line);
+  font-size: .46rem;
+}
+#pg-home .fe-nav {
+  margin: 0;
+  gap: .42rem;
+}
+#pg-home .fn-pill {
+  min-height: 2.55rem;
+}
+#pg-home .fe-photos,
+#pg-home .fe-letter,
+#pg-home .fe-vinyl {
+  margin: 0;
+}
+#pg-home .ph-header { margin-bottom: .58rem; }
+#pg-home .ph-wall {
+  justify-content: space-between;
+  gap: .7rem;
+  padding: .18rem .35rem .5rem;
+}
+#pg-home .ph-frame {
+  flex: 1 1 0;
+  max-width: 6.4rem;
+  padding: .34rem .34rem .62rem;
+}
+#pg-home .ph-img { aspect-ratio: 1 / 1.12; }
+#pg-home .fe-letter { min-height: 6rem; }
+#pg-home .flip-inner { min-height: 6rem; }
+#pg-home .fe-vinyl {
+  min-height: 4.25rem;
+  padding: .72rem .9rem;
+}
+#pg-home .fe-foot { padding-top: .35rem; }
+
+@media (max-width: 360px) {
+  #pg-home .fe-body { gap: .65rem; }
+  #pg-home .fe-profile { padding: .82rem .8rem .75rem; }
+  #pg-home .fp-ava { width: 2.5rem; height: 2.5rem; }
+  #pg-home .fp-days { font-size: 3.1rem; }
+  #pg-home .fp-line { font-size: .42rem; gap: .38rem; }
+  #pg-home .fn-pill { gap: .24rem; padding-inline: .16rem; font-size: .64rem; }
+}
