@@ -4,8 +4,8 @@ services:
     environment:
       ENGAWA_HOST: 0.0.0.0
       ENGAWA_PORT: "8799"
-      ENGAWA_LAT: ${ENGAWA_LAT:-0}
-      ENGAWA_LON: ${ENGAWA_LON:-0}
+      ENGAWA_LAT: ${ENGAWA_LAT:-51.4769}
+      ENGAWA_LON: ${ENGAWA_LON:--0.0005}
       ENGAWA_TZ_OFFSET: ${ENGAWA_TZ_OFFSET:-0}
     volumes:
       - engawa_cache:/root/.cache/engawa-mcp
