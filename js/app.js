@@ -143,10 +143,7 @@ function initGestures() {
       drawer.classList.add('show'); overlay.classList.add('show'); return;
     }
 
-    if (cur === 'daily') {
-      window.Daily?.step(dx < 0 ? 1 : -1);
-      return;
-    }
+    if (cur === 'daily' && window.Daily?.step(dx < 0 ? 1 : -1)) return;
     const index = MAIN_ORDER.indexOf(cur);
     if (index < 0) return;
     const next = index + (dx < 0 ? 1 : -1);
