@@ -9,6 +9,7 @@
   let data = load();
   let cursor = firstMonth(new Date());
   let selected = iso(new Date());
+  let activeView = 'today';
 
   function fresh() { return { days: {}, timetable: [], countdowns: [] }; }
   function load() {
@@ -95,10 +96,39 @@
     const events=day.events.slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
     return '<section class="dh-panel"><div class="dh-panel-head"><div><span class="dh-en">ON THIS DAY</span><h3>日程与约定</h3></div><button type="button" class="dh-text-btn" data-add="event">＋ 添加</button></div>'+(events.length?'<div class="dh-event-list">'+events.map(x=>'<article><time>'+(x.time?esc(x.time):'全天')+'</time><div><b>'+esc(x.title)+'</b>'+(x.note?'<small>'+esc(x.note)+'</small>':'')+'</div><button type="button" data-remove-event="'+esc(x.id)+'" aria-label="删除日程">×</button></article>').join('')+'</div>':'<p class="dh-muted dh-small">这一天还没有约定或纪念日</p>')+'</section>';
   }
-  function render() {
-    const day=getDay(selected), d=parse(selected), today=iso(new Date());
+  function viewCard(key, title, en, detail, mark) {
+    return '<button type="button" class="dh-entry" data-view="'+key+'"><span class="dh-entry-mark">'+mark+'</span><span class="dh-entry-copy"><small>'+en+'</small><b>'+title+'</b><i>'+detail+'</i></span><span class="dh-entry-arrow">↗</span></button>';
+  }
+  function viewContent(day) {
+    if(activeView==='calendar') return monthMarkup();
+    if(activeView==='timetable') return timetableMarkup()+countdownMarkup();
+    if(activeView==='todos') return todosMarkup(day);
+    if(activeView==='life') return mealsMarkup(day)+moodMarkup(day);
+    if(activeView==='events') return eventsMarkup(day);
+    if(activeView==='countdown') return countdownMarkup();
     const done=day.todos.filter(x=>x.done).length;
-    return '<section class="daily-hub" id="daily-hub"><div class="dh-today-head"><div><span class="dh-en">TODAY / OUR LITTLE LIFE</span><h2>'+dateLabel(selected)+'</h2><p>'+todayLabel(selected)+' · '+(selected===today?'今天':'查看这一天')+'</p></div><div class="dh-weather"><span>WEATHER</span><b>天气待接入</b><small>连接天气服务后显示</small></div></div><div class="dh-progress"><span>今日完成</span><b>'+done+' / '+day.todos.length+'</b><i><em style="width:'+(day.todos.length?Math.round(done/day.todos.length*100):0)+'%"></em></i></div>'+timetableMarkup()+countdownMarkup()+todosMarkup(day)+mealsMarkup(day)+moodMarkup(day)+eventsMarkup(day)+monthMarkup()+'<p class="dh-footnote">把普通的一天，也认真地收进生活里。</p></section>';
+    return '<div class="dh-overview-grid">'+
+      '<section class="dh-overview-main"><span class="dh-en">A DAY TO KEEP</span><h3>'+dateLabel(selected)+'</h3><p>'+todayLabel(selected)+' · '+(selected===iso(new Date())?'今天':'正在查看')+'</p><div class="dh-overview-progress"><b>'+done+'<i> / '+day.todos.length+'</i></b><span>件待办已完成</span><em><i style="width:'+(day.todos.length?Math.round(done/day.todos.length*100):0)+'%"></i></em></div></section>'+
+      '<div class="dh-overview-weather"><span>WEATHER</span><b>天气待接入</b><small>连接天气服务后显示</small></div></div>'+
+      '<div class="dh-entry-grid">'+
+      viewCard('calendar','日历','CALENDAR','按日期查看生活记录','◷')+
+      viewCard('timetable','课表与倒数','SCHEDULE','固定安排 · 重要日子','▤')+
+      viewCard('todos','待办清单','TO-DO LIST',day.todos.length+' 项 · '+done+' 项完成,'+'✓')+
+      viewCard('events','日程与约定','AGENDA',day.events.length+' 条今日安排','⌁')+
+      viewCard('life','生活记录','LIFE NOTES','三餐 · 心情 · 随手记','✳')+
+      viewCard('countdown','重要倒数','COUNTDOWN',data.countdowns.length+' 个值得记住的日子','⌛')+
+      '</div>';
+  }
+  function render() {
+    const day=getDay(selected), today=iso(new Date());
+    const views={today:['今天','TODAY'],calendar:['日历','CALENDAR'],timetable:['课表与倒数','SCHEDULE'],todos:['待办清单','TO-DO LIST'],life:['生活记录','LIFE NOTES'],events:['日程与约定','AGENDA'],countdown:['重要倒数','COUNTDOWN']};
+    const meta=views[activeView]||views.today;
+    const isHome=activeView==='today';
+    return '<section class="daily-hub dh-redesigned" id="daily-hub">'+
+      '<header class="dh-page-head">'+(isHome?'<span class="dh-en">XIAOWO / DAILY LIFE</span>':'<button type="button" class="dh-back" data-view="today">‹ <span>日常</span></button><span class="dh-en">'+meta[1]+'</span>')+
+      '<div class="dh-title-row"><div><h2>'+meta[0]+'</h2><p>'+(isHome?'把日子一页页收好。':dateLabel(selected)+' · '+todayLabel(selected))+'</p></div>'+(isHome?'<span class="dh-date-stamp">'+parse(today).getDate()+'<small>'+today.slice(0,7).replace('-',' / ')+'</small></span>':'')+'</div></header>'+
+      (activeView==='countdown'?'':'<div class="dh-date-rail"><button type="button" data-day-shift="-1" aria-label="前一天">‹</button><div><small>正在记录</small><b>'+dateLabel(selected)+'</b></div><button type="button" data-day-shift="1" aria-label="后一天">›</button><button type="button" class="dh-today" data-today>今天</button></div>')+
+      viewContent(day)+'<p class="dh-footnote">把普通的一天，也认真地收进生活里。</p></section>';
   }
   function refresh() { const root=$('daily-hub'); if(!root)return; root.outerHTML=render(); bind(); }
   function addItem(kind) {
@@ -123,6 +153,8 @@
   }
   function bind() {
     const root=$('daily-hub'); if(!root)return;
+    root.querySelectorAll('[data-view]').forEach(btn=>btn.onclick=()=>{activeView=btn.dataset.view;refresh();});
+    root.querySelectorAll('[data-day-shift]').forEach(btn=>btn.onclick=()=>{const d=parse(selected);d.setDate(d.getDate()+Number(btn.dataset.dayShift));selected=iso(d);cursor=firstMonth(d);refresh();});
     root.querySelectorAll('[data-date]').forEach(btn=>btn.onclick=()=>{selected=btn.dataset.date;cursor=firstMonth(parse(selected));refresh();});
     root.querySelectorAll('[data-month]').forEach(btn=>btn.onclick=()=>{cursor=new Date(cursor.getFullYear(),cursor.getMonth()+Number(btn.dataset.month),1);refresh();});
     const today=root.querySelector('[data-today]'); if(today)today.onclick=()=>{selected=iso(new Date());cursor=firstMonth(new Date());refresh();};
