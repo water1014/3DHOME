@@ -53,17 +53,17 @@
         <div class="wb-intro"><div><span class="beautify-overline">WORLD INFO LIBRARY</span><p>把故事设定、人物背景与世界规则收进同一本书。</p></div><span class="wb-count">${books.length} 本</span></div>
         <div class="wb-toolbar"><button class="wb-btn primary" type="button" id="wb-import">导入酒馆世界书</button><button class="wb-btn" type="button" id="wb-create">新建世界书</button><input class="wb-hidden-file" id="wb-file" type="file" accept=".json,application/json" /></div>
         <input class="wb-search" id="wb-search" type="search" placeholder="搜索世界书名称…" value="${esc(query)}">
-        <div class="wb-book-list">${filtered.length?filtered.map(b=>`<button class="wb-book-card" type="button" data-open-book="${esc(b.id)}"><span class="wb-book-icon">书</span><span class="wb-book-copy"><b>${esc(b.name)}</b><small>${esc(b.description||'暂无简介')} · ${b.entries?.length||0} 个条目</small></span><span class="wb-book-arrow">›</span></button>`).join(''):`<div class="wb-empty"><b>${books.length?'没有找到这本世界书':'这里还没有世界书'}</b><p>${books.length?'试试其他关键词。':'可以导入酒馆导出的 JSON，或从一本空白世界书开始。'}</p></div>`}</div>
+        <div class="wb-shelf-grid">${filtered.length?filtered.map((b,i)=>`<button class="wb-book-card" type="button" data-open-book="${esc(b.id)}"><span class="wb-cover wb-cover-${i%4}"><span class="wb-cover-spine"></span><span class="wb-cover-mark">XW</span><span class="wb-cover-title">${esc(b.name)}</span><span class="wb-cover-count">${b.entries?.length||0} ENTRIES</span></span><span class="wb-book-copy"><b>${esc(b.name)}</b><small>${esc(b.description||'暂无简介')}</small><small>${b.entries?.length||0} 页内容</small></span><span class="wb-book-arrow">›</span></button>`).join(''):`<div class="wb-empty"><b>${books.length?'没有找到这本世界书':'这里还没有世界书'}</b><p>${books.length?'试试其他关键词。':'可以导入酒馆导出的 JSON，或从一本空白世界书开始。'}</p></div>`}</div>
         <p class="beautify-hint">支持 SillyTavern 常见的 entries 对象 / 数组结构。原始条目规则会随文件一起保留，数据保存在当前设备。</p>
       </section>`;
     }
     const entries=(book.entries||[]).filter(e=>(titleOf(e.raw||{},0)+' '+keysOf(e.raw||{})+' '+(e.raw?.content||'')).toLowerCase().includes(query.toLowerCase()));
-    return `<section class="worldbook-content">
+    return `<section class="worldbook-content wb-open-book">
       <button class="wb-back" type="button" id="wb-back">‹ 返回世界书书架</button>
       <div class="wb-detail-head"><div><span class="beautify-overline">WORLD INFO / ${(book.entries||[]).length} ENTRIES</span><h2>${esc(book.name)}</h2><div class="wb-detail-desc">${esc(book.description||'')}</div></div><span class="wb-count">${(book.entries||[]).filter(e=>e.enabled).length} 已启用</span></div>
       <div class="wb-toolbar"><button class="wb-btn" type="button" id="wb-export">导出 JSON</button><button class="wb-btn" type="button" id="wb-add-entry">新增条目</button><button class="wb-btn" type="button" id="wb-delete-book">删除世界书</button></div>
       <input class="wb-search" id="wb-search" type="search" placeholder="搜索条目名称、关键词或内容…" value="${esc(query)}">
-      <div class="wb-entry-list">${entries.length?entries.map((e,i)=>entryMarkup(book,e,i)).join(''):`<div class="wb-empty"><b>没有匹配的条目</b><p>试试其他关键词，或者新增一个条目。</p></div>`}</div>
+      <div class="wb-entry-list wb-paper-stack">${entries.length?entries.map((e,i)=>entryMarkup(book,e,i)).join(''):`<div class="wb-empty"><b>没有匹配的条目</b><p>试试其他关键词，或者新增一个条目。</p></div>`}</div>
       <p class="beautify-hint">启用开关和编辑内容会保存在本机。酒馆的高级触发字段会原样保留在导出文件中。</p>
     </section>`;
   }

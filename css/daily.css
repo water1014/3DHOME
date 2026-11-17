@@ -197,3 +197,40 @@ html.dark .material-ceramic{background:radial-gradient(ellipse at 25% 15%,rgba(2
 html.dark .wb-book-icon{background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(120,130,145,.08))}
 html.dark .wb-entry{background:rgba(255,255,255,.025)}
 @media(min-width:520px){.wb-search{flex:1 1 auto}.wb-toolbar{flex-wrap:nowrap}}
+
+
+/* Worldbook · individual notebooks and quiet paper pages */
+.wb-shelf-grid{display:grid;grid-template-columns:1fr;gap:.72rem}
+.wb-book-card{display:flex;align-items:center;gap:.9rem;padding:.65rem .78rem;border-radius:.9rem;background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(238,241,245,.45));}
+.wb-book-card:active{transform:translateY(1px)}
+.wb-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;flex:0 0 4.25rem;width:4.25rem;height:5.35rem;overflow:hidden;padding:.55rem .42rem .45rem .62rem;border:1px solid rgba(67,82,101,.22);border-radius:.22rem .48rem .48rem .22rem;background:linear-gradient(145deg,#f7f8fa,#dfe5ec 72%,#cbd4df);box-shadow:inset .28rem 0 rgba(79,99,122,.12),0 4px 9px rgba(25,35,50,.1);color:#344252;text-align:left}
+.wb-cover::after{content:'';position:absolute;inset:.28rem;border:1px solid rgba(70,88,110,.16);border-radius:.12rem;pointer-events:none}
+.wb-cover-spine{position:absolute;left:.28rem;top:0;bottom:0;width:1px;background:rgba(68,84,103,.2)}
+.wb-cover-mark{font:.48rem var(--mono);letter-spacing:.16em;color:#75869a}
+.wb-cover-title{position:relative;z-index:1;font-family:var(--serif);font-size:.67rem;line-height:1.35;font-weight:600;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.wb-cover-count{position:relative;z-index:1;font:.38rem var(--mono);letter-spacing:.06em;color:#718196}
+.wb-cover-1{background:linear-gradient(145deg,#f4f3f0,#dededb 72%,#c9ccce);color:#45494d}
+.wb-cover-2{background:linear-gradient(145deg,#f1f4f5,#dce5e9 72%,#c6d3d9);color:#3d5662}
+.wb-cover-3{background:linear-gradient(145deg,#f4f5f7,#e0e3e8 72%,#cbd0d8);color:#465267}
+.wb-book-copy{display:flex;flex-direction:column;gap:.05rem}
+.wb-book-copy b{font-size:.83rem}
+.wb-book-copy small{line-height:1.5}
+.wb-book-arrow{font-size:1.35rem;padding:0 .15rem}
+.wb-open-book{gap:.9rem}
+.wb-open-book .wb-detail-head{padding:.95rem .95rem 1rem;border:1px solid var(--line);border-radius:.85rem;background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(235,239,244,.45));box-shadow:var(--card-shadow)}
+.wb-open-book .wb-detail-head h2{font-size:1.35rem;letter-spacing:.045em}
+.wb-paper-stack{gap:.72rem;padding:.15rem 0}
+.wb-paper-stack .wb-entry{position:relative;padding:.88rem .9rem .9rem 1.05rem;border:1px solid rgba(119,133,150,.2);border-radius:.2rem .65rem .65rem .2rem;background:linear-gradient(90deg,rgba(124,145,168,.12) 0 1.5rem,transparent 1.5rem),repeating-linear-gradient(to bottom,transparent 0 1.72rem,rgba(125,143,163,.1) 1.72rem calc(1.72rem + 1px)),rgba(255,255,255,.64);box-shadow:0 3px 12px rgba(25,38,52,.035)}
+.wb-paper-stack .wb-entry::before{content:'';position:absolute;left:1.47rem;top:0;bottom:0;width:1px;background:rgba(130,149,171,.18)}
+.wb-paper-stack .wb-entry-top{padding-left:.15rem}
+.wb-paper-stack .wb-entry details{margin-left:.15rem}
+.wb-paper-stack .wb-entry summary{padding:.15rem 0}
+html.dark .wb-book-card{background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.02))}
+html.dark .wb-cover{border-color:rgba(220,232,246,.18);background:linear-gradient(145deg,#3c4652,#29323d 72%,#222b34);color:#e0e7ef}
+html.dark .wb-cover-1{background:linear-gradient(145deg,#45474a,#303236 72%,#242629);color:#e6e6e6}
+html.dark .wb-cover-2{background:linear-gradient(145deg,#394a53,#293941 72%,#202d33);color:#dce9ed}
+html.dark .wb-cover-3{background:linear-gradient(145deg,#414957,#303846 72%,#252d39);color:#e0e6f0}
+html.dark .wb-open-book .wb-detail-head{background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.025))}
+html.dark .wb-paper-stack .wb-entry{background:linear-gradient(90deg,rgba(150,170,194,.1) 0 1.5rem,transparent 1.5rem),repeating-linear-gradient(to bottom,transparent 0 1.72rem,rgba(180,196,214,.075) 1.72rem calc(1.72rem + 1px)),rgba(255,255,255,.025);border-color:rgba(220,232,246,.12)}
+@media(min-width:520px){.wb-shelf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wb-book-card{min-width:0}.wb-cover{flex-basis:3.8rem;width:3.8rem;height:4.95rem}}
+@media(max-width:360px){.wb-cover{flex-basis:3.65rem;width:3.65rem;height:4.8rem}.wb-book-card{gap:.65rem;padding:.55rem}}
