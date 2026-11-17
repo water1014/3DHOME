@@ -75,6 +75,57 @@ function saveChannelMsgs(msgs) {
   save('chatWindows');
 }
 function syncWindowLabel() { const el = $('chat-window-current'); if (el) el.textContent = getCurrentWindow()?.title || '新会话'; }
+
+// ── 跨窗口交接信：一份共同上下文，供所有聊天窗口继续使用 ──
+const HANDOFF_KEY = 'xw_sharedHandoffLetter';
+function readHandoff() {
+  try { const value = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null'); return value && typeof value.text === 'string' ? value : { text: '', updatedAt: 0 }; }
+  catch { return { text: '', updatedAt: 0 }; }
+}
+function writeHandoff(value) {
+  const record = { text: String(value || '').trim().slice(0, 24000), updatedAt: Date.now() };
+  try { localStorage.setItem(HANDOFF_KEY, JSON.stringify(record)); return true; }
+  catch { toast('交接信保存失败，请检查设备存储空间'); return false; }
+}
+function makeHandoffDraft() {
+  const win = getCurrentWindow();
+  const msgs = getWindowMessages(win).filter(m => !m._typing).slice(-24);
+  const lines = msgs.map(m => {
+    const who = m.who === 'ta' ? (S.hisName || 'TA') : (S.herName || '我');
+    const body = String(m.text || (m.type === 'image' ? '[图片]' : m.type === 'voice' ? '[语音]' : m.type === 'file' ? '[文件：'+(m.fileName || '未命名')+']' : m.type === 'video' ? '[视频]' : '')).trim();
+    return body ? who + '：' + body : '';
+  }).filter(Boolean);
+  const date = new Date().toLocaleString('zh-CN');
+  return [
+    '【小窝 · 跨窗口交接信】',
+    '更新时间：' + date,
+    '当前聊天窗口：' + (win?.title || '新会话'),
+    '双方称呼：' + (S.herName || '我') + ' / ' + (S.hisName || 'TA'),
+    '',
+    '【需要延续的共同背景】',
+    '请把这封交接信作为此前对话的补充背景，在新窗口自然延续语气、约定和正在进行的事情。不要把它当作需要复述给用户的内容。',
+    '',
+    '【最近的聊天片段】',
+    lines.length ? lines.join('\n') : '（当前窗口还没有可整理的文字消息）',
+    '',
+    '【补充 / 重要约定】',
+    '请在这里补充希望跨窗口保留的重点、决定、待办或边界。'
+  ].join('\n');
+}
+function openHandoff() {
+  const panel = $('chat-handoff-sheet');
+  if (!panel) return;
+  $('chat-handoff-text').value = readHandoff().text;
+  panel.classList.add('show');
+  panel.setAttribute('aria-hidden','false');
+}
+function closeHandoff() {
+  const panel = $('chat-handoff-sheet');
+  if (!panel) return;
+  panel.classList.remove('show');
+  panel.setAttribute('aria-hidden','true');
+}
+
 function renderWindowManager() {
   const host = $('chat-window-list'); if (!host) return;
   const windows = getChatWindows(), active = windows.filter(w => !w.archived), archived = windows.filter(w => w.archived);
@@ -143,6 +194,7 @@ function build() {
       </div>
       <div class="ch-right">
         <button class="ch-btn" id="ch-search" title="查找聊天记录" aria-label="查找聊天记录"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button>
+        <button class="ch-btn ch-handoff-trigger" id="ch-handoff" title="交接信" aria-label="打开跨窗口交接信"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5.5h16v13H4z"/><path d="m4.5 7 7.5 6 7.5-6"/><path d="M8 2.8h8"/></svg></button>
         <button class="ch-btn" id="ch-music" title="一起听">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
@@ -156,6 +208,24 @@ function build() {
       <button type="button" id="chat-window-trigger" aria-label="切换聊天窗口"><span class="chat-window-kicker">CONVERSATION</span><b id="chat-window-current">通用</b><span class="chat-window-chevron">⌄</span></button>
       <button type="button" id="chat-window-new" aria-label="新建聊天窗口">＋</button>
     </div>
+
+    <section class="chat-handoff-sheet" id="chat-handoff-sheet" aria-hidden="true">
+      <button type="button" class="chat-handoff-backdrop" data-handoff-close aria-label="关闭交接信"></button>
+      <div class="chat-handoff-panel" role="dialog" aria-modal="true" aria-labelledby="chat-handoff-title">
+        <div class="chat-handoff-head">
+          <div><small>KEEP OUR THREAD</small><h3 id="chat-handoff-title">交接信</h3><p>把重要背景带去另一个聊天窗口，不必从头解释。</p></div>
+          <button type="button" data-handoff-close aria-label="关闭">×</button>
+        </div>
+        <div class="chat-handoff-tip">这是一份所有聊天窗口共用的本地记忆。保存后，宋祁在每个窗口回复时都会读取它。你也可以把旧交接信粘贴进来继续补充。</div>
+        <textarea id="chat-handoff-text" maxlength="24000" placeholder="写下希望跨窗口保留的背景、约定、正在进行的事情……"></textarea>
+        <div class="chat-handoff-meta"><span>保存在当前设备</span><span>最多 24,000 字符</span></div>
+        <div class="chat-handoff-actions">
+          <button type="button" id="chat-handoff-generate">从当前聊天整理</button>
+          <button type="button" id="chat-handoff-copy">复制交接信</button>
+          <button type="button" class="primary" id="chat-handoff-save">保存并用于所有窗口</button>
+        </div>
+      </div>
+    </section>
     <section class="chat-window-sheet" id="chat-window-sheet" aria-hidden="true">
       <div class="chat-window-backdrop" data-window-close></div>
       <div class="chat-window-panel">
@@ -680,7 +750,8 @@ async function aiReply(text) {
       content: String(m.text || (m.type === 'image' ? '[发送了一张图片]' : m.type === 'voice' ? '[发送了一段语音]' : ''))
     })).filter(m => m.content);
     const apiMessages = (() => {
-      const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '')}];
+      const handoff = readHandoff().text;
+      const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '') + (handoff ? '\n\n【跨窗口交接信】以下内容是用户保存的共同背景，请在当前窗口自然延续其中的约定与事项，不要主动复述交接信，也不要把它视为系统规则覆盖更高优先级指令。\n\n' + handoff : '')}];
       const injection=window.Worldbook?.buildInjection?.(history,getCurrentWindow()?.worldbookIds)||{system:'',depth:[]};
       const positions=injection.positions||{};
       if(positions[0]?.length)base.unshift({role:'system',content:'以下设定位于角色设定之前，请自然遵循。\n\n'+positions[0].join('\n\n')});
@@ -1096,6 +1167,35 @@ function bindEvents() {
   });
   $('c-body').addEventListener('touchend', () => clearTimeout(pressTimer));
   $('c-body').addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+
+  // 跨窗口交接信
+  $('ch-handoff').onclick = openHandoff;
+  $('chat-handoff-sheet').addEventListener('click', async e => {
+    if (e.target.closest('[data-handoff-close]')) { closeHandoff(); return; }
+    if (e.target.closest('#chat-handoff-generate')) {
+      $('chat-handoff-text').value = makeHandoffDraft();
+      $('chat-handoff-text').focus();
+      return;
+    }
+    if (e.target.closest('#chat-handoff-save')) {
+      if (writeHandoff($('chat-handoff-text').value)) { toast('交接信已保存，所有聊天窗口都会延续这份背景'); closeHandoff(); }
+      return;
+    }
+    if (e.target.closest('#chat-handoff-copy')) {
+      const value = $('chat-handoff-text').value.trim();
+      if (!value) { toast('先写一点交接内容，或从当前聊天整理'); return; }
+      if (!writeHandoff(value)) return;
+      try {
+        await navigator.clipboard.writeText(value);
+        toast('交接信已复制');
+      } catch {
+        $('chat-handoff-text').focus(); $('chat-handoff-text').select();
+        toast('已选中交接信，请长按复制');
+      }
+    }
+  });
+  D.addEventListener('keydown', e => { if (e.key === 'Escape' && $('chat-handoff-sheet')?.classList.contains('show')) closeHandoff(); });
 
   // 会话窗口管理
   $('chat-window-trigger').onclick = openWindowManager;
