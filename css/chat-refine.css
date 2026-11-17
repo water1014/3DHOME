@@ -1777,3 +1777,11 @@ html.dark #pg-chat .msg-meta.tool-meta .meta-content {
 .chat-worldbook-option b{font-size:.68rem;font-weight:550;color:var(--ink)}
 .chat-worldbook-option small,.chat-worldbook-empty{font-size:.56rem;color:var(--ink-3);line-height:1.5}
 .chat-worldbook-empty{padding:.6rem .2rem}
+
+
+.chat-worldbook-preview{margin-top:.65rem;padding:.62rem .72rem;border:1px solid var(--line);border-radius:.65rem;background:color-mix(in srgb,var(--glass) 72%,transparent)}
+.chat-worldbook-preview-head{display:flex;align-items:center;justify-content:space-between;font-size:.6rem;color:var(--ink-3)}
+.chat-worldbook-preview-head b{font:600 .75rem/1 var(--mono);color:var(--ink)}
+.chat-worldbook-preview>small{display:block;margin-top:.35rem;font-size:.56rem;line-height:1.55;color:var(--ink-3)}
+.chat-worldbook-preview-list{display:flex;flex-wrap:wrap;gap:.32rem;margin-top:.48rem}
+.chat-worldbook-preview-list span{max-width:100%;padding:.24rem .42rem;border:1px solid var(--line);border-radius:.35rem;font-size:.55rem;line-height:1.4;color:var(--ink-2);overflow-wrap:anywhere}

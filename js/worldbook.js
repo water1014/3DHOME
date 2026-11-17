@@ -32,18 +32,44 @@
   function entryMarkup(book,e,i){
     normalizeEntry(e,i);
     const raw=e.raw||{},title=titleOf(raw,i),keys=keysOf(raw),content=raw.content||'';
-    const position=raw.position??raw.insertorder??'未指定';
-    return `<article class="wb-entry" data-entry-id="${esc(e.id)}">
-      <div class="wb-entry-top"><label><input type="checkbox" data-entry-toggle="${esc(e.id)}" ${e.enabled?'checked':''}><span><span class="wb-entry-title">${esc(title)}</span><span class="wb-entry-keys">${esc(keys||'无关键词')}</span></span></label><span class="wb-entry-count">${String(content).length} 字</span></div>
-      <div class="wb-meta"><span class="wb-tag">${raw.constant?'常驻':raw.selective?'选择性':'关键词触发'}</span><span class="wb-tag">位置 ${esc(position)}</span>${raw.useProbability?'<span class="wb-tag">概率触发</span>':''}</div>
-      <details><summary>查看与编辑条目</summary>
-        <label class="wb-field"><span>条目名称 / 注释</span><input data-edit-title value="${esc(title)}"></label>
-        <label class="wb-field"><span>触发关键词（逗号分隔）</span><input data-edit-keys value="${esc(keys)}"></label>
-        <label class="wb-field"><span>条目内容</span><textarea data-edit-content>${esc(content)}</textarea></label>
-        <label class="wb-field"><span>次级关键词（逗号分隔）</span><input data-edit-secondary value="${esc(Array.isArray(raw.keysecondary)?raw.keysecondary.join(', '):raw.keysecondary||'')}"></label>
-        <div class="wb-entry-actions"><button class="wb-btn" type="button" data-save-entry="${esc(e.id)}">保存条目</button></div>
-      </details>
-    </article>`;
+    const val=(key,fallback='')=>raw[key]??fallback;
+    const checked=key=>raw[key]?'checked':'';
+    const options=(items,current)=>items.map(([v,label])=>'<option value="'+v+'" '+(String(current)===String(v)?'selected':'')+'>'+label+'</option>').join('');
+    return '<article class="wb-entry" data-entry-id="'+esc(e.id)+'">'+
+      '<div class="wb-entry-top"><label><input type="checkbox" data-entry-toggle="'+esc(e.id)+'" '+(e.enabled?'checked':'')+'><span><span class="wb-entry-title">'+esc(title)+'</span><span class="wb-entry-keys">'+esc(keys||'无关键词')+'</span></span></label><span class="wb-entry-count">'+String(content).length+' 字</span></div>'+
+      '<div class="wb-meta"><span class="wb-tag">'+(raw.constant?'常驻':raw.selective?'选择性':'关键词触发')+'</span><span class="wb-tag">位置 '+esc(val('position',0))+'</span>'+(raw.useProbability?'<span class="wb-tag">概率触发</span>':'')+'</div>'+
+      '<details><summary>查看与编辑条目</summary>'+
+        '<label class="wb-field"><span>条目名称 / 注释</span><input data-edit-title value="'+esc(title)+'"></label>'+
+        '<label class="wb-field"><span>主关键词（逗号分隔）</span><input data-edit-keys value="'+esc(keys)+'"></label>'+
+        '<label class="wb-field"><span>次级关键词（逗号分隔）</span><input data-edit-secondary value="'+esc(Array.isArray(raw.keysecondary)?raw.keysecondary.join(', '):raw.keysecondary||'')+'"></label>'+
+        '<label class="wb-field"><span>条目内容</span><textarea data-edit-content>'+esc(content)+'</textarea></label>'+
+        '<div class="wb-rule-grid">'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="constant" '+checked('constant')+'>常驻注入</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="selective" '+checked('selective')+'>启用次级关键词筛选</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="caseSensitive" '+checked('caseSensitive')+'>区分大小写</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="matchWholeWords" '+checked('matchWholeWords')+'>整词匹配</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="useProbability" '+checked('useProbability')+'>启用触发概率</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="use_regex" '+checked('use_regex')+'>关键词按正则表达式匹配</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="groupOverride" '+checked('groupOverride')+'>允许覆盖同组条目</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="preventRecursion" '+checked('preventRecursion')+'>阻止本条目继续递归</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="excludeRecursion" '+checked('excludeRecursion')+'>不允许递归内容触发本条</label>'+
+          '<label class="wb-rule-check"><input type="checkbox" data-rule="delayUntilRecursion" '+checked('delayUntilRecursion')+'>仅递归触发时生效</label>'+
+        '</div>'+
+        '<div class="wb-field-grid">'+
+          '<label class="wb-field"><span>次级逻辑</span><select data-rule="selectiveLogic">'+options([[0,'任一命中'],[1,'全部命中'],[2,'全部不命中'],[3,'并非全部命中']],val('selectiveLogic',0))+'</select></label>'+
+          '<label class="wb-field"><span>注入位置</span><select data-rule="position">'+options([[0,'角色设定前'],[1,'角色设定后'],[2,'示例对话前'],[3,'示例对话后'],[4,'按深度插入']],val('position',0))+'</select></label>'+
+          '<label class="wb-field"><span>插入深度</span><input type="number" min="0" max="100" data-rule="depth" value="'+esc(val('depth',0))+'"></label>'+
+          '<label class="wb-field"><span>排序权重</span><input type="number" data-rule="order" value="'+esc(val('order',val('insertion_order',val('insertorder',100))))+'"></label>'+
+          '<label class="wb-field"><span>扫描消息数</span><input type="number" min="1" max="100" data-rule="scanDepth" value="'+esc(val('scanDepth',20))+'"></label>'+
+          '<label class="wb-field"><span>触发概率 %</span><input type="number" min="0" max="100" data-rule="probability" value="'+esc(val('probability',100))+'"></label>'+
+          '<label class="wb-field"><span>延迟消息数</span><input type="number" min="0" data-rule="delay" value="'+esc(val('delay',0))+'"></label>'+
+          '<label class="wb-field"><span>冷却消息数</span><input type="number" min="0" data-rule="cooldown" value="'+esc(val('cooldown',0))+'"></label>'+
+          '<label class="wb-field"><span>黏性消息数</span><input type="number" min="0" data-rule="sticky" value="'+esc(val('sticky',0))+'"></label>'+
+          '<label class="wb-field"><span>互斥分组</span><input data-rule="group" value="'+esc(val('group',''))+'"></label>'+
+          '<label class="wb-field"><span>分组权重</span><input type="number" data-rule="groupWeight" value="'+esc(val('groupWeight',100))+'"></label>'+
+        '</div>'+
+        '<div class="wb-entry-actions"><button class="wb-btn" type="button" data-save-entry="'+esc(e.id)+'">保存条目</button></div>'+
+      '</details></article>';
   }
   function render(){
     const book=activeBook();
@@ -81,28 +107,95 @@
 
   function buildInjection(history, selectedIds){
     const selected=new Set(Array.isArray(selectedIds)?selectedIds:[]);
-    if(!selected.size)return {system:'',depth:[],matched:[]};
+    if(!selected.size)return {system:'',depth:[],matched:[],diagnostics:[]};
     const messages=(Array.isArray(history)?history:[]).map(m=>String(m?.content??m?.text??'')).filter(Boolean);
-    const scan=messages.slice(-20).join('\n');
-    const contains=(text,term,whole)=>{if(!term)return false;let at=text.indexOf(term);while(at>=0){const before=at?text[at-1]:'';const after=text[at+term.length]||'';const word=c=>!!c&&/[A-Za-z0-9_\u0080-\uFFFF]/.test(c);if(!whole||(!word(before)&&!word(after)))return true;at=text.indexOf(term,at+1);}return false;};
-    const matched=[];
-    books.filter(b=>selected.has(b.id)).forEach(book=>(book.entries||[]).forEach((entry,index)=>{
-      const raw=entry.raw||{};
-      if(entry.enabled===false||raw.disable||!String(raw.content||'').trim())return;
-      const primary=(Array.isArray(raw.key)?raw.key:String(raw.key??raw.keys??'').split(',')).map(v=>String(v||'').trim()).filter(Boolean);
-      const secondary=(Array.isArray(raw.keysecondary)?raw.keysecondary:String(raw.keysecondary??'').split(',')).map(v=>String(v||'').trim()).filter(Boolean);
-      const sensitive=!!raw.caseSensitive,whole=!!raw.matchWholeWords,source=sensitive?scan:scan.toLocaleLowerCase();
-      const test=term=>contains(source,sensitive?term:term.toLocaleLowerCase(),whole);
-      const primaryHit=primary.length?primary.some(test):false;let hit=!!raw.constant||primaryHit;
-      if(hit&&raw.selective&&secondary.length){const found=secondary.map(test),logic=Number(raw.selectiveLogic||0);if(logic===1)hit=found.every(Boolean);else if(logic===2)hit=!found.some(Boolean);else if(logic===3)hit=!found.every(Boolean);else hit=found.some(Boolean);}
-      if(!hit)return;
-      if(raw.useProbability){const probability=Math.max(0,Math.min(100,Number(raw.probability??100)));if(Math.random()*100>=probability)return;}
-      matched.push({book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??raw.insertorder??0),depth:Math.max(0,Number(raw.depth??0)),order:Number(raw.order??raw.insertion_order??100),uid:entry.id});
-    }));
+    const allEntries=[];
+    books.filter(b=>selected.has(b.id)).forEach(book=>(book.entries||[]).forEach((entry,index)=>allEntries.push({book,entry,index,raw:entry.raw||{}})));
+    const activated=new Map(),diagnostics=[],maxRounds=8;
+    const splitKeys=value=>(Array.isArray(value)?value:String(value??'').split(/[,，\n]/)).map(v=>String(v||'').trim()).filter(Boolean);
+    const contains=(text,term,whole)=>{
+      if(!term)return false;let at=text.indexOf(term);
+      while(at>=0){const before=at?text[at-1]:'';const after=text[at+term.length]||'';
+        const word=c=>!!c&&/[A-Za-z0-9_\u0080-\uFFFF]/.test(c);
+        if(!whole||(!word(before)&&!word(after)))return true;
+        at=text.indexOf(term,at+1);
+      }return false;
+    };
+    const matches=(raw,scan)=>{
+      const primary=splitKeys(Array.isArray(raw.key)&&raw.key.length?raw.key:(raw.key??raw.keys)),secondary=splitKeys(raw.keysecondary);
+      const sensitive=!!raw.caseSensitive,whole=!!raw.matchWholeWords;
+      const source=sensitive?scan:scan.toLocaleLowerCase();
+      const test=term=>{
+        if(raw.use_regex){try{return new RegExp(term,sensitive?'u':'iu').test(source);}catch{return false;}}
+        return contains(source,sensitive?term:term.toLocaleLowerCase(),whole);
+      };
+      const primaryHit=primary.some(test);
+      let hit=!!raw.constant||primaryHit;
+      const sticky=Math.max(0,Number(raw.sticky)||0);
+      if(!hit&&sticky>0){const recent=messages.slice(-(sticky+1)).join('\n');hit=primary.some(term=>testInText(term,recent,raw));}
+      if(!raw.constant&&hit&&raw.selective&&secondary.length){
+        const found=secondary.map(test),logic=Number(raw.selectiveLogic||0);
+        if(logic===1)hit=found.every(Boolean);
+        else if(logic===2)hit=!found.some(Boolean);
+        else if(logic===3)hit=!found.every(Boolean);
+        else hit=found.some(Boolean);
+      }
+      return hit;
+    };
+    const testInText=(term,text,raw)=>{
+      const sensitive=!!raw.caseSensitive,source=sensitive?text:text.toLocaleLowerCase();
+      if(raw.use_regex){try{return new RegExp(term,sensitive?'u':'iu').test(source);}catch{return false;}}
+      return contains(source,sensitive?term:term.toLocaleLowerCase(),!!raw.matchWholeWords);
+    };
+    const attempt=(item,scan,recursive,round)=>{
+      const {book,entry,index,raw}=item,key=String(book.id)+':'+String(entry.id||raw.uid||index);
+      if(activated.has(key)||entry.enabled===false||raw.disable||!String(raw.content||'').trim())return false;
+      if(recursive&&raw.excludeRecursion)return false;
+      if(!recursive&&raw.delayUntilRecursion)return false;
+      const delay=Math.max(0,Number(raw.delay)||0);
+      if(messages.length<delay)return false;
+      const scanDepth=Math.max(1,Math.min(100,Number(raw.scanDepth)||20));
+      const scoped=recursive?scan:messages.slice(-scanDepth).join('\n');
+      if(!matches(raw,scoped))return false;
+      const cooldown=Math.max(0,Number(raw.cooldown)||0);
+      if(!recursive&&cooldown>0){
+        const hits=messages.map((message,i)=>matches(raw,message)?i:-1).filter(i=>i>=0);
+        if(hits.length>1&&hits[hits.length-1]===messages.length-1&&hits[hits.length-1]-hits[hits.length-2]<=cooldown)return false;
+      }
+      const probability=Math.max(0,Math.min(100,Number(raw.probability??100)));
+      if(raw.useProbability){
+        let seed=2166136261;const sample=scan+'|'+key;
+        for(let i=0;i<sample.length;i++)seed=Math.imul(seed^sample.charCodeAt(i),16777619);
+        const roll=((seed>>>0)/4294967296)*100;
+        if(roll>=probability)return false;
+      }
+      const group=String(raw.group||'').trim();
+      const value={book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??0),depth:Math.max(0,Number(raw.depth)||0),order:Number(raw.order??raw.insertion_order??raw.insertorder??100),uid:key,group,groupWeight:Number(raw.groupWeight)||100,groupOverride:!!raw.groupOverride,preventRecursion:!!raw.preventRecursion,reason:recursive?'递归触发':raw.constant?'常驻触发':'关键词触发',round};
+      activated.set(key,value);
+      diagnostics.push({book:book.name,title:value.title,reason:recursive?'递归触发':raw.constant?'常驻触发':'关键词触发',round});
+      return true;
+    };
+    const initial=messages.slice(-20).join('\n');
+    allEntries.forEach(item=>attempt(item,initial,false,0));
+    let recursiveScan='';
+    for(let round=1;round<=maxRounds;round++){
+      const fresh=[...activated.values()].filter(v=>v.round===round-1&&!v.preventRecursion);
+      if(!fresh.length)break;
+      recursiveScan=fresh.map(v=>v.content).join('\n');
+      let added=0;
+      allEntries.forEach(item=>{if(attempt(item,recursiveScan,true,round))added++;});
+      if(!added)break;
+    }
+    let matched=[...activated.values()];
+    const groups=new Map();
+    matched.forEach(item=>{if(item.group){const old=groups.get(item.group);if(!old||item.groupWeight>old.groupWeight)groups.set(item.group,item);}});
+    matched=matched.filter(item=>!item.group||item.groupOverride||groups.get(item.group)===item);
     matched.sort((a,b)=>a.order-b.order);
-    const system=matched.filter(x=>x.position!==4).map(x=>'【'+x.book+' / '+x.title+'】\n'+x.content).join('\n\n');
+    const positions={0:[],1:[],2:[],3:[]};
+    matched.filter(x=>x.position!==4).forEach(x=>{const slot=[0,1,2,3].includes(x.position)?x.position:1;positions[slot].push('【'+x.book+' / '+x.title+'】\n'+x.content);});
+    const system=Object.keys(positions).map(k=>positions[k].join('\n\n')).filter(Boolean).join('\n\n');
     const depth=matched.filter(x=>x.position===4).map(x=>({depth:x.depth,order:x.order,text:'【'+x.book+' / '+x.title+'】\n'+x.content}));
-    return {system,depth,matched:matched.map(x=>({book:x.book,title:x.title}))};
+    return {system,positions,depth,matched:matched.map(x=>({book:x.book,title:x.title,position:x.position,depth:x.depth,reason:x.reason})),diagnostics};
   }
   function mount(){
     const $=id=>document.getElementById(id);
@@ -136,10 +229,17 @@
       const b=activeBook(),e=b?.entries.find(x=>x.id===el.dataset.saveEntry);if(!e)return;
       const card=el.closest('.wb-entry'),raw=e.raw;
       raw.comment=card.querySelector('[data-edit-title]').value;
-      raw.key=card.querySelector('[data-edit-keys]').value.split(',').map(x=>x.trim()).filter(Boolean);
+      raw.key=card.querySelector('[data-edit-keys]').value.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean);
       raw.content=card.querySelector('[data-edit-content]').value;
-      raw.keysecondary=card.querySelector('[data-edit-secondary]').value.split(',').map(x=>x.trim()).filter(Boolean);
-      persist();window.UI?.toast?.('条目已保存');window.Daily?.showCurrent();
+      raw.keysecondary=card.querySelector('[data-edit-secondary]').value.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean);
+      card.querySelectorAll('[data-rule]').forEach(field=>{
+        const key=field.dataset.rule;
+        if(field.type==='checkbox')raw[key]=field.checked;
+        else if(field.type==='number')raw[key]=Number(field.value)||0;
+        else raw[key]=field.value;
+      });
+      raw.disable=!e.enabled;
+      persist();window.UI?.toast?.('条目规则已保存');window.Daily?.showCurrent();
     }));
   }
   window.Worldbook={render,mount,listBooks:()=>books.map(b=>({id:b.id,name:b.name,count:(b.entries||[]).length})),buildInjection};
