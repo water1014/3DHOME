@@ -3,12 +3,11 @@
 .sd-daily-toggle { position:relative; }
 .sd-chevron { margin-left:auto; color:var(--ink-3); font-size:.85rem; transition:transform .22s; }
 .sd-daily-toggle[aria-expanded="true"] .sd-chevron { transform:rotate(180deg); }
-.sd-daily-group {
-  display:grid; grid-template-rows:0fr; opacity:0; overflow:hidden;
-  padding-left:1.65rem; transition:grid-template-rows .24s ease, opacity .2s ease;
+ .sd-daily-group {
+  display:flex; flex-direction:column; max-height:0; opacity:0; overflow:hidden;
+  padding-left:1.65rem; transition:max-height .28s ease, opacity .2s ease;
 }
-.sd-daily-group.expanded { grid-template-rows:1fr; opacity:1; }
-.sd-daily-group::before { content:""; min-height:0; }
+.sd-daily-group.expanded { max-height:24rem; opacity:1; }
 .sd-subitem {
   width:100%; min-height:2.25rem; padding:.42rem .65rem;
   border:0; border-left:1px solid var(--line); border-radius:0;
