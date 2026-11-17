@@ -108,6 +108,53 @@ function initSide() {
   if (n) n.textContent = `${XW.S.hisName || '他'} & ${XW.S.herName || '她'}`;
 }
 
+
+const MAIN_ORDER = ['home', 'mem', 'chat', 'daily', 'read'];
+function initGestures() {
+  let start = null;
+  const drawer = $('side-drawer');
+  const overlay = $('side-overlay');
+  const closeDrawer = () => { drawer.classList.remove('show'); overlay.classList.remove('show'); };
+  D.addEventListener('touchstart', e => {
+    if (!e.touches || e.touches.length !== 1) { start = null; return; }
+    const t = e.touches[0];
+    start = { x: t.clientX, y: t.clientY, target: e.target, time: Date.now() };
+  }, { passive: true });
+  D.addEventListener('touchend', e => {
+    if (!start || !e.changedTouches || e.changedTouches.length !== 1) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x, dy = t.clientY - start.y;
+    const elapsed = Date.now() - start.time;
+    const target = start.target;
+    start = null;
+    if (elapsed > 700 || Math.abs(dx) < 58 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
+
+    const drawerOpen = drawer.classList.contains('show');
+    if (drawerOpen) {
+      if (dx < -55 && startSafeArea(target)) closeDrawer();
+      return;
+    }
+    if (target.closest?.('input,textarea,select,button,a,[contenteditable="true"],.chat-messages,.chat-input,.overlay')) return;
+
+    // 左边缘右滑呼出侧栏
+    if (dx > 70 && start.x < 28) {
+      drawer.classList.add('show'); overlay.classList.add('show'); return;
+    }
+
+    if (cur === 'daily') {
+      window.Daily?.step(dx < 0 ? 1 : -1);
+      return;
+    }
+    const index = MAIN_ORDER.indexOf(cur);
+    if (index < 0) return;
+    const next = index + (dx < 0 ? 1 : -1);
+    if (next >= 0 && next < MAIN_ORDER.length) go(MAIN_ORDER[next]);
+  }, { passive: true });
+}
+function startSafeArea(target) {
+  return !!target && !!target.closest?.('#side-drawer');
+}
+
 function init() {
   window.Mine?.applyTheme();
   window.Home?.build();
@@ -119,6 +166,7 @@ function init() {
 
   tabs.forEach(t => t.addEventListener('click', () => go(t.dataset.go)));
   initSide();
+  initGestures();
   go('home');
 }
 
