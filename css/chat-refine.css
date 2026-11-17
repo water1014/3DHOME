@@ -1230,23 +1230,21 @@ html.dark #pg-chat .input-card {
 }
 
 
-/* QQ-like chat rhythm: message list owns the flexible space; composer stays in normal flow at the bottom. */
-#pg-chat {
-  display:flex;
-  flex-direction:column;
-  min-height:0;
+/* Keep the existing Chat composer placement; sidebar-only visual update must not alter chat layout. */
+#pg-chat .input-bar {
+  position:absolute;
+  z-index:12;
+  left:0;
+  right:0;
+  bottom:calc(var(--tabbar-h) + 1.15rem + env(safe-area-inset-bottom));
+  width:100%;
+  margin:0;
+  padding:.3rem max(.85rem,var(--page-pad));
+  border:0;
+  background:transparent;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
 }
 #pg-chat .chat-body {
-  flex:1 1 0;
-  min-height:0;
-  padding-bottom:.85rem;
-}
-#pg-chat .input-bar {
-  position:relative;
-  inset:auto;
-  flex:0 0 auto;
-  margin:0 0 calc(var(--tabbar-h) + .95rem + env(safe-area-inset-bottom));
-  padding:.32rem max(.85rem,var(--page-pad));
-  width:100%;
-  z-index:12;
+  padding-bottom:calc(var(--tabbar-h) + 6.2rem + env(safe-area-inset-bottom));
 }
