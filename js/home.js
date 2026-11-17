@@ -100,8 +100,12 @@ function build() {
         <button class="fe-menu" id="h-menu">
           <svg class="ic" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <div class="fe-meta">
+        <div class="fe-clock-wrap">
           <span class="fe-time" id="h-time"></span>
+          <span class="fe-clock-mark" aria-hidden="true"></span>
+        </div>
+        <div class="fe-weather-wrap">
+          <svg class="fe-weather-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 18.2h9.2a4.3 4.3 0 0 0 .3-8.6 5.7 5.7 0 0 0-10.9 1.6 3.6 3.6 0 0 0 1.4 7z"/></svg>
           <span class="fe-weather" id="h-weather">22°</span>
         </div>
       </header>
