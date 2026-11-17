@@ -368,7 +368,7 @@ function updateWorldbookPreview(){
   const result=window.Worldbook?.buildInjection?.(history,win?.worldbookIds)||{matched:[]};
   const matched=result.matched||[];
   host.innerHTML=win?.worldbookIds?.length
-    ? '<div class="chat-worldbook-preview-head">当前触发 <b>'+matched.length+'</b> 条</div>'+(matched.length?'<div class="chat-worldbook-preview-list">'+matched.map(x=>'<span>'+esc(x.book)+' · '+esc(x.title)+'</span>').join('')+'</div>':'<small>暂时没有条目命中。继续聊天后会自动检查。</small>')
+    ? '<div class="chat-worldbook-preview-head">当前触发 <b>'+matched.length+'</b> 条</div>'+(matched.length?'<div class="chat-worldbook-preview-list">'+matched.map(x=>'<span>'+esc(x.book)+' · '+esc(x.title)+'<small>'+esc(x.reason||'已触发')+'</small></span>').join('')+'</div>':'<small>暂时没有条目命中。继续聊天后会自动检查。</small>')
     : '<small>尚未为这个聊天窗口选择世界书。</small>';
 }
 function updateHeader() {
