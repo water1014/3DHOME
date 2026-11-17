@@ -697,7 +697,7 @@ async function aiReply(text) {
       return result;
     })();
     const engawaTools = window.Engawa?.isConnected?.() ? window.Engawa.openAITools() : [];
-    for (let toolRound = 0; toolRound < 5; toolRound++) {
+    for (let toolRound = 0; toolRound < 6; toolRound++) {
       reply = '';
       toolMap = {};
       const requestBody = {
@@ -805,7 +805,7 @@ async function aiReply(text) {
       if (reasoning) answer.reasoningSummary = reasoning;
       const updated = replyMessages(); if(updated[msgIdx])updated[msgIdx]=answer;
       saveReplyMessages(updated); paint();
-      if (toolRound === 4) throw new Error('窗廊工具调用次数达到本轮上限，请继续追问以完成探索。');
+      if (toolRound === 5) throw new Error('窗廊工具调用次数达到本轮上限，请继续追问以完成探索。');
     }
     if (!reply.trim() && !Object.keys(toolMap).length) throw new Error('接口已连接，但没有返回文字内容。请确认模型支持 Chat Completions。');
     if (!answer) ensureAnswer();
