@@ -123,7 +123,7 @@
       }return false;
     };
     const matches=(raw,scan)=>{
-      const primary=splitKeys(raw.key??raw.keys),secondary=splitKeys(raw.keysecondary);
+      const primary=splitKeys(Array.isArray(raw.key)&&raw.key.length?raw.key:(raw.key??raw.keys)),secondary=splitKeys(raw.keysecondary);
       const sensitive=!!raw.caseSensitive,whole=!!raw.matchWholeWords;
       const source=sensitive?scan:scan.toLocaleLowerCase();
       const test=term=>{
@@ -171,7 +171,7 @@
         if(roll>=probability)return false;
       }
       const group=String(raw.group||'').trim();
-      const value={book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??raw.insertorder??0),depth:Math.max(0,Number(raw.depth)||0),order:Number(raw.order??raw.insertion_order??100),uid:key,group,groupWeight:Number(raw.groupWeight)||100,groupOverride:!!raw.groupOverride,preventRecursion:!!raw.preventRecursion,round};
+      const value={book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??raw.insertorder??0),depth:Math.max(0,Number(raw.depth)||0),order:Number(raw.order??raw.insertion_order??100),uid:key,group,groupWeight:Number(raw.groupWeight)||100,groupOverride:!!raw.groupOverride,preventRecursion:!!raw.preventRecursion,reason:recursive?'递归触发':raw.constant?'常驻触发':'关键词触发',round};
       activated.set(key,value);
       diagnostics.push({book:book.name,title:value.title,reason:recursive?'递归触发':raw.constant?'常驻触发':'关键词触发',round});
       return true;
@@ -196,7 +196,7 @@
     matched.filter(x=>x.position!==4).forEach(x=>{const slot=[0,1,2,3].includes(x.position)?x.position:1;positions[slot].push('【'+x.book+' / '+x.title+'】\n'+x.content);});
     const system=Object.keys(positions).map(k=>positions[k].join('\n\n')).filter(Boolean).join('\n\n');
     const depth=matched.filter(x=>x.position===4).map(x=>({depth:x.depth,order:x.order,text:'【'+x.book+' / '+x.title+'】\n'+x.content}));
-    return {system,positions,depth,matched:matched.map(x=>({book:x.book,title:x.title,position:x.position,depth:x.depth})),diagnostics};
+    return {system,positions,depth,matched:matched.map(x=>({book:x.book,title:x.title,position:x.position,depth:x.depth,reason:x.reason})),diagnostics};
   }
   function mount(){
     const $=id=>document.getElementById(id);
