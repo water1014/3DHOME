@@ -243,3 +243,19 @@ html.dark .wb-paper-stack .wb-entry{background:linear-gradient(90deg,rgba(150,17
 .wb-field-grid .wb-field{min-width:0}
 .wb-field-grid .wb-field input,.wb-field-grid .wb-field select{width:100%;min-width:0}
 @media(max-width:420px){.wb-rule-grid,.wb-field-grid{grid-template-columns:1fr}}
+
+
+/* Worldbook · compact entry cards */
+.wb-entry-excerpt{display:block;margin-top:.24rem;color:var(--ink-3);font-size:.56rem;line-height:1.45;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.wb-entry-editor{margin-top:.48rem!important;padding-top:.42rem!important}
+.wb-entry-editor>summary{display:flex;align-items:center;gap:.35rem;padding:.28rem 0;font-size:.62rem;font-weight:550}
+.wb-entry-editor[open]>summary{margin-bottom:.25rem}
+.wb-advanced{margin-top:.7rem;padding:.58rem .62rem;border:1px solid var(--line);border-radius:.62rem;background:color-mix(in srgb,var(--glass) 76%,transparent)}
+.wb-advanced>summary{padding:.2rem 0;color:var(--ink-2);font-size:.6rem;font-weight:550}
+.wb-advanced[open]>summary{margin-bottom:.35rem}
+.wb-advanced .wb-rule-grid,.wb-advanced .wb-field-grid{margin:.55rem 0}
+.wb-advanced .wb-field:first-child{margin-top:.35rem}
+.wb-paper-stack .wb-entry{padding:.7rem .78rem .72rem .95rem}
+.wb-paper-stack .wb-entry-top{gap:.5rem}
+.wb-paper-stack .wb-entry-keys{font-size:.55rem}
+html.dark .wb-advanced{background:rgba(255,255,255,.025)}
