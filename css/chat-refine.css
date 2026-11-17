@@ -1794,3 +1794,27 @@ html.dark #pg-chat .msg-meta.tool-meta .meta-content {
 #pg-chat .chat-engawa-connect .chat-ai-actions button:disabled{opacity:.55}
 #pg-chat .chat-engawa-tools{padding:.55rem .62rem;border-left:1px solid var(--line);color:var(--ink-3);font-size:.58rem;line-height:1.7;overflow-wrap:anywhere}
 #pg-chat .tool-record-output{margin-top:.35rem;padding:.5rem .58rem;border-left:1px solid color-mix(in srgb,var(--ink-3) 34%,transparent);background:color-mix(in srgb,var(--page-bg) 82%,var(--ink-3) 18%);color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;max-height:14rem;overflow:auto;font:400 .62rem/1.6 var(--mono)}
+
+
+/* Cross-window handoff letter */
+#pg-chat .ch-handoff-trigger{position:relative}
+#pg-chat .ch-handoff-trigger:after{content:"";position:absolute;right:.12rem;top:.12rem;width:.32rem;height:.32rem;border-radius:50%;background:var(--ink-3);opacity:.45}
+.chat-handoff-sheet{position:fixed;inset:0;z-index:1200;display:flex;align-items:flex-end;justify-content:center;visibility:hidden;pointer-events:none}
+.chat-handoff-sheet.show{visibility:visible;pointer-events:auto}
+.chat-handoff-backdrop{position:absolute;inset:0;border:0;background:rgba(12,15,20,.36);opacity:0;transition:opacity .22s}
+.chat-handoff-sheet.show .chat-handoff-backdrop{opacity:1}
+.chat-handoff-panel{position:relative;width:min(100%,38rem);max-height:min(88dvh,54rem);overflow:auto;padding:1.15rem 1rem calc(1.1rem + env(safe-area-inset-bottom));border:1px solid var(--glass-brd);border-radius:1.2rem 1.2rem 0 0;background:var(--page-bg);box-shadow:0 -12px 44px rgba(0,0,0,.16);transform:translateY(18px);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+.chat-handoff-sheet.show .chat-handoff-panel{transform:translateY(0)}
+.chat-handoff-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.chat-handoff-head small{font:500 .52rem/1.3 var(--mono);letter-spacing:.16em;color:var(--ink-3)}
+.chat-handoff-head h3{margin:.3rem 0;font:500 1.25rem/1.2 var(--serif);color:var(--ink)}
+.chat-handoff-head p{margin:0;color:var(--ink-3);font-size:.64rem;line-height:1.55}
+.chat-handoff-head>button{width:2rem;height:2rem;border:1px solid var(--line);border-radius:50%;background:var(--glass);color:var(--ink);font-size:1.2rem}
+.chat-handoff-tip{margin:.9rem 0 .65rem;padding:.65rem .72rem;border-left:2px solid var(--ink-3);background:var(--glass);color:var(--ink-2);font-size:.62rem;line-height:1.65}
+#chat-handoff-text{display:block;width:100%;min-height:36vh;max-height:48vh;resize:vertical;padding:.82rem;border:1px solid var(--line);border-radius:.78rem;background:var(--glass);color:var(--ink);font:400 .72rem/1.75 var(--sans);outline:none}
+#chat-handoff-text:focus{border-color:var(--ink-3);box-shadow:0 0 0 2px color-mix(in srgb,var(--ink-3) 12%,transparent)}
+.chat-handoff-meta{display:flex;justify-content:space-between;gap:.5rem;margin:.45rem .1rem;color:var(--ink-3);font-size:.53rem}
+.chat-handoff-actions{display:grid;grid-template-columns:1fr 1fr;gap:.48rem;margin-top:.78rem}
+.chat-handoff-actions button{min-height:2.55rem;padding:.58rem .7rem;border:1px solid var(--line);border-radius:.7rem;background:var(--glass);color:var(--ink);font-size:.64rem}
+.chat-handoff-actions button.primary{grid-column:1/-1;border-color:var(--ink);background:var(--ink);color:var(--page-bg)}
+@media(min-width:600px){.chat-handoff-sheet{align-items:center;padding:1rem}.chat-handoff-panel{border-radius:1.2rem;max-height:85vh}.chat-handoff-actions{grid-template-columns:1fr 1fr 1.25fr}.chat-handoff-actions button.primary{grid-column:auto}}
