@@ -268,3 +268,93 @@ html.dark #pg-chat .chat-header { background: rgba(255,255,255,.025); }
 #pg-home .fe-foot {
   padding-bottom: .8rem;
 }
+
+
+/* Home component refinement: quiet monochrome, varied materials. */
+/* Relationship archive: a calm, open layout instead of a heavy glass card. */
+#pg-home .fe-profile {
+  background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.04));
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  margin: .35rem 0 .9rem;
+  padding: 1.05rem .5rem .9rem;
+}
+html.dark #pg-home .fe-profile {
+  background: linear-gradient(180deg, rgba(255,255,255,.035), transparent);
+  border-color: var(--line);
+  box-shadow: none;
+}
+#pg-home .fp-avatars { gap: .62rem; margin-bottom: .48rem; }
+#pg-home .fp-ava {
+  width: 3.35rem; height: 3.35rem;
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+#pg-home .fp-days-wrap { margin: .22rem 0 .1rem; }
+#pg-home .fp-days { font-size: clamp(3.35rem, 15vw, 4.5rem); }
+#pg-home .fp-line { margin-top: .55rem; }
+
+/* Shortcuts: four quiet columns, with no individual pill surfaces. */
+#pg-home .fe-nav {
+  gap: 0;
+  margin: 0 0 1rem;
+  padding: .15rem 0 .7rem;
+  border-bottom: 1px solid var(--line);
+}
+#pg-home .fn-pill {
+  min-width: 0;
+  min-height: 3.15rem;
+  padding: .25rem .1rem;
+  flex-direction: column;
+  gap: .28rem;
+  border: 0;
+  border-radius: .35rem;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-2);
+  font-size: .65rem;
+}
+#pg-home .fn-pill + .fn-pill { border-left: 1px solid var(--line); border-radius: 0; }
+html.dark #pg-home .fn-pill { background: transparent; }
+#pg-home .fn-pill .ic { width: .95rem; height: .95rem; color: var(--ink); opacity: .72; }
+#pg-home .fn-pill:active { transform: translateY(1px); background: transparent; color: var(--ink); }
+
+/* Letter: a horizontal paper slip, while keeping the flip interaction. */
+#pg-home .fe-letter {
+  min-height: 5.2rem;
+  margin-bottom: .95rem;
+  border-radius: .35rem;
+  background: repeating-linear-gradient(0deg, transparent 0 1.42rem, rgba(90,90,90,.045) 1.42rem calc(1.42rem + 1px)), linear-gradient(100deg, rgba(255,255,255,.48), rgba(255,255,255,.16));
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px rgba(0,0,0,.025);
+}
+#pg-home .flip-inner { min-height: 5.2rem; }
+#pg-home .flip-front {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: .7rem;
+  padding: .85rem 1rem;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+#pg-home .flip-front .lf-icon { width: 1.15rem; height: 1.15rem; opacity: .62; }
+#pg-home .flip-front .lf-text { font-size: .82rem; letter-spacing: .08em; }
+#pg-home .flip-front .lf-hint { margin-left: auto; font-size: .68rem; opacity: .72; }
+#pg-home .flip-back { border: 0; border-radius: .35rem; box-shadow: none; }
+
+/* Photos remain tactile; reduce the tilt so the wall feels composed. */
+#pg-home .ph-wall { gap: .65rem; padding: .15rem .35rem .45rem; }
+#pg-home .ph-frame { box-shadow: 0 3px 10px rgba(0,0,0,.075); }
+#pg-home .fe-vinyl {
+  border-radius: .55rem;
+  background: linear-gradient(90deg, rgba(255,255,255,.34), rgba(255,255,255,.08));
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+html.dark #pg-home .fe-vinyl { background: rgba(255,255,255,.025); }
