@@ -358,3 +358,84 @@ html.dark #pg-home .home-photo { background:linear-gradient(145deg,#263740,#1d29
   #pg-home .home-door,#pg-home .home-photo { transition:transform .18s ease,background .18s ease; }
   #pg-home .home-door:active,#pg-home .home-photo:active { transform:scale(.985); }
 }
+
+/* Home monochrome refinement · return to the restrained black-and-white palette */
+#pg-home .home-v2 {
+  --home-blue:#777;
+  --home-blue-soft:#e7e7e7;
+  background:
+    radial-gradient(ellipse at 88% 10%,rgba(0,0,0,.035),transparent 38%),
+    radial-gradient(ellipse at 8% 58%,rgba(0,0,0,.025),transparent 42%),
+    linear-gradient(180deg,#f7f7f7 0%,#eeeeef 56%,#f6f6f7 100%);
+}
+html.dark #pg-home .home-v2 {
+  background:
+    radial-gradient(ellipse at 88% 14%,rgba(255,255,255,.055),transparent 38%),
+    linear-gradient(180deg,#171719 0%,#101012 58%,#19191b 100%);
+}
+#pg-home .home-topbar { border-bottom-color:rgba(20,20,25,.09); }
+html.dark #pg-home .home-topbar { border-bottom-color:rgba(255,255,255,.09); }
+#pg-home .home-menu {
+  background:var(--glass-strong);
+  border-color:var(--glass-brd);
+  box-shadow:var(--glass-shadow);
+  -webkit-backdrop-filter:blur(9px) saturate(1.02);
+  backdrop-filter:blur(9px) saturate(1.02);
+}
+#pg-home .home-eyebrow { color:var(--ink-3); }
+#pg-home .home-orbit,
+#pg-home .home-orbit:before,
+#pg-home .home-orbit:after { border-color:rgba(70,70,75,.13); }
+#pg-home .home-orbit i { background:#a4a4a8;box-shadow:0 0 0 .3rem rgba(120,120,125,.1); }
+#pg-home .home-orbit b { background:#c8c8ca; }
+#pg-home .home-together {
+  background:
+    radial-gradient(ellipse at 50% -12%,rgba(255,255,255,.8),transparent 62%),
+    linear-gradient(145deg,rgba(255,255,255,.88),rgba(235,235,237,.76));
+  border-color:rgba(255,255,255,.82);
+  box-shadow:0 10px 28px rgba(20,20,25,.055),inset 0 1px 0 rgba(255,255,255,.94);
+}
+html.dark #pg-home .home-together {
+  background:linear-gradient(135deg,rgba(48,48,52,.8),rgba(29,29,33,.84));
+  border-color:rgba(255,255,255,.11);
+}
+#pg-home .home-avatar { background:linear-gradient(145deg,#999,#555); }
+#pg-home .home-avatar-you { background:linear-gradient(145deg,#e4e4e5,#aaa);color:#555; }
+#pg-home .home-amp { color:var(--ink-2); }
+#pg-home .home-counter { border-top-color:rgba(20,20,25,.11); }
+html.dark #pg-home .home-counter { border-top-color:rgba(255,255,255,.11); }
+#pg-home .home-counter-number strong { color:#555; }
+html.dark #pg-home .home-counter-number strong { color:#e2e2e2; }
+#pg-home .home-thread span { background:linear-gradient(90deg,transparent,rgba(90,90,95,.3)); }
+#pg-home .home-thread i { border-color:#999; }
+#pg-home .home-door {
+  background:rgba(255,255,255,.46);
+  border-color:rgba(255,255,255,.66);
+  box-shadow:0 3px 12px rgba(20,20,25,.035),inset 0 1px 0 rgba(255,255,255,.78);
+  -webkit-backdrop-filter:blur(9px) saturate(1.02);
+  backdrop-filter:blur(9px) saturate(1.02);
+}
+html.dark #pg-home .home-door { background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.1); }
+#pg-home .home-door-main {
+  background:linear-gradient(150deg,#e5e5e7,#d0d0d3);
+  border-color:rgba(255,255,255,.8);
+}
+html.dark #pg-home .home-door-main { background:linear-gradient(150deg,#414145,#29292d); }
+#pg-home .door-index,
+#pg-home .home-door-main .door-index,
+html.dark #pg-home .home-door-main .door-index { color:var(--ink-2); }
+#pg-home .home-door-main .door-sub,
+html.dark #pg-home .home-door-main .door-sub { color:var(--ink-2); }
+#pg-home .home-photo {
+  background:linear-gradient(145deg,rgba(255,255,255,.8),rgba(232,232,234,.76));
+  border-color:rgba(255,255,255,.82);
+  color:#777;
+}
+html.dark #pg-home .home-photo { background:linear-gradient(145deg,#333337,#242428);border-color:rgba(255,255,255,.12); }
+#pg-home .home-note {
+  border-left-color:rgba(80,80,85,.32);
+  background:linear-gradient(90deg,rgba(0,0,0,.035),transparent 82%);
+}
+#pg-home .home-note-mark { color:#999; }
+#pg-home .home-footer { border-top-color:rgba(20,20,25,.09); }
+html.dark #pg-home .home-footer { border-top-color:rgba(255,255,255,.09); }
