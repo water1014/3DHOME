@@ -126,3 +126,26 @@ html.dark .beautify-btn.primary{background:#ededed;border-color:#ededed;color:#1
 .beautify-option-copy{display:flex;flex-direction:column;gap:.18rem}
 .beautify-option-card select{max-width:8.4rem;min-height:2.2rem;padding:.4rem .62rem;border:1px solid var(--line-strong);border-radius:.62rem;background:var(--surface);color:var(--ink);font-size:.64rem}
 @media(max-width:380px){.beautify-wallpaper-card{gap:.58rem;padding:.56rem}.beautify-preview{flex-basis:4.65rem;width:4.65rem;height:4rem}.beautify-actions{gap:.25rem}.beautify-btn{padding:.32rem .5rem}}
+
+
+/* Material studio */
+.beautify-material-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.52rem}
+.beautify-material-choice{display:flex;flex-direction:column;align-items:flex-start;gap:.2rem;min-width:0;padding:.55rem;border:1px solid var(--line);border-radius:.82rem;background:var(--glass);color:var(--ink);text-align:left;transition:border-color .18s,transform .18s,box-shadow .18s}
+.beautify-material-choice.is-active{border-color:var(--ink-2);box-shadow:0 0 0 1px var(--ink-2),0 5px 16px rgba(0,0,0,.055)}
+.beautify-material-choice:active{transform:scale(.985)}
+.beautify-material-choice>b{font-size:.68rem;font-weight:550}
+.beautify-material-choice>small{color:var(--ink-3);font-size:.52rem}
+.material-swatch{display:block;width:100%;height:2.6rem;margin-bottom:.12rem;border:1px solid rgba(100,100,110,.12);border-radius:.55rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.material-glass{background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(190,198,207,.38)),radial-gradient(circle at 20% 20%,#fff,transparent 70%)}
+.material-paper{background:repeating-linear-gradient(0deg,transparent 0 5px,rgba(90,90,90,.08) 5px 6px),linear-gradient(135deg,#f8f7f4,#dcdad6)}
+.material-acrylic{background:linear-gradient(125deg,rgba(255,255,255,.96),rgba(225,232,238,.55) 48%,rgba(255,255,255,.78)),linear-gradient(35deg,#c9d0d7,#fff)}
+.material-ceramic{background:radial-gradient(ellipse at 25% 15%,rgba(255,255,255,.9),transparent 65%),linear-gradient(145deg,#e9e9e8,#c9c9c9)}
+.beautify-material-controls{padding:.75rem .8rem .45rem;border:1px solid var(--line);border-radius:.82rem;background:var(--glass)}
+.beautify-range-row{display:block;padding:.32rem 0 .55rem}
+.beautify-range-row+ .beautify-range-row{border-top:1px solid var(--line)}
+.beautify-range-row>span{display:flex;justify-content:space-between;align-items:center;gap:.8rem;margin-bottom:.45rem}
+.beautify-range-row b{font-size:.64rem;font-weight:500}
+.beautify-range-row small{color:var(--ink-3);font:.55rem var(--mono);font-variant-numeric:tabular-nums}
+.beautify-range-row input{display:block;width:100%;height:1.15rem;margin:0;accent-color:var(--ink-2)}
+html.dark .material-paper{background:repeating-linear-gradient(0deg,transparent 0 5px,rgba(255,255,255,.07) 5px 6px),linear-gradient(135deg,#454548,#28282b)}
+html.dark .material-ceramic{background:radial-gradient(ellipse at 25% 15%,rgba(255,255,255,.18),transparent 65%),linear-gradient(145deg,#444448,#262629)}

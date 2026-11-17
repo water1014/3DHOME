@@ -62,6 +62,30 @@
                 </select>
               </div>
             </section>
+            <section class="beautify-block">
+              <div class="beautify-block-head"><div><b>材质实验室</b><small>MATERIAL STUDIO</small></div><span>03</span></div>
+              <div class="beautify-material-grid" role="group" aria-label="选择界面材质">
+                <button type="button" class="beautify-material-choice" data-material="glass" aria-pressed="false">
+                  <span class="material-swatch material-glass"></span><b>轻雾玻璃</b><small>通透 · 柔光</small>
+                </button>
+                <button type="button" class="beautify-material-choice" data-material="paper" aria-pressed="false">
+                  <span class="material-swatch material-paper"></span><b>信笺纸感</b><small>纤维 · 细纹</small>
+                </button>
+                <button type="button" class="beautify-material-choice" data-material="acrylic" aria-pressed="false">
+                  <span class="material-swatch material-acrylic"></span><b>柔光亚克力</b><small>清透 · 高光</small>
+                </button>
+                <button type="button" class="beautify-material-choice" data-material="ceramic" aria-pressed="false">
+                  <span class="material-swatch material-ceramic"></span><b>哑光瓷面</b><small>细腻 · 克制</small>
+                </button>
+              </div>
+              <div class="beautify-material-controls">
+                <label class="beautify-range-row"><span><b>材质浓度</b><small id="material-opacity-value">76%</small></span><input id="material-opacity" type="range" min="35" max="96" step="1" value="76"></label>
+                <label class="beautify-range-row"><span><b>背景柔化</b><small id="material-blur-value">22 px</small></span><input id="material-blur" type="range" min="0" max="36" step="1" value="22"></label>
+                <label class="beautify-range-row"><span><b>表面纹理</b><small id="material-texture-value">34%</small></span><input id="material-texture" type="range" min="0" max="100" step="1" value="34"></label>
+                <div class="beautify-actions"><button type="button" class="beautify-btn" id="material-reset">恢复材质默认</button></div>
+              </div>
+              <p class="beautify-hint">材质会同步影响首页卡片、聊天入口、侧栏身份卡和主要内容卡片。壁纸与文字颜色不会被改动。</p>
+            </section>
           </section>` : `
           <section class="daily-empty" aria-label="${item.zh}"><span class="daily-empty-mark"></span></section>`}
       </main>`;
@@ -120,6 +144,57 @@
     };
     bind('homeWallpaper','beautify-home-pick','beautify-home-file','beautify-home-preview','beautify-home-reset','首页壁纸');
     bind('sidebarWallpaper','beautify-sidebar-pick','beautify-sidebar-file','beautify-sidebar-preview','beautify-sidebar-reset','侧栏壁纸');
+    bindMaterial();
+  }
+  function bindMaterial() {
+    const $ = id => document.getElementById(id);
+    const defaults = { surfaceMaterial: 'glass', materialOpacity: 76, materialBlur: 22, materialTexture: 34 };
+    const materialNames = ['glass','paper','acrylic','ceramic'];
+    if (!materialNames.includes(S.surfaceMaterial)) S.surfaceMaterial = defaults.surfaceMaterial;
+    ['materialOpacity','materialBlur','materialTexture'].forEach(key => {
+      if (!Number.isFinite(Number(S[key]))) S[key] = defaults[key];
+    });
+    const choices = Array.from(document.querySelectorAll('[data-material]'));
+    const controls = [
+      { key: 'materialOpacity', id: 'material-opacity', output: 'material-opacity-value', suffix: '%' },
+      { key: 'materialBlur', id: 'material-blur', output: 'material-blur-value', suffix: ' px' },
+      { key: 'materialTexture', id: 'material-texture', output: 'material-texture-value', suffix: '%' },
+    ];
+    const sync = () => {
+      window.XW.applySurfaceMaterial?.();
+      choices.forEach(button => {
+        const active = button.dataset.material === S.surfaceMaterial;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      controls.forEach(item => {
+        const input = $(item.id), output = $(item.output);
+        if (input) input.value = S[item.key];
+        if (output) output.textContent = S[item.key] + item.suffix;
+      });
+    };
+    choices.forEach(button => button.onclick = () => {
+      S.surfaceMaterial = button.dataset.material;
+      save('surfaceMaterial');
+      sync();
+    });
+    controls.forEach(item => {
+      const input = $(item.id);
+      if (!input) return;
+      input.oninput = () => {
+        S[item.key] = Number(input.value);
+        save(item.key);
+        sync();
+      };
+    });
+    const reset = $('material-reset');
+    if (reset) reset.onclick = () => {
+      Object.assign(S, defaults);
+      Object.keys(defaults).forEach(save);
+      sync();
+      UI.toast('材质已恢复默认');
+    };
+    sync();
   }
 
   window.Daily = {

@@ -9,6 +9,10 @@ const DEF = {
   wallpaper: 'water', // water | none | custom
   homeWallpaper: '',
   sidebarWallpaper: '',
+  surfaceMaterial: 'glass',
+  materialOpacity: 76,
+  materialBlur: 22,
+  materialTexture: 34,
   loveDate: '2025-01-01',
   hisName: '他',
   herName: '她',
@@ -103,4 +107,13 @@ function applyWallpapers() {
   }
 }
 window.XW.applyWallpapers = applyWallpapers;
-document.addEventListener('DOMContentLoaded', applyWallpapers);
+function applySurfaceMaterial() {
+  const root = document.documentElement;
+  const material = ['glass','paper','acrylic','ceramic'].includes(S.surfaceMaterial) ? S.surfaceMaterial : 'glass';
+  root.dataset.surfaceMaterial = material;
+  root.style.setProperty('--material-opacity', Math.min(96, Math.max(35, Number(S.materialOpacity) || 76)) + '%');
+  root.style.setProperty('--material-blur', Math.min(36, Math.max(0, Number(S.materialBlur) || 0)) + 'px');
+  root.style.setProperty('--material-texture-opacity', Math.min(100, Math.max(0, Number(S.materialTexture) || 0)) + '%');
+}
+window.XW.applySurfaceMaterial = applySurfaceMaterial;
+document.addEventListener('DOMContentLoaded', () => { applyWallpapers(); applySurfaceMaterial(); });
