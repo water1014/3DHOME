@@ -1518,3 +1518,111 @@ html.dark #pg-chat .input-bar {
   width:2.12rem;
   height:2.12rem;
 }
+
+
+/* ── iOS Messages × GPT composer: a roomy rectangular writing surface ── */
+#pg-chat .input-bar {
+  padding:.42rem max(.82rem,var(--page-pad)) calc(.52rem + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,transparent 0%,color-mix(in srgb,var(--page-bg) 84%,transparent) 28%,color-mix(in srgb,var(--page-bg) 98%,transparent) 100%);
+}
+#pg-chat .input-card {
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:.22rem;
+  min-height:5.05rem;
+  padding:.58rem .62rem .48rem;
+  border:1px solid color-mix(in srgb,var(--ink-3) 18%,var(--glass-brd));
+  border-radius:1.12rem;
+  background:color-mix(in srgb,var(--page-bg) 94%,white 6%);
+  box-shadow:0 3px 15px rgba(26,36,49,.075),inset 0 1px 0 var(--glass-hi);
+  -webkit-backdrop-filter:blur(16px) saturate(1.04);
+  backdrop-filter:blur(16px) saturate(1.04);
+}
+html.dark #pg-chat .input-card {
+  background:color-mix(in srgb,var(--page-bg) 94%,#343b45 6%);
+  border-color:rgba(210,222,237,.16);
+  box-shadow:0 3px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.045);
+}
+#pg-chat .input-field {
+  display:block;
+  width:100%;
+  flex:1 1 auto;
+  min-height:2.35rem;
+  max-height:9rem;
+  padding:.12rem .12rem .28rem;
+  border:0;
+  background:transparent;
+  font:400 .86rem/1.58 var(--serif);
+  letter-spacing:0;
+  resize:none;
+}
+#pg-chat .input-field::placeholder {
+  font:400 .82rem/1.58 var(--serif);
+  font-style:normal;
+  letter-spacing:.01em;
+  color:var(--ink-3);
+  opacity:.72;
+}
+#pg-chat .input-actions {
+  display:flex;
+  align-items:center;
+  gap:.3rem;
+  min-height:2.18rem;
+}
+#pg-chat .input-actions-spacer {flex:1 1 auto;min-width:.4rem}
+#pg-chat .input-card .ib-btn {
+  display:grid;
+  place-items:center;
+  flex:0 0 2rem;
+  width:2rem;
+  height:2rem;
+  padding:0;
+  border:0;
+  border-radius:.68rem;
+  background:transparent;
+  color:var(--ink-2);
+}
+#pg-chat .input-card .ib-plus {
+  border:1px solid color-mix(in srgb,var(--ink-3) 16%,transparent);
+  background:color-mix(in srgb,var(--page-bg) 84%,var(--ink-3) 16%);
+}
+html.dark #pg-chat .input-card .ib-plus {
+  border-color:rgba(220,230,242,.13);
+  background:rgba(220,230,242,.075);
+}
+#pg-chat .input-card .ib-btn svg {width:1.02rem;height:1.02rem}
+#pg-chat .input-card .send-btn {
+  display:grid;
+  place-items:center;
+  flex:0 0 2.12rem;
+  width:2.12rem;
+  height:2.12rem;
+  border:0;
+  border-radius:.76rem;
+  background:var(--dark);
+  color:var(--on-dark);
+  box-shadow:none;
+}
+html.dark #pg-chat .input-card .send-btn {
+  background:#e5eaf0;
+  color:#202832;
+}
+#pg-chat .input-card .send-btn svg {width:.94rem;height:.94rem}
+#pg-chat .input-card .send-btn.is-stop {
+  border-radius:.76rem;
+  background:color-mix(in srgb,var(--dark) 82%,#aeb8c5 18%);
+}
+html.dark #pg-chat .input-card .send-btn.is-stop {
+  background:#d0d8e2;
+}
+#pg-chat .input-card:focus-within {
+  border-color:color-mix(in srgb,var(--ink-2) 34%,var(--chat-soft-line));
+  box-shadow:0 4px 18px rgba(25,32,42,.09),inset 0 1px 0 var(--glass-hi);
+}
+#pg-chat .input-card .ib-btn:active,
+#pg-chat .input-card .send-btn:active {transform:scale(.94)}
+@media (max-width:380px) {
+  #pg-chat .input-card {padding:.5rem .52rem .42rem;min-height:4.8rem}
+  #pg-chat .input-actions {gap:.18rem}
+}
