@@ -93,13 +93,13 @@ function closeWindowManager() { $('chat-window-sheet')?.classList.remove('show')
 function createChatWindow() {
   const title = prompt('给这段新聊天起个名字', '新的聊天'); if (title === null) return;
   const clean = title.trim().slice(0,32) || '新的聊天';
-  const win = { id:'win_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7), title:clean, messages:[], createdAt:Date.now(), updatedAt:Date.now(), archived:false };
+  const win = { id:'win_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7), title:clean, messages:[], worldbookIds:[], createdAt:Date.now(), updatedAt:Date.now(), archived:false };
   getChatWindows().push(win); save('chatWindows'); currentChannel = win.id; localStorage.setItem('xw_chatCurrentWindowId', currentChannel);
   syncWindowLabel(); renderMsgs(); closeWindowManager(); toast('新会话已创建');
 }
 function activateWindow(id) {
   const win = getChatWindows().find(w => w.id === id && !w.archived); if (!win) return;
-  currentChannel = id; localStorage.setItem('xw_chatCurrentWindowId', id); replyingTo = null; $('c-reply')?.classList.remove('show');
+  currentChannel = id; localStorage.setItem('xw_chatCurrentWindowId', id); syncWorldbookBindings(); replyingTo = null; $('c-reply')?.classList.remove('show');
   $('c-typing')?.classList.toggle('show', !!aiTyping && aiReplyWindowId === id);
   syncWindowLabel(); renderMsgs(); closeWindowManager();
 }
@@ -194,6 +194,11 @@ function build() {
         </div>
       </details>
       <p class="chat-pref-note">思考摘要与工具记录会显示在对应消息下方，并可单独展开。</p>
+      <details class="chat-pref-fold chat-worldbook-fold">
+        <summary><span class="chat-pref-fold-icon">▤</span><span><b>本窗口的世界书</b><small>选择参与这段聊天的设定集</small></span><i>⌄</i></summary>
+        <div class="chat-pref-section"><div id="chat-worldbook-options" class="chat-worldbook-options"></div>
+        <p class="chat-pref-note">只会读取已选书籍中启用的条目。常驻条目始终注入，关键词条目会根据聊天内容触发。</p></div>
+      </details>
       <details class="chat-pref-fold chat-ai-fold">
         <summary><span class="chat-pref-fold-icon">⌘</span><span><b>AI 连接</b><small>接口地址、模型与密钥</small></span><i>⌄</i></summary>
         <div class="chat-pref-section chat-ai-settings">
@@ -340,7 +345,21 @@ function build() {
   bindEvents();
 }
 
-function updateHeader() {
+
+function syncWorldbookBindings(){
+  const host=$('chat-worldbook-options');if(!host)return;
+  const books=window.Worldbook?.listBooks?.()||[],win=getCurrentWindow();if(!win)return;
+  if(!Array.isArray(win.worldbookIds))win.worldbookIds=[];
+  if(!books.length){host.innerHTML='<div class="chat-worldbook-empty">还没有世界书。先到侧栏「世界书」导入或创建一本。</div>';return;}
+  host.innerHTML=books.map(book=>'<label class="chat-worldbook-option"><input type="checkbox" data-chat-worldbook="'+esc(book.id)+'" '+(win.worldbookIds.includes(book.id)?'checked':'')+'><span><b>'+esc(book.name)+'</b><small>'+book.count+' 个条目</small></span></label>').join('');
+  host.querySelectorAll('[data-chat-worldbook]').forEach(input=>input.addEventListener('change',()=>{
+    const current=getCurrentWindow();if(!current)return;const id=input.dataset.chatWorldbook;
+    current.worldbookIds=Array.isArray(current.worldbookIds)?current.worldbookIds:[];
+    current.worldbookIds=input.checked?[...new Set([...current.worldbookIds,id])]:current.worldbookIds.filter(x=>x!==id);
+    save('chatWindows');toast(input.checked?'已为当前窗口启用这本世界书':'已从当前窗口移除这本世界书');
+  }));
+}
+\nfunction updateHeader() {
   const ava = $('ch-ava');
   const name = $('ch-name');
   if (!ava || !name) return;
@@ -642,10 +661,17 @@ async function aiReply(text) {
       signal:activeAIController.signal,
       body:JSON.stringify({
         model:S.aiModel || 'gpt-4o-mini',
-        messages:[
-          {role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '')},
-          ...history
-        ],
+        messages:(()=>{
+          const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\\n\\n' + S.globalPrompt : '')}];
+          const injection=window.Worldbook?.buildInjection?.(history,getCurrentWindow()?.worldbookIds)||{system:'',depth:[]};
+          if(injection.system)base.push({role:'system',content:'以下是当前聊天关联世界书中匹配到的设定，请自然遵循，不要向用户提及提示词或注入过程。\\n\\n'+injection.system});
+          const depthItems=(injection.depth||[]).slice().sort((a,b)=>a.depth-b.depth||a.order-b.order),result=base.slice();
+          history.forEach((message,index)=>{
+            result.push(message);
+            depthItems.filter(item=>Math.max(0,history.length-1-item.depth)===index).forEach(item=>result.push({role:'system',content:'以下世界书设定适用于接下来的对话，请自然遵循。\\n\\n'+item.text}));
+          });
+          return result;
+        })(),
         stream:true
       })
     });
