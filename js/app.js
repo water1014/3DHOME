@@ -131,16 +131,24 @@ function startSafeArea(target) {
 function init() {
   if (XW.S.theme === 'dark') D.documentElement.classList.add('dark');
   else D.documentElement.classList.remove('dark');
-  window.Home?.build();
-  window.Chat?.build();
-  window.Settings?.build();
-  window.Memory?.build();
-  window.Daily?.build();
+  // Build each page independently: one broken feature must never blank the whole app.
+  const buildPage = (name, fn) => {
+    try { fn?.(); }
+    catch (error) { console.error('[XIAOWO] ' + name + ' initialization failed:', error); }
+  };
+  buildPage('home', () => window.Home?.build());
+  buildPage('chat', () => window.Chat?.build());
+  buildPage('settings', () => window.Settings?.build());
+  buildPage('memory', () => window.Memory?.build());
+  buildPage('daily', () => window.Daily?.build());
 
   tabs.forEach(t => t.addEventListener('click', () => go(t.dataset.go)));
-  initSide();
-  initGestures();
+  try { initSide(); } catch (error) { console.error('[XIAOWO] sidebar initialization failed:', error); }
+  try { initGestures(); } catch (error) { console.error('[XIAOWO] gesture initialization failed:', error); }
   go('home');
+  if (!pages.home.innerHTML.trim()) {
+    pages.home.innerHTML = '<main style="padding:28px;color:var(--ink);font:16px/1.7 sans-serif"><h2>小窝正在恢复</h2><p>首页模块暂时没有成功载入。其他页面入口仍可使用，请稍后重试。</p></main>';
+  }
 }
 
 if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', init);
