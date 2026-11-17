@@ -381,8 +381,9 @@ function syncChatAppearance() {
     el.style.backgroundImage = value ? `url("${value}")` : '';
     if (value && mode) el.style.backgroundSize = mode;
   };
-  setImage(body, S.chatWallpaper, 'cover');
-  body.style.backgroundPosition = 'center';
+  // Keep the wallpaper on the fixed Chat canvas, not on the scrolling message list.
+  root.style.setProperty('--chat-wallpaper-image', S.chatWallpaper ? `url("${S.chatWallpaper}")` : 'none');
+  body.style.backgroundImage = 'none';
   root.style.setProperty('--chat-ta-bubble-image', S.chatTaBubble ? `url("${S.chatTaBubble}")` : 'none');
   root.style.setProperty('--chat-my-bubble-image', S.chatMyBubble ? `url("${S.chatMyBubble}")` : 'none');
   const hisAvatar = S.chatHisAvatar || S.hisAvatar;
