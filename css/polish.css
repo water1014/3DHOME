@@ -906,3 +906,17 @@ html.dark[data-surface-material="ceramic"]{
 }
 #pg-home .home-chat-entry{border-style:solid !important}
 #pg-home .hce-icon{background:color-mix(in srgb,var(--material-base) 32%,transparent);border-color:var(--material-edge)}
+
+
+/* Clean frosted glass: no paper grain or ruled lines. */
+html[data-surface-material="glass"]{
+  --material-texture:linear-gradient(135deg,rgba(255,255,255,.10),transparent 58%);
+}
+html.dark[data-surface-material="glass"]{
+  --material-texture:linear-gradient(135deg,rgba(255,255,255,.055),transparent 58%);
+}
+html[data-surface-material="glass"] #pg-home .fe-letter{
+  background-image:var(--material-texture),linear-gradient(100deg,
+    color-mix(in srgb,var(--material-base) var(--material-opacity),transparent),
+    color-mix(in srgb,var(--material-base) calc(var(--material-opacity) - 13%),transparent)) !important;
+}
