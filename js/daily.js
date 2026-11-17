@@ -2,7 +2,7 @@
 (function () {
   const sections = {
     accounting: { zh: '记账', en: 'QUICK EXPENSES', group: 'DAILY LIFE' },
-    ledger: { zh: '账本', en: 'ACCOUNTS & OVERVIEW', group: 'DAILY LIFE' },
+    weather: { zh: '天气', en: 'WEATHER', group: 'DAILY LIFE' },
     health: { zh: '健康', en: 'WELLNESS', group: 'DAILY LIFE' },
     cycle: { zh: '经期', en: 'CYCLE', group: 'DAILY LIFE' },
     calendar: { zh: '日历', en: 'CALENDAR', group: 'DAILY LIFE' },
