@@ -85,3 +85,20 @@
   .settings-title-row h1 { font-size:1.5rem; }
   .settings-value { font-size:.54rem; }
 }
+
+
+.settings-select-field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.35rem;
+  padding: .45rem .65rem;
+  border: 1px solid var(--line);
+  border-radius: .58rem;
+  outline: none;
+  background: rgba(128,128,128,.045);
+  color: var(--ink);
+  font: .72rem var(--sans);
+  appearance: auto;
+}
+.settings-select-field small { display:block; margin-top:.28rem; color:var(--ink-3); font-size:.57rem; line-height:1.55; }
+.settings-card { border-radius: var(--surface-radius, 1.15rem); }
