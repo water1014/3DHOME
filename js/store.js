@@ -7,6 +7,8 @@ const LS = localStorage;
 const DEF = {
   theme: 'light',
   wallpaper: 'water', // water | none | custom
+  homeWallpaper: '',
+  sidebarWallpaper: ''
   loveDate: '2025-01-01',
   hisName: '他',
   herName: '她',
@@ -72,3 +74,33 @@ ref.__s = {};
 
 // 便捷导出
 window.XW = { S, save, load, ref, DEF };
+
+function applyWallpapers() {
+  const dark = document.documentElement.classList.contains('dark');
+  const home = document.querySelector('#pg-home .fe-home');
+  const drawer = document.getElementById('side-drawer');
+  if (home) {
+    if (S.homeWallpaper) {
+      const wash = dark ? 'linear-gradient(rgba(12,12,14,.48), rgba(12,12,14,.56))' : 'linear-gradient(rgba(255,255,255,.34), rgba(248,248,250,.48))';
+      home.style.backgroundImage = wash + ', url("' + S.homeWallpaper + '")';
+      home.style.backgroundSize = 'cover';
+      home.style.backgroundPosition = 'center';
+      home.classList.add('has-home-wallpaper');
+    } else {
+      home.style.removeProperty('background-image');
+      home.classList.remove('has-home-wallpaper');
+    }
+  }
+  if (drawer) {
+    if (S.sidebarWallpaper) {
+      const wash = dark ? 'linear-gradient(rgba(18,18,20,.72), rgba(18,18,20,.78))' : 'linear-gradient(rgba(255,255,255,.78), rgba(250,250,251,.84))';
+      drawer.style.backgroundImage = wash + ', url("' + S.sidebarWallpaper + '")';
+      drawer.style.backgroundSize = 'cover';
+      drawer.style.backgroundPosition = 'center';
+    } else {
+      drawer.style.removeProperty('background-image');
+    }
+  }
+}
+window.XW.applyWallpapers = applyWallpapers;
+document.addEventListener('DOMContentLoaded', applyWallpapers);
