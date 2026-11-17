@@ -86,6 +86,17 @@ function renderInfo() {
   const w = weatherNow();
   const hWeather = $('h-weather');
   if (hWeather) hWeather.textContent = `${w.temp}°`;
+  const hWeatherCond = $('h-weather-cond');
+  if (hWeatherCond) hWeatherCond.textContent = w.cond || '';
+  const hWeatherIcon = $('h-weather-icon');
+  if (hWeatherIcon) {
+    const icons = {
+      sun: '<circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v2M12 19.5v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2.5 12h2m15 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+      cloud: '<path d="M7.5 18.2h9.2a4.3 4.3 0 0 0 .3-8.6 5.7 5.7 0 0 0-10.9 1.6 3.6 3.6 0 0 0 1.4 7z"/>',
+      rain: '<path d="M7.5 15.5h9.2a4.3 4.3 0 0 0 .3-8.6 5.7 5.7 0 0 0-10.9 1.6 3.6 3.6 0 0 0 1.4 7zM8 18l-1 2m6-2-1 2m6-2-1 2"/>'
+    };
+    hWeatherIcon.innerHTML = icons[w.icon] || icons.cloud;
+  }
 
   const hGreet = $('h-greet');
   if (hGreet) hGreet.innerHTML = `${greetWord(now.getHours())} · <i>${fmtWeek(now)} ${String(now.getMonth()+1)}月${now.getDate()}日</i>`;
@@ -105,8 +116,9 @@ function build() {
           <span class="fe-clock-mark" aria-hidden="true"></span>
         </div>
         <div class="fe-weather-wrap">
-          <svg class="fe-weather-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 18.2h9.2a4.3 4.3 0 0 0 .3-8.6 5.7 5.7 0 0 0-10.9 1.6 3.6 3.6 0 0 0 1.4 7z"/></svg>
+          <svg class="fe-weather-icon" id="h-weather-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v2M12 19.5v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2.5 12h2m15 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
           <span class="fe-weather" id="h-weather">22°</span>
+          <span class="fe-weather-cond" id="h-weather-cond">晴</span>
         </div>
       </header>
 
