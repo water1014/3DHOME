@@ -89,6 +89,13 @@ function renderInfo() {
 
   const hGreet = $('h-greet');
   if (hGreet) hGreet.innerHTML = `${greetWord(now.getHours())} · <i>${fmtWeek(now)} ${String(now.getMonth()+1)}月${now.getDate()}日</i>`;
+
+  const dateMonth = $('h-date-month');
+  const dateDay = $('h-date-day');
+  const dateWeek = $('h-date-week');
+  if (dateMonth) dateMonth.textContent = `${String(now.getMonth()+1).padStart(2,'0')} / ${now.getFullYear()}`;
+  if (dateDay) dateDay.textContent = String(now.getDate()).padStart(2,'0');
+  if (dateWeek) dateWeek.textContent = ['SUN','MON','TUE','WED','THU','FRI','SAT'][now.getDay()];
 }
 
 function build() {
@@ -147,19 +154,27 @@ function build() {
           </a>
         </nav>
 
-        <!-- 翻面信纸 -->
-        <section class="fe-letter" id="h-letter">
-          <div class="flip-inner">
-            <div class="flip-front">
-              <svg class="ic lf-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              <span class="lf-text">一封情书</span>
-              <span class="lf-hint">click to open</span>
+        <!-- 信纸与日期 -->
+        <div class="fe-mix-grid">
+          <section class="fe-letter" id="h-letter">
+            <div class="flip-inner">
+              <div class="flip-front">
+                <svg class="ic lf-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span class="lf-text">一封情书</span>
+                <span class="lf-hint">click to open</span>
+              </div>
+              <div class="flip-back">
+                <div class="flip-lines" id="h-letter-lines"><p>加载中...</p></div>
+              </div>
             </div>
-            <div class="flip-back">
-              <div class="flip-lines" id="h-letter-lines"><p>加载中...</p></div>
-            </div>
-          </div>
-        </section>
+          </section>
+
+          <section class="fe-date-stamp" aria-label="日期">
+            <div class="fd-month" id="h-date-month"></div>
+            <div class="fd-day" id="h-date-day"></div>
+            <div class="fd-week" id="h-date-week"></div>
+          </section>
+        </div>
 
         <!-- 相册墙 -->
         <section class="fe-photos" id="h-photos">
