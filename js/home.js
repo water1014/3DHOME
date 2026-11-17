@@ -274,6 +274,8 @@ function build() {
 
   // 相册
   const photos = S.photos || [];
+  const photoCount = $("h-photos")?.querySelector(".ph-count");
+  if (photoCount) photoCount.textContent = String(photos.filter(Boolean).length);
   for (let i = 0; i < 3; i++) {
     const imgEl = $(`ph-img-${i+1}`);
     if (imgEl) {
@@ -314,6 +316,11 @@ function build() {
     el.style.cursor = 'pointer';
     el.addEventListener('click', () => {
       const act = el.dataset.act;
+      if (act === 'daily') { window.go('daily'); return; }
+      if (act === 'album') {
+        $('h-photos')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       if (act === 'chat') { window.go('chat'); return; }
       UI.toast(`${actNames[act]}后续开放`);
     });
