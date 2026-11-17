@@ -424,3 +424,47 @@ html.dark #pg-home .fe-date-stamp {
   #pg-home .fd-day { font-size: 2.85rem; }
   #pg-home .fe-vinyl { width: 88%; }
 }
+
+
+/* Restore the original centered couple-avatar composition. */
+#pg-home .fe-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.15rem .9rem 1rem;
+}
+#pg-home .fp-avatars {
+  justify-content: center;
+  gap: .55rem;
+  margin: 0 0 .32rem;
+}
+#pg-home .fp-ava {
+  width: 3.15rem;
+  height: 3.15rem;
+}
+#pg-home .fp-amp { font-size: 1.45rem; }
+#pg-home .fp-names {
+  margin-top: .62rem;
+  text-align: center;
+  font-size: .94rem;
+}
+#pg-home .fp-days-wrap { margin-top: .2rem; }
+#pg-home .fp-days {
+  font-size: clamp(3.7rem, 17vw, 5.2rem);
+}
+#pg-home .fp-days-label { font-size: .85rem; }
+#pg-home .fp-line {
+  justify-content: center;
+  margin-top: .65rem;
+  padding-top: 0;
+  border-top: 0;
+  text-align: center;
+  font-size: .48rem;
+}
+@media (max-width: 360px) {
+  #pg-home .fe-profile { padding: 1rem .8rem .9rem; }
+  #pg-home .fp-ava { width: 2.9rem; height: 2.9rem; }
+  #pg-home .fp-days { font-size: 3.7rem; }
+  #pg-home .fp-line { font-size: .44rem; }
+}
