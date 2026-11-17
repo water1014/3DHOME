@@ -1,248 +1,311 @@
 /* ══════════════════════════════════════════════
-   home.js · 小窝首页：两个人的生活入口
+   home.js · 首页（全新版 · 层叠材质 · 紧凑）
    ══════════════════════════════════════════════ */
-(function () {
-  const D = document;
-  const $ = D.getElementById.bind(D);
-  const { S, save } = XW;
-  const { fmtWeek, diffDay, greetWord } = UI;
-  let clockTimer = null;
 
-  // 修正旧版演示默认日期，不覆盖用户自己设置过的日期。
-  if (S.loveDate === '2025-01-01') {
-    S.loveDate = '2026-10-28';
-    save('loveDate');
-  }
+(function() {
+const D = document, $ = D.getElementById.bind(D);
+const { S, save } = XW;
+const { fmtWeek, diffDay, greetWord, weatherNow } = UI;
 
-  function localDate(value) {
-    const [y, m, d] = String(value || '2026-10-28').split('-').map(Number);
-    return new Date(y, (m || 1) - 1, d || 1);
-  }
+let raf;
 
-  function escapeHTML(value) {
-    return String(value ?? '').replace(/[&<>"']/g, ch => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[ch]));
-  }
+function ordinal(n) {
+  if (n % 100 >= 11 && n % 100 <= 13) return 'TH';
+  return { 1: 'ST', 2: 'ND', 3: 'RD' }[n % 10] || 'TH';
+}
 
-  function updateClock() {
-    const el = $('h-time');
+function tickClock() {
+  const el = $('h-time');
+  if (el) {
     const now = new Date();
-    if (el) el.textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
-    const greet = $('h-greeting');
-    if (greet) greet.textContent = greetWord(now.getHours());
-    clockTimer = setTimeout(updateClock, 30000);
+    el.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   }
-  function startClock() {
-    clearTimeout(clockTimer);
-    updateClock();
-  }
-  function stopClock() {
-    clearTimeout(clockTimer);
-    clockTimer = null;
-  }
+  raf = setTimeout(tickClock, 5000);
+}
+function startClock() { tickClock(); }
+function stopClock() { clearTimeout(raf); }
 
-  function compressImg(file, maxSide = 900, quality = .82) {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
-        const canvas = D.createElement('canvas');
-        canvas.width = Math.max(1, Math.round(img.width * scale));
-        canvas.height = Math.max(1, Math.round(img.height * scale));
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('图片读取失败')); };
-      img.src = url;
-    });
-  }
+function compressImg(file, maxW, maxH, quality) {
+  return new Promise((res) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > maxW) { h *= maxW / w; w = maxW; } }
+      else { if (h > maxH) { w *= maxH / h; h = maxH; } }
+      const c = D.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      res(c.toDataURL('image/jpeg', quality));
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
 
-  function setAvatar(el, key) {
-    if (!el) return;
-    const value = S[key];
-    if (value) {
-      el.style.backgroundImage = `url("${value}")`;
-      el.classList.add('has-photo');
+function bindAvatar(el, key) {
+  el.style.cursor = 'pointer';
+  el.title = '点击更换头像';
+  el.addEventListener('click', () => {
+    const inp = D.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = async (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const data = await compressImg(f, 200, 200, 0.7);
+      S[key] = data; save(key);
+      el.style.backgroundImage = `url(${data})`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
       el.textContent = '';
-    } else {
-      el.textContent = (key === 'hisAvatar' ? S.hisName : S.herName || '你').charAt(0);
-    }
-    el.addEventListener('click', () => {
-      const input = D.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = async () => {
-        const file = input.files?.[0];
-        if (!file) return;
-        try {
-          const data = await compressImg(file, 420, .8);
-          S[key] = data;
-          save(key);
-          setAvatar(el, key);
-          UI.toast('头像已更新');
-        } catch { UI.toast('图片读取失败，请重试'); }
-      };
-      input.click();
-    });
-  }
+      UI.toast('头像已更新');
+    };
+    inp.click();
+  });
+}
 
-  function renderRelationship() {
-    const now = new Date();
-    const since = localDate(S.loveDate);
-    const days = Math.max(0, diffDay(since, now));
-    const years = Math.max(0, now.getFullYear() - since.getFullYear() - (
-      now.getMonth() < since.getMonth() || (now.getMonth() === since.getMonth() && now.getDate() < since.getDate()) ? 1 : 0
-    ));
-    const next = new Date(since);
-    next.setFullYear(since.getFullYear() + years + 1);
-    const nextDays = Math.max(0, diffDay(now, next));
-    const names = $('h-names');
-    if (names) names.textContent = `${S.hisName || '他'}  &  ${S.herName || '你'}`;
-    const count = $('h-days');
-    if (count) count.textContent = days.toLocaleString('en-US');
-    const sinceEl = $('h-since');
-    if (sinceEl) sinceEl.textContent = `SINCE ${since.getFullYear()}. ${String(since.getMonth() + 1).padStart(2, '0')}. ${String(since.getDate()).padStart(2, '0')}`;
-    const nextEl = $('h-next');
-    if (nextEl) nextEl.textContent = `距离下一年，还有 ${nextDays} 天`;
-    const date = $('h-date');
-    if (date) date.textContent = `${fmtWeek(now)} · ${now.getMonth() + 1}月${now.getDate()}日`;
-  }
+function renderInfo() {
+  const now = new Date();
+  const love = new Date(S.loveDate || '2025-01-01');
+  const days = diffDay(love, now);
+  const years = Math.floor(days / 365);
+  const nextY = years + 1;
+  const nextYDate = new Date(love); nextYDate.setFullYear(love.getFullYear() + nextY);
+  const nextDays = diffDay(now, nextYDate);
 
-  function renderPhotos() {
-    const wall = $('h-photo-wall');
-    if (!wall) return;
-    const photos = Array.isArray(S.photos) ? S.photos : [];
-    wall.innerHTML = [0, 1, 2].map(i => {
-      const src = photos[i];
-      return `<button class="home-photo ${src ? 'has-photo' : 'is-empty'}" type="button" data-photo-index="${i}" aria-label="${src ? '更换' : '添加'}第${i + 1}张照片">
-        ${src ? `<img src="${src}" alt="我们的照片" loading="lazy">` : '<span class="photo-plus">＋</span><span class="photo-empty-label">放一张照片</span>'}
-      </button>`;
-    }).join('');
-    wall.querySelectorAll('[data-photo-index]').forEach(button => {
-      button.addEventListener('click', () => {
-        const index = Number(button.dataset.photoIndex);
-        const input = D.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = async () => {
-          const file = input.files?.[0];
-          if (!file) return;
-          try {
-            const data = await compressImg(file, 1000, .82);
-            S.photos = Array.isArray(S.photos) ? S.photos : [];
-            S.photos[index] = data;
-            save('photos');
-            renderPhotos();
-            UI.toast('照片放进小窝啦');
-          } catch { UI.toast('图片读取失败，请重试'); }
-        };
-        input.click();
-      });
-    });
-    const count = $('h-photo-count');
-    if (count) count.textContent = photos.filter(Boolean).length + ' / 3';
-  }
+  const hNames = $('h-names');
+  if (hNames) hNames.innerHTML = `${S.hisName || '他'} <span>&</span> ${S.herName || '她'}`;
 
-  function build() {
-    const root = $('pg-home');
-    if (!root) return;
-    root.innerHTML = `
-      <div class="fe-home home-v2">
-        <header class="home-topbar">
-          <button class="home-menu" id="h-menu" type="button" aria-label="打开菜单">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h11M4 17h16"/></svg>
+  const hDays = $('h-days');
+  if (hDays) hDays.textContent = days;
+
+  const hSince = $('h-since');
+  if (hSince) hSince.textContent = `${love.getFullYear()}.${String(love.getMonth()+1).padStart(2,'0')}.${String(love.getDate()).padStart(2,'0')}`;
+
+  const hNext = $('h-next');
+  if (hNext) hNext.textContent = `${nextY} 周年 · ${nextDays} 天后`;
+
+  const w = weatherNow();
+  const hWeather = $('h-weather');
+  if (hWeather) hWeather.textContent = `${w.temp}°`;
+
+  const hGreet = $('h-greet');
+  if (hGreet) hGreet.innerHTML = `${greetWord(now.getHours())} · <i>${fmtWeek(now)} ${String(now.getMonth()+1)}月${now.getDate()}日</i>`;
+}
+
+function build() {
+  const root = $('pg-home');
+  root.innerHTML = `
+    <div class="fe-home">
+      <!-- 顶栏 -->
+      <header class="fe-hd">
+        <button class="fe-menu" id="h-menu">
+          <svg class="ic" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="fe-meta">
+          <span class="fe-time" id="h-time"></span>
+          <span class="fe-weather" id="h-weather">22°</span>
+        </div>
+      </header>
+
+      <!-- 主体 -->
+      <main class="fe-body">
+        <!-- 档案卡 — 层叠版 -->
+        <section class="fe-profile">
+          <div class="fp-avatars">
+            <div class="fp-ava" id="h-hisAva">${S.hisAvatar ? '' : (S.hisName || '他').charAt(0)}</div>
+            <span class="fp-amp">&amp;</span>
+            <div class="fp-ava fp-ava--her" id="h-herAva">${S.herAvatar ? '' : (S.herName || '她').charAt(0)}</div>
+          </div>
+          <div class="fp-names" id="h-names"></div>
+          <div class="fp-days-wrap">
+            <span class="fp-days" id="h-days"></span>
+            <span class="fp-days-label">天</span>
+          </div>
+          <div class="fp-line">
+            <span id="h-since"></span>
+            <span class="fp-dot"></span>
+            <span id="h-next"></span>
+          </div>
+        </section>
+
+        <!-- 快捷入口 — 紧凑 pill 行 -->
+        <nav class="fe-nav">
+          <a class="fn-pill" data-act="daily">
+            <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>动态</span>
+          </a>
+          <a class="fn-pill" data-act="ai">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <span>生图</span>
+          </a>
+          <a class="fn-pill" data-act="fav">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span>收藏</span>
+          </a>
+          <a class="fn-pill" data-act="album">
+            <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span>相册</span>
+          </a>
+        </nav>
+
+        <!-- 翻面信纸 -->
+        <section class="fe-letter" id="h-letter">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <svg class="ic lf-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span class="lf-text">一封情书</span>
+              <span class="lf-hint">click to open</span>
+            </div>
+            <div class="flip-back">
+              <div class="flip-lines" id="h-letter-lines"><p>加载中...</p></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 相册墙 -->
+        <section class="fe-photos" id="h-photos">
+          <div class="ph-header">
+            <span class="ph-title">photos</span>
+            <span class="ph-count">3</span>
+          </div>
+          <div class="ph-wall">
+            <div class="ph-frame" style="transform:rotate(-3deg) translateY(2px)">
+              <div class="ph-img" id="ph-img-1"></div>
+              <div class="ph-cap">2025</div>
+            </div>
+            <div class="ph-frame" style="transform:rotate(2deg) translateY(-3px)">
+              <div class="ph-img" id="ph-img-2"></div>
+              <div class="ph-cap">summer</div>
+            </div>
+            <div class="ph-frame" style="transform:rotate(-1.5deg) translateY(4px)">
+              <div class="ph-img" id="ph-img-3"></div>
+              <div class="ph-cap">us</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 一起听 -->
+        <section class="fe-vinyl" id="h-vinyl" data-act="music">
+          <div class="v-disc" id="v-disc">
+            <span class="v-ring"></span>
+            <span class="v-ring"></span>
+            <span class="v-core"></span>
+          </div>
+          <div class="v-info">
+            <div class="v-label">一起听</div>
+            <div class="v-title" id="v-title">夏天的风</div>
+            <div class="v-artist" id="v-artist">温岚</div>
+          </div>
+          <button class="v-play" id="v-play">
+            <svg class="ic play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <svg class="ic pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
           </button>
-          <div class="home-wordmark"><span>OUR LITTLE PLACE</span><strong>小窝</strong></div>
-          <div class="home-clock" id="h-time">--:--</div>
-        </header>
+        </section>
+      </main>
 
-        <main class="home-scroll">
-          <section class="home-intro">
-            <div class="home-intro-copy">
-              <span class="home-eyebrow" id="h-date"></span>
-              <h1><span id="h-greeting">今天也</span><br>留一点时间给我们。</h1>
-              <p>这里不需要赶路，只收留生活本来的样子。</p>
-            </div>
-            <span class="home-orbit" aria-hidden="true"><i></i><b></b></span>
-          </section>
+      <!-- 底部 -->
+      <footer class="fe-foot">
+        <div class="fe-greet" id="h-greet"></div>
+      </footer>
+    </div>`;
 
-          <section class="home-together" aria-label="相处纪念">
-            <div class="home-together-head">
-              <div class="home-avatars">
-                <button class="home-avatar" id="h-hisAva" type="button" aria-label="更换他的头像"></button>
-                <span class="home-amp">&</span>
-                <button class="home-avatar home-avatar-you" id="h-herAva" type="button" aria-label="更换我的头像"></button>
-              </div>
-              <div class="home-couple-name" id="h-names"></div>
-              <span class="home-together-label">TWO PEOPLE · ONE LITTLE WORLD</span>
-            </div>
-            <div class="home-counter">
-              <div class="home-counter-number"><strong id="h-days">0</strong><span>days<br>together</span></div>
-              <div class="home-counter-foot">
-                <span id="h-since"></span>
-                <span id="h-next"></span>
-              </div>
-            </div>
-            <div class="home-thread" aria-hidden="true"><span></span><i></i><span></span></div>
-          </section>
+  // 头像渲染
+  const hisAva = $('h-hisAva');
+  const herAva = $('h-herAva');
+  if (S.hisAvatar && hisAva) {
+    hisAva.style.backgroundImage = `url(${S.hisAvatar})`;
+    hisAva.style.backgroundSize = 'cover';
+    hisAva.style.backgroundPosition = 'center';
+    hisAva.textContent = '';
+  }
+  if (S.herAvatar && herAva) {
+    herAva.style.backgroundImage = `url(${S.herAvatar})`;
+    herAva.style.backgroundSize = 'cover';
+    herAva.style.backgroundPosition = 'center';
+    herAva.textContent = '';
+  }
+  bindAvatar(hisAva, 'hisAvatar');
+  bindAvatar(herAva, 'herAvatar');
 
-          <section class="home-doors" aria-label="空间入口">
-            <button class="home-door home-door-main" type="button" data-go="chat">
-              <span class="door-index">01 / TALK</span>
-              <span class="door-title">说说话</span>
-              <span class="door-sub">把今天讲给彼此听</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
-            </button>
-            <button class="home-door" type="button" data-go="mem">
-              <span class="door-index">02 / MEMORY</span>
-              <span class="door-title">拾起记忆</span>
-              <span class="door-sub">那些值得留下的瞬间</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
-            </button>
-            <button class="home-door" type="button" data-go="daily">
-              <span class="door-index">03 / DAILY</span>
-              <span class="door-title">一起生活</span>
-              <span class="door-sub">把平凡日子慢慢过好</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
-            </button>
-          </section>
+  // 翻面信纸
+  const letter = $('h-letter');
+  const letterLines = $('h-letter-lines');
+  if (letterLines) letterLines.innerHTML = `<p>${(S.loveLetter || '遇见你之后，每一天都变得不一样了。').replace(/\n/g, '</p><p>')}</p>`;
+  if (letter) letter.addEventListener('click', () => letter.classList.toggle('flipped'));
 
-          <section class="home-moments">
-            <div class="home-section-head">
-              <div><span class="home-eyebrow">LITTLE MOMENTS</span><h2>留在这里的片刻</h2></div>
-              <span class="home-photo-count" id="h-photo-count">0 / 3</span>
-            </div>
-            <div class="home-photo-wall" id="h-photo-wall"></div>
-          </section>
-
-          <section class="home-note">
-            <span class="home-note-mark">“</span>
-            <p id="h-note-text"></p>
-            <span class="home-note-sign">A NOTE FOR US</span>
-          </section>
-        </main>
-        <footer class="home-footer"><span>小窝 · 只属于我们</span><span>STAY A LITTLE LONGER</span></footer>
-      </div>`;
-
-    setAvatar($('h-hisAva'), 'hisAvatar');
-    setAvatar($('h-herAva'), 'herAvatar');
-    renderRelationship();
-    renderPhotos();
-
-    const note = $('h-note-text');
-    if (note) note.textContent = (S.loveLetter || '愿每一个普通的日子，都有值得珍藏的瞬间。').split('\n').filter(Boolean)[0];
-
-    $('h-menu')?.addEventListener('click', () => {
-      D.querySelector('.side-drawer')?.classList.toggle('show');
-      D.querySelector('.side-overlay')?.classList.toggle('show');
-    });
-    root.querySelectorAll('[data-go]').forEach(button => {
-      button.addEventListener('click', () => window.go?.(button.dataset.go));
+  // 唱片播放器
+  let vinylPlaying = false;
+  const vPlay = $('v-play');
+  const vDisc = $('v-disc');
+  const vTitle = $('v-title');
+  const vArtist = $('v-artist');
+  const songs = S.favSongs || [{ title: '夏天的风', artist: '温岚' }, { title: '慢慢喜欢你', artist: '莫文蔚' }];
+  let songIdx = S.favIdx || 0;
+  function updateSong() {
+    const s = songs[songIdx] || songs[0];
+    if (vTitle) vTitle.textContent = s.title;
+    if (vArtist) vArtist.textContent = s.artist;
+  }
+  if (vPlay) {
+    vPlay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      vinylPlaying = !vinylPlaying;
+      vDisc?.classList.toggle('spin', vinylPlaying);
+      vPlay.querySelector('.play-icon').style.display = vinylPlaying ? 'none' : 'block';
+      vPlay.querySelector('.pause-icon').style.display = vinylPlaying ? 'block' : 'none';
+      if (vinylPlaying) { songIdx = (songIdx + 1) % songs.length; updateSong(); S.favIdx = songIdx; save('favIdx'); }
     });
   }
+  updateSong();
 
-  window.Home = { build, startClock, stopClock };
+  // 相册
+  const photos = S.photos || [];
+  for (let i = 0; i < 3; i++) {
+    const imgEl = $(`ph-img-${i+1}`);
+    if (imgEl) {
+      if (photos[i]) {
+        imgEl.style.backgroundImage = `url(${photos[i]})`;
+        imgEl.classList.add('has-img');
+      }
+      imgEl.addEventListener('click', () => {
+        const inp = D.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/*';
+        inp.onchange = async (e) => {
+          const f = e.target.files[0];
+          if (!f) return;
+          const data = await compressImg(f, 400, 400, 0.8);
+          S.photos = S.photos || [];
+          S.photos[i] = data;
+          save('photos');
+          imgEl.style.backgroundImage = `url(${data})`;
+          imgEl.classList.add('has-img');
+          UI.toast('照片已更新');
+        };
+        inp.click();
+      });
+    }
+  }
+
+  // 侧栏按钮
+  $('h-menu').onclick = () => {
+    const sb = document.querySelector('.side-drawer');
+    const ov = document.querySelector('.side-overlay');
+    if (sb) sb.classList.toggle('show');
+    if (ov) ov.classList.toggle('show');
+  };
+
+  // 功能入口点击
+  const actNames = { daily: '动态', ai: '生图', fav: '收藏', music: '一起听', album: '相册' };
+  root.querySelectorAll('[data-act]').forEach(el => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => {
+      const act = el.dataset.act;
+      if (act === 'chat') { window.go('chat'); return; }
+      UI.toast(`${actNames[act]}后续开放`);
+    });
+  });
+
+  renderInfo();
+}
+
+window.Home = { build, startClock, stopClock };
 })();
