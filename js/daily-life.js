@@ -113,13 +113,16 @@
       '<div class="dh-entry-grid">'+
       viewCard('calendar','日历','CALENDAR','按日期查看生活记录','◷')+
       viewCard('timetable','课表与倒数','SCHEDULE','固定安排 · 重要日子','▤')+
-      viewCard('todos','待办清单','TO-DO LIST',day.todos.length+' 项 · '+done+' 项完成,'+'✓')+
+      viewCard('todos','待办清单','TO-DO LIST',day.todos.length+' 项 · '+done+' 项完成','✓')+
       viewCard('events','日程与约定','AGENDA',day.events.length+' 条今日安排','⌁')+
       viewCard('life','生活记录','LIFE NOTES','三餐 · 心情 · 随手记','✳')+
       viewCard('countdown','重要倒数','COUNTDOWN',data.countdowns.length+' 个值得记住的日子','⌛')+
       '</div>';
   }
-  function render() {
+  function render(viewKey) {
+    const routeViews={calendar:'calendar',plans:'todos',mood:'life'};
+    if(viewKey && routeViews[viewKey]) activeView=routeViews[viewKey];
+    else if(viewKey==='calendar') activeView='calendar';
     const day=getDay(selected), today=iso(new Date());
     const views={today:['今天','TODAY'],calendar:['日历','CALENDAR'],timetable:['课表与倒数','SCHEDULE'],todos:['待办清单','TO-DO LIST'],life:['生活记录','LIFE NOTES'],events:['日程与约定','AGENDA'],countdown:['重要倒数','COUNTDOWN']};
     const meta=views[activeView]||views.today;
