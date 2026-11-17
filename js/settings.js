@@ -49,6 +49,15 @@
             <div class="settings-row">
               <div><b>当前字体</b><small>小窝默认字体组合</small></div><span class="settings-value">Noto Serif · Cormorant</span>
             </div>
+            <label class="settings-field settings-select-field"><span>卡片圆角</span>
+              <select id="set-card-radius" aria-label="卡片圆角">
+                <option value="0">直角</option>
+                <option value=".55rem">微圆角</option>
+                <option value="1.15rem">标准圆角</option>
+                <option value="1.8rem">大圆角</option>
+              </select>
+              <small>统一调整首页、设置及功能卡片的边角形状</small>
+            </label>
           </div>
         </section>
 
@@ -103,6 +112,9 @@
     $('set-api-model').value = S.aiModel || '';
     $('set-api-key').value = S.aiKey || '';
     $('set-global-prompt').value = S.globalPrompt || '';
+    const radius = S.cardRadius || '1.15rem';
+    $('set-card-radius').value = radius;
+    D.documentElement.style.setProperty('--surface-radius', radius);
     $('set-api-state').textContent = S.aiKey ? 'API Key 已配置' : '尚未配置 API Key';
     const stats = storageStats();
     $('set-storage-size').textContent = stats.label;
@@ -138,6 +150,14 @@
       }, { passive: true });
       window.addEventListener('resize', () => showPage(activePage, false));
     }
+    $('set-card-radius').onchange = (event) => {
+      const allowed = ['0', '.55rem', '1.15rem', '1.8rem'];
+      const value = allowed.includes(event.target.value) ? event.target.value : '1.15rem';
+      S.cardRadius = value;
+      save('cardRadius');
+      D.documentElement.style.setProperty('--surface-radius', value);
+      UI.toast('卡片圆角已更新');
+    };
     $('set-theme').onclick = () => {
       S.theme = S.theme === 'dark' ? 'light' : 'dark';
       save('theme');

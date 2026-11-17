@@ -35,6 +35,7 @@
   --card-border: var(--glass-brd);
   --card-shadow: var(--glass-shadow);
   --card-radius: 1.15rem;
+  --surface-radius: 1.15rem;
 
   /* 页面背景：多层灰阶渐变 */
   --page-bg:
