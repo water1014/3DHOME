@@ -29,6 +29,7 @@ function go(name) {
 
   cur = name;
   if (cur === 'home') window.Home?.startClock();
+  if (cur === 'daily') window.Daily?.showCurrent();
 }
 window.go = go;
 
@@ -69,6 +70,14 @@ function initSide() {
   drawer.querySelectorAll('[data-go]').forEach(item => {
     item.onclick = () => {
       const name = item.dataset.go;
+      if (name === 'daily') {
+        const group = $('sd-daily-group');
+        const expanded = item.getAttribute('aria-expanded') === 'true';
+        item.setAttribute('aria-expanded', String(!expanded));
+        group?.classList.toggle('expanded', !expanded);
+        go('daily');
+        return;
+      }
       drawer.querySelectorAll('.sd-item').forEach(i => i.classList.toggle('on', i === item));
       if (name === 'mine') { window.Mine?.build(); }
       go(name);
@@ -98,7 +107,8 @@ function init() {
   window.Chat?.build();
   window.Mine?.build();
   window.Memory?.build();
-  Object.keys(PLACEHOLDER).forEach(buildPlaceholder);
+  window.Daily?.build();
+  buildPlaceholder('read');
 
   tabs.forEach(t => t.addEventListener('click', () => go(t.dataset.go)));
   initSide();
