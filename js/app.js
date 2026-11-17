@@ -120,6 +120,7 @@ function initGestures() {
     const t = e.touches[0];
     start = { x: t.clientX, y: t.clientY, target: e.target, time: Date.now() };
   }, { passive: true });
+  D.addEventListener('touchcancel', () => { start = null; }, { passive: true });
   D.addEventListener('touchend', e => {
     if (!start || !e.changedTouches || e.changedTouches.length !== 1) return;
     const t = e.changedTouches[0];
@@ -135,7 +136,7 @@ function initGestures() {
       if (dx < -55 && startSafeArea(target)) closeDrawer();
       return;
     }
-    if (target.closest?.('input,textarea,select,button,a,[contenteditable="true"],.chat-input,.overlay')) return;
+    if (target.closest?.('input,textarea,select,button,a,img,video,canvas,[contenteditable="true"],[data-no-page-swipe],.chat-input,.chat-search,.chat-pref,.chat-window-sheet,.chat-media-filters,.overlay')) return;
 
     // 左边缘右滑呼出侧栏
     if (dx > 70 && originX < 28) {
