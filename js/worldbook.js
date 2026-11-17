@@ -58,7 +58,7 @@
       </section>`;
     }
     const entries=(book.entries||[]).filter(e=>(titleOf(e.raw||{},0)+' '+keysOf(e.raw||{})+' '+(e.raw?.content||'')).toLowerCase().includes(query.toLowerCase()));
-    return `<section class="worldbook-content">
+    return `<section class="worldbook-content wb-open-book">
       <button class="wb-back" type="button" id="wb-back">‹ 返回世界书书架</button>
       <div class="wb-detail-head"><div><span class="beautify-overline">WORLD INFO / ${(book.entries||[]).length} ENTRIES</span><h2>${esc(book.name)}</h2><div class="wb-detail-desc">${esc(book.description||'')}</div></div><span class="wb-count">${(book.entries||[]).filter(e=>e.enabled).length} 已启用</span></div>
       <div class="wb-toolbar"><button class="wb-btn" type="button" id="wb-export">导出 JSON</button><button class="wb-btn" type="button" id="wb-add-entry">新增条目</button><button class="wb-btn" type="button" id="wb-delete-book">删除世界书</button></div>
