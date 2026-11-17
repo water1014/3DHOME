@@ -2,6 +2,8 @@
 (function () {
   const KEY = 'xiaowo_daily_hub_v1';
   const LEGACY_KEY = 'xiaowo_calendar_events_v1';
+  const WISH_KEY = 'xw_shared_wishlist_v1';
+  let wishes = loadWishes();
   const WEEK = ['一','二','三','四','五','六','日'];
   const MEALS = [['breakfast','早餐'],['lunch','午餐'],['dinner','晚餐']];
   const MOODS = [['calm','😌','平静'],['happy','😊','开心'],['tired','😴','疲惫'],['low','🥺','低落'],['excited','🤩','期待']];
@@ -9,6 +11,25 @@
   let data = load();
   let cursor = firstMonth(new Date());
   let selected = iso(new Date());
+
+
+  function loadWishes() {
+    try { const v=JSON.parse(localStorage.getItem(WISH_KEY)||'[]'); return Array.isArray(v)?v:[]; }
+    catch (_) { return []; }
+  }
+  function saveWishes() {
+    try { localStorage.setItem(WISH_KEY,JSON.stringify(wishes)); return true; }
+    catch (_) { window.UI?.toast?.('心愿清单保存失败，请检查设备存储空间'); return false; }
+  }
+  function wishlistMarkup() {
+    const categories=[['go','想去'],['eat','想吃'],['do','想做']];
+    const open=wishes.filter(x=>!x.done),done=wishes.filter(x=>x.done);
+    const row=x=>'<label class="dh-wish-item '+(x.done?'done':'')+'"><input type="checkbox" data-wish-toggle="'+esc(x.id)+'" '+(x.done?'checked':'')+'><span class="dh-wish-kind kind-'+esc(x.kind)+'">'+(categories.find(c=>c[0]===x.kind)?.[1]||'心愿')+'</span><span class="dh-wish-text">'+esc(x.text)+'</span><button type="button" data-wish-remove="'+esc(x.id)+'" aria-label="删除心愿">×</button></label>';
+    return '<section class="dh-panel dh-wishlist"><div class="dh-panel-head"><div><span class="dh-en">SOMEDAY, TOGETHER</span><h3>我们想一起完成的事</h3></div><span class="dh-wish-count">'+done.length+' / '+wishes.length+' 已完成</span></div>'+
+      '<form class="dh-wish-form" id="dh-wish-form"><select id="dh-wish-kind" aria-label="心愿类型"><option value="go">想去</option><option value="eat">想吃</option><option value="do">想做</option></select><input id="dh-wish-text" maxlength="100" placeholder="想一起去哪里、吃什么、做什么？" aria-label="写下一个共同心愿"><button type="submit" aria-label="添加心愿">＋</button></form>'+
+      (wishes.length?'<div class="dh-wish-list">'+open.map(row).join('')+(done.length?'<div class="dh-wish-done-head">已经一起打勾的 '+done.length+' 件小事</div>'+done.map(row).join(''):'')+'</div>':'<p class="dh-muted dh-small dh-wish-empty">先把一个想去的地方、一顿想吃的饭，或者一件想一起做的事放进来。</p>')+
+      '<p class="dh-wish-note">不赶时间，慢慢把“想一起”变成“已经一起”。</p></section>';
+  }
 
   function fresh() { return { days: {}, timetable: [], countdowns: [] }; }
   function load() {
@@ -98,7 +119,7 @@
   function render() {
     const day=getDay(selected), d=parse(selected), today=iso(new Date());
     const done=day.todos.filter(x=>x.done).length;
-    return '<section class="daily-hub" id="daily-hub"><div class="dh-today-head"><div><span class="dh-en">TODAY / OUR LITTLE LIFE</span><h2>'+dateLabel(selected)+'</h2><p>'+todayLabel(selected)+' · '+(selected===today?'今天':'查看这一天')+'</p></div><div class="dh-weather"><span>WEATHER</span><b>天气待接入</b><small>连接天气服务后显示</small></div></div><div class="dh-progress"><span>今日完成</span><b>'+done+' / '+day.todos.length+'</b><i><em style="width:'+(day.todos.length?Math.round(done/day.todos.length*100):0)+'%"></em></i></div>'+timetableMarkup()+countdownMarkup()+todosMarkup(day)+mealsMarkup(day)+moodMarkup(day)+eventsMarkup(day)+monthMarkup()+'<p class="dh-footnote">把普通的一天，也认真地收进生活里。</p></section>';
+    return '<section class="daily-hub" id="daily-hub"><div class="dh-today-head"><div><span class="dh-en">TODAY / OUR LITTLE LIFE</span><h2>'+dateLabel(selected)+'</h2><p>'+todayLabel(selected)+' · '+(selected===today?'今天':'查看这一天')+'</p></div><div class="dh-weather"><span>WEATHER</span><b>天气待接入</b><small>连接天气服务后显示</small></div></div><div class="dh-progress"><span>今日完成</span><b>'+done+' / '+day.todos.length+'</b><i><em style="width:'+(day.todos.length?Math.round(done/day.todos.length*100):0)+'%"></em></i></div>'+timetableMarkup()+countdownMarkup()+todosMarkup(day)+mealsMarkup(day)+moodMarkup(day)+eventsMarkup(day)+monthMarkup()+wishlistMarkup()+'<p class="dh-footnote"把普通的一天，也认真地收进生活里。</p></section>';
   }
   function refresh() { const root=$('daily-hub'); if(!root)return; root.outerHTML=render(); bind(); }
   function addItem(kind) {
@@ -123,6 +144,22 @@
   }
   function bind() {
     const root=$('daily-hub'); if(!root)return;
+
+    const wishForm=root.querySelector('#dh-wish-form');
+    if(wishForm)wishForm.onsubmit=e=>{
+      e.preventDefault();
+      const input=root.querySelector('#dh-wish-text'),kind=root.querySelector('#dh-wish-kind'),text=(input?.value||'').trim();
+      if(!text){window.UI?.toast?.('先写下一件想一起做的事');return;}
+      wishes.push({id:makeId(),kind:kind?.value||'do',text,done:false,createdAt:Date.now()});
+      if(saveWishes())refresh();
+    };
+    root.querySelectorAll('[data-wish-toggle]').forEach(input=>input.onchange=()=>{
+      const item=wishes.find(x=>x.id===input.dataset.wishToggle);if(item){item.done=input.checked;if(saveWishes())refresh();}
+    });
+    root.querySelectorAll('[data-wish-remove]').forEach(button=>button.onclick=()=>{
+      wishes=wishes.filter(x=>x.id!==button.dataset.wishRemove);if(saveWishes())refresh();
+    });
+
     root.querySelectorAll('[data-date]').forEach(btn=>btn.onclick=()=>{selected=btn.dataset.date;cursor=firstMonth(parse(selected));refresh();});
     root.querySelectorAll('[data-month]').forEach(btn=>btn.onclick=()=>{cursor=new Date(cursor.getFullYear(),cursor.getMonth()+Number(btn.dataset.month),1);refresh();});
     const today=root.querySelector('[data-today]'); if(today)today.onclick=()=>{selected=iso(new Date());cursor=firstMonth(new Date());refresh();};
