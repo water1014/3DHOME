@@ -1,0 +1,35 @@
+services:
+  engawa:
+    build: .
+    environment:
+      ENGAWA_HOST: 0.0.0.0
+      ENGAWA_PORT: "8799"
+      ENGAWA_LAT: ${ENGAWA_LAT:-51.4769}
+      ENGAWA_LON: ${ENGAWA_LON:--0.0005}
+      ENGAWA_TZ_OFFSET: ${ENGAWA_TZ_OFFSET:-0}
+    volumes:
+      - engawa_cache:/root/.cache/engawa-mcp
+    expose:
+      - "8799"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    depends_on:
+      - engawa
+    environment:
+      ENGAWA_DOMAIN: ${ENGAWA_DOMAIN}
+      ENGAWA_TOKEN: ${ENGAWA_TOKEN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  engawa_cache:
+  caddy_data:
+  caddy_config:

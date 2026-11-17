@@ -1785,3 +1785,12 @@ html.dark #pg-chat .msg-meta.tool-meta .meta-content {
 .chat-worldbook-preview>small{display:block;margin-top:.35rem;font-size:.56rem;line-height:1.55;color:var(--ink-3)}
 .chat-worldbook-preview-list{display:flex;flex-wrap:wrap;gap:.32rem;margin-top:.48rem}
 .chat-worldbook-preview-list span{max-width:100%;padding:.24rem .42rem;border:1px solid var(--line);border-radius:.35rem;font-size:.55rem;line-height:1.4;color:var(--ink-2);overflow-wrap:anywhere}
+
+/* Engawa MCP connection */
+#pg-chat .chat-engawa-connect{display:flex;flex-direction:column;gap:.48rem;margin-top:.9rem;padding:.82rem;border:1px solid var(--line);border-radius:.78rem;background:color-mix(in srgb,var(--glass) 76%,transparent)}
+#pg-chat .chat-engawa-connect>.chat-pref-label{margin-bottom:.08rem}
+#pg-chat .chat-engawa-connect .chat-ai-actions{margin-top:.12rem}
+#pg-chat .chat-engawa-connect .chat-ai-actions button{min-height:2rem;padding:.42rem .78rem;border:1px solid var(--line);border-radius:99px;background:var(--ink);color:var(--page-bg);font-size:.65rem}
+#pg-chat .chat-engawa-connect .chat-ai-actions button:disabled{opacity:.55}
+#pg-chat .chat-engawa-tools{padding:.55rem .62rem;border-left:1px solid var(--line);color:var(--ink-3);font-size:.58rem;line-height:1.7;overflow-wrap:anywhere}
+#pg-chat .tool-record-output{margin-top:.35rem;padding:.5rem .58rem;border-left:1px solid color-mix(in srgb,var(--ink-3) 34%,transparent);background:color-mix(in srgb,var(--page-bg) 82%,var(--ink-3) 18%);color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;max-height:14rem;overflow:auto;font:400 .62rem/1.6 var(--mono)}

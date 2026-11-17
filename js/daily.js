@@ -143,6 +143,7 @@
       }
     };
     const panel = panels[windowTab] || panels.tonight;
+    const engawaConnected = !!window.Engawa?.isConnected?.();
     const tabs = [['tonight','今夜'],['daily','每日'],['shelf','书架'],['hobby','爱好角']];
     return `
       <section class="engawa-content">
@@ -152,8 +153,8 @@
         </div>
         <div class="engawa-status">
           <span class="engawa-status-dot"></span>
-          <div><b>等待连接 Engawa 服务</b><small>页面已就位，实时天象、诗画与订阅内容将在 MCP 服务接通后加载。</small></div>
-          <span class="engawa-status-tag">NOT CONNECTED</span>
+          <div><b>${engawaConnected ? 'Engawa 服务已连接' : '等待连接 Engawa 服务'}</b><small>${engawaConnected ? '服务已就绪，宋祁可以在聊天中按需漫游、阅读与管理订阅。' : '页面已就位，实时天象、诗画与订阅内容将在 MCP 服务接通后加载。'}</small></div>
+          <span class="engawa-status-tag">${engawaConnected ? 'CONNECTED' : 'NOT CONNECTED'}</span>
         </div>
         <nav class="engawa-tabs" aria-label="窗廊分类">
           ${tabs.map(([key,label]) => `<button type="button" data-window-tab="${key}" class="${windowTab===key?'active':''}" aria-pressed="${windowTab===key?'true':'false'}">${label}</button>`).join('')}
@@ -179,7 +180,7 @@
           ${windowToolsOpen ? `<div class="engawa-tools-list">
             <span>web_read</span><span>rss_read</span><span>shelf / shelf_add / shelf_suggest / shelf_remove</span>
             <span>sky_tonight</span><span>apod</span><span>daily_art</span><span>daily_poem</span>
-            <span>arxiv_new</span><span>on_this_day</span><span>hobby_corner / hobby_add / hobby_remove</span>
+            <span>arxiv_new</span><span>on_this_day</span><span>hobby_corner</span><span>hobby_add / hobby_remove</span>
           </div>` : ''}
         </section>
         <p class="engawa-footnote">窗廊不是搜索框。它是一条慢慢走出去、再带着故事回来的路。</p>

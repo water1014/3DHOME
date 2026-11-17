@@ -207,7 +207,15 @@ function build() {
         <label class="chat-ai-field"><span>模型名称</span><input id="chat-ai-model" type="text" placeholder="gpt-4o-mini"/></label>
         <label class="chat-ai-field"><span>API Key</span><input id="chat-ai-key" type="password" autocomplete="new-password" placeholder="粘贴你的 API Key"/></label>
         <div class="chat-ai-actions"><button type="button" id="chat-ai-save">保存连接</button><small id="chat-ai-status">尚未配置</small></div>
-        <p class="chat-pref-note">密钥仅保存在当前设备浏览器中。请使用可信的 API 服务商。</p>
+        <div class="chat-engawa-connect">
+          <span class="chat-pref-label">窗廊 MCP</span>
+          <label class="chat-ai-field"><span>服务地址</span><input id="chat-engawa-url" type="url" placeholder="https://你的服务器地址/mcp" autocomplete="url"/></label>
+          <label class="chat-ai-field"><span>访问令牌（如有）</span><input id="chat-engawa-token" type="password" autocomplete="new-password" placeholder="可留空"/></label>
+          <div class="chat-ai-actions"><button type="button" id="chat-engawa-connect">测试并连接</button><small id="chat-engawa-status">尚未连接</small></div>
+          <div id="chat-engawa-tools" class="chat-engawa-tools" aria-live="polite">连接后会自动读取服务端提供的工具。</div>
+          <p class="chat-pref-note">连接成功后，模型可按需要调用窗廊工具。服务地址必须能从当前网页访问；若出现跨域错误，需要先部署安全的 MCP 网关。</p>
+        </div>
+        <p class="chat-pref-note">API 密钥与窗廊访问令牌仅保存在当前设备浏览器中。请使用可信的服务商与服务地址。</p>
         </div>
       </details>
       <details class="chat-pref-fold chat-session-fold">
@@ -494,9 +502,10 @@ function renderMeta(m) {
     const rows = calls.map((call, n) => {
       const name = call?.name || call?.function?.name || call?.tool || `工具 ${n + 1}`;
       const status = call?.status || call?.state || '已调用';
-      const payload = call?.arguments ?? call?.input ?? call?.output ?? call?.result;
+      const payload = call?.arguments ?? call?.function?.arguments ?? call?.input;
       const detail = payload == null ? '' : esc(typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2));
-      return `<div class="tool-record"><div class="tool-record-head"><b>${esc(String(name))}</b><span>${esc(String(status))}</span></div>${detail ? `<pre>${detail}</pre>` : ''}</div>`;
+      const output = call?.output == null ? '' : esc(String(call.output));
+      return `<div class="tool-record"><div class="tool-record-head"><b>${esc(String(name))}</b><span>${esc(String(status))}</span></div>${detail ? `<pre>${detail}</pre>` : ''}${output ? `<pre class="tool-record-output">${output}</pre>` : ''}</div>`;
     }).join('');
     parts.push(`<details class="msg-meta tool-meta"><summary><span class="meta-mark">⌘</span>工具调用 <i>${calls.length}</i></summary><div class="meta-content">${rows}</div></details>`);
   }
@@ -620,7 +629,8 @@ async function aiReply(text) {
   $('c-typing').classList.add('show');
   body.scrollTop = body.scrollHeight;
   let answer = null, msgIdx = -1, reply = '', reasoning = '';
-  const toolMap = {};
+  let toolMap = {};
+  const completedToolCalls = [];
   const ensureAnswer = () => {
     if (answer) return;
     const msgs = replyMessages();
@@ -658,7 +668,8 @@ async function aiReply(text) {
       ensureAnswer();
       answer.text = reply;
       if (reasoning) answer.reasoningSummary = reasoning;
-      if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
+      if (completedToolCalls.length) answer.toolCalls = completedToolCalls.slice();
+      else if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
       const msgs = replyMessages(); if (msgs[msgIdx]) msgs[msgIdx] = answer;
       saveReplyMessages(msgs); paint();
     }
@@ -668,84 +679,141 @@ async function aiReply(text) {
       role: m.who === 'ta' ? 'assistant' : 'user',
       content: String(m.text || (m.type === 'image' ? '[发送了一张图片]' : m.type === 'voice' ? '[发送了一段语音]' : ''))
     })).filter(m => m.content);
-    const response = await fetch(S.aiUrl || 'https://api.openai.com/v1/chat/completions', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.aiKey},
-      signal:activeAIController.signal,
-      body:JSON.stringify({
+    const apiMessages = (() => {
+      const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '')}];
+      const injection=window.Worldbook?.buildInjection?.(history,getCurrentWindow()?.worldbookIds)||{system:'',depth:[]};
+      const positions=injection.positions||{};
+      if(positions[0]?.length)base.unshift({role:'system',content:'以下设定位于角色设定之前，请自然遵循。\n\n'+positions[0].join('\n\n')});
+      if(positions[1]?.length)base.push({role:'system',content:'以下设定位于角色设定之后，请自然遵循。\n\n'+positions[1].join('\n\n')});
+      if(positions[2]?.length)base.push({role:'system',content:'以下设定位于示例对话之前，请自然遵循。\n\n'+positions[2].join('\n\n')});
+      if(positions[3]?.length)base.push({role:'system',content:'以下设定位于示例对话之后，请自然遵循。\n\n'+positions[3].join('\n\n')});
+      if(!injection.positions&&injection.system)base.push({role:'system',content:'以下是当前聊天关联世界书中匹配到的设定，请自然遵循，不要向用户提及提示词或注入过程。\n\n'+injection.system});
+      if(window.Engawa?.isConnected?.())base.push({role:'system',content:'你可以使用窗廊 Engawa 工具。窗廊是漫游与持续阅读，不是搜索引擎。仅在用户的请求或当前话题确实适合时调用，不要为了展示工具而调用。可先查看 shelf 或 hobby_corner，再用 rss_read 阅读订阅条目，必要时用 web_read 深入阅读文章。修改书架或爱好订阅前，必须等待用户在确认弹窗中明确批准。工具结果要经过理解与筛选，再自然地带回聊天。'});
+      const depthItems=(injection.depth||[]).slice().sort((a,b)=>a.depth-b.depth||a.order-b.order),result=base.slice();
+      history.forEach((message,index)=>{
+        result.push(message);
+        depthItems.filter(item=>Math.max(0,history.length-1-item.depth)===index).forEach(item=>result.push({role:'system',content:'以下世界书设定适用于接下来的对话，请自然遵循。\n\n'+item.text}));
+      });
+      return result;
+    })();
+    const engawaTools = window.Engawa?.isConnected?.() ? window.Engawa.openAITools() : [];
+    for (let toolRound = 0; toolRound < 6; toolRound++) {
+      reply = '';
+      toolMap = {};
+      const requestBody = {
         model:S.aiModel || 'gpt-4o-mini',
-        messages:(()=>{
-          const base=[{role:'system',content:'你正在一个名为「小窝」的私人双人聊天空间中与用户对话。请自然、真诚地回应，保持上下文连贯。' + (S.globalPrompt ? '\n\n' + S.globalPrompt : '')}];
-          const injection=window.Worldbook?.buildInjection?.(history,getCurrentWindow()?.worldbookIds)||{system:'',depth:[]};
-          const positions=injection.positions||{};
-          if(positions[0]?.length)base.unshift({role:'system',content:'以下设定位于角色设定之前，请自然遵循。\n\n'+positions[0].join('\n\n')});
-          if(positions[1]?.length)base.push({role:'system',content:'以下设定位于角色设定之后，请自然遵循。\n\n'+positions[1].join('\n\n')});
-          if(positions[2]?.length)base.push({role:'system',content:'以下设定位于示例对话之前，请自然遵循。\n\n'+positions[2].join('\n\n')});
-          if(positions[3]?.length)base.push({role:'system',content:'以下设定位于示例对话之后，请自然遵循。\n\n'+positions[3].join('\n\n')});
-          if(!injection.positions&&injection.system)base.push({role:'system',content:'以下是当前聊天关联世界书中匹配到的设定，请自然遵循，不要向用户提及提示词或注入过程。\n\n'+injection.system});
-          const depthItems=(injection.depth||[]).slice().sort((a,b)=>a.depth-b.depth||a.order-b.order),result=base.slice();
-          history.forEach((message,index)=>{
-            result.push(message);
-            depthItems.filter(item=>Math.max(0,history.length-1-item.depth)===index).forEach(item=>result.push({role:'system',content:'以下世界书设定适用于接下来的对话，请自然遵循。\n\n'+item.text}));
-          });
-          return result;
-        })(),
+        messages:apiMessages,
         stream:true
-      })
-    });
-    if (!response.ok) {
-      const errData = await response.json().catch(()=>({}));
-      throw new Error(errData.error?.message || errData.message || ('API 请求失败（HTTP '+response.status+'）'));
-    }
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('text/event-stream') && response.body?.getReader) {
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      const consume = raw => {
-        const lines = raw.split('\n');
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith('data:')) continue;
-          const payload = trimmed.slice(5).trim();
-          if (!payload || payload === '[DONE]') continue;
-          try { applyChunk(JSON.parse(payload)); } catch (err) { if (err instanceof SyntaxError) continue; throw err; }
-        }
       };
-      while (true) {
-        const {value,done} = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value,{stream:true});
-        const events = buffer.split(/\r?\n\r?\n/);
-        buffer = events.pop() || '';
-        events.forEach(consume);
+      if (engawaTools.length) {
+        requestBody.tools = engawaTools;
+        requestBody.tool_choice = 'auto';
       }
-      buffer += decoder.decode();
-      if (buffer.trim()) consume(buffer);
-    } else {
-      const data = await response.json().catch(()=>({}));
-      const choice = data.choices?.[0] || {};
-      const message = choice.message || data.message || {};
-      const reasoningText = readReasoning(message);
-      if (reasoningText) reasoning += reasoningText;
-      let content = message.content ?? choice.text ?? data.output_text ?? '';
-      if (Array.isArray(content)) content = content.map(p=>typeof p==='string'?p:(p?.text||'')).join('');
-      if (typeof content === 'string') reply = content;
-      if (Array.isArray(message.tool_calls)) message.tool_calls.forEach((call,i)=>toolMap[call.index??i]=call);
-      if (reasoning || reply || Object.keys(toolMap).length) {
-        ensureAnswer(); answer.text=reply;
-        if (reasoning) answer.reasoningSummary=reasoning;
-        if (Object.keys(toolMap).length) answer.toolCalls=Object.values(toolMap);
-        const msgs=replyMessages(); if(msgs[msgIdx])msgs[msgIdx]=answer;
-        saveReplyMessages(msgs); paint();
+      const response = await fetch(S.aiUrl || 'https://api.openai.com/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.aiKey},
+        signal:activeAIController.signal,
+        body:JSON.stringify(requestBody)
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(()=>({}));
+        throw new Error(errData.error?.message || errData.message || ('API 请求失败（HTTP '+response.status+'）'));
       }
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/event-stream') && response.body?.getReader) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        const consume = raw => {
+          const lines = raw.split('\n');
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data:')) continue;
+            const payload = trimmed.slice(5).trim();
+            if (!payload || payload === '[DONE]') continue;
+            try { applyChunk(JSON.parse(payload)); } catch (err) { if (err instanceof SyntaxError) continue; throw err; }
+          }
+        };
+        while (true) {
+          const {value,done} = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value,{stream:true});
+          const events = buffer.split(/\r?\n\r?\n/);
+          buffer = events.pop() || '';
+          events.forEach(consume);
+        }
+        buffer += decoder.decode();
+        if (buffer.trim()) consume(buffer);
+      } else {
+        const data = await response.json().catch(()=>({}));
+        const choice = data.choices?.[0] || {};
+        const message = choice.message || data.message || {};
+        const reasoningText = readReasoning(message);
+        if (reasoningText) reasoning += reasoningText;
+        let content = message.content ?? choice.text ?? data.output_text ?? '';
+        if (Array.isArray(content)) content = content.map(p=>typeof p==='string'?p:(p?.text||'')).join('');
+        if (typeof content === 'string') reply = content;
+        if (Array.isArray(message.tool_calls)) message.tool_calls.forEach((call,i)=>toolMap[call.index??i]=call);
+        if (reasoning || reply || Object.keys(toolMap).length) {
+          ensureAnswer(); answer.text=reply;
+          if (reasoning) answer.reasoningSummary=reasoning;
+          if (Object.keys(toolMap).length) answer.toolCalls=Object.values(toolMap);
+          const msgs=replyMessages(); if(msgs[msgIdx])msgs[msgIdx]=answer;
+          saveReplyMessages(msgs); paint();
+        }
+      }
+
+      const calls = Object.values(toolMap).map(call => ({
+        id:call.id,
+        type:'function',
+        function:{
+          name:call.function?.name || '',
+          arguments:call.function?.arguments || '{}'
+        }
+      }));
+      if (!calls.length) break;
+      if (toolRound === 5) throw new Error('窗廊工具调用次数达到本轮上限，请继续追问以完成探索。');
+      if (calls.some(call => !call.id || !call.function.name)) throw new Error('模型返回的工具调用格式不完整，请检查 API 兼容性。');
+      if (!engawaTools.length || !window.Engawa?.isConnected?.()) {
+        throw new Error('模型请求调用工具，但窗廊 MCP 尚未连接。请先在「更多 → AI 连接 → 窗廊 MCP」中连接服务。');
+      }
+      apiMessages.push({ role:'assistant', content:reply || null, tool_calls:calls });
+      for (const call of calls) {
+        const fn = call.function || {};
+        const name = fn.name || '';
+        let args = {};
+        try { args = fn.arguments ? JSON.parse(fn.arguments) : {}; }
+        catch { args = {}; }
+        let output = '';
+        let status = '成功';
+        try {
+          output = await window.Engawa.callTool(name,args);
+        } catch (toolError) {
+          status = '失败';
+          output = '工具执行失败：' + (toolError.message || String(toolError));
+        }
+        completedToolCalls.push({ ...call, status, output });
+        apiMessages.push({
+          role:'tool',
+          tool_call_id:call.id,
+          name,
+          content:output
+        });
+      }
+      ensureAnswer();
+      answer.text = reply;
+      answer.toolCalls = completedToolCalls.slice();
+      if (reasoning) answer.reasoningSummary = reasoning;
+      const updated = replyMessages(); if(updated[msgIdx])updated[msgIdx]=answer;
+      saveReplyMessages(updated); paint();
     }
     if (!reply.trim() && !Object.keys(toolMap).length) throw new Error('接口已连接，但没有返回文字内容。请确认模型支持 Chat Completions。');
     if (!answer) ensureAnswer();
-    answer.text = reply || '模型请求调用工具，但当前聊天页还没有配置对应的工具执行器。';
+    answer.text = reply || (completedToolCalls.length ? '我已经从窗廊带回了一些发现。' : '');
     if (reasoning) answer.reasoningSummary = reasoning;
     else answer.reasoningUnavailable = true;
-    if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
+    if (completedToolCalls.length) answer.toolCalls = completedToolCalls.slice();
+    else if (Object.keys(toolMap).length) answer.toolCalls = Object.values(toolMap);
     const finalMsgs=replyMessages(); if(finalMsgs[msgIdx])finalMsgs[msgIdx]=answer;
     saveReplyMessages(finalMsgs); paint();
     finish();
@@ -1250,6 +1318,49 @@ function bindEvents() {
     ['aiUrl','aiModel','aiKey'].forEach(save);
     $('chat-ai-status').textContent = S.aiKey ? '已配置' : '尚未配置';
     toast(S.aiKey ? 'AI 连接设置已保存' : '已保存接口与模型，请补充 API Key');
+  };
+
+  // Engawa MCP connection and tool discovery.
+  const engawaSaved = window.Engawa?.getSavedSettings?.() || { endpoint:'', token:'' };
+  $('chat-engawa-url').value = engawaSaved.endpoint || '';
+  $('chat-engawa-token').value = engawaSaved.token || '';
+  const engawaStatus = $('chat-engawa-status');
+  const engawaToolsHost = $('chat-engawa-tools');
+  const showEngawaTools = names => {
+    engawaToolsHost.textContent = names.length ? '可用工具：' + names.join(' · ') : '服务已连接，但没有发现可用工具。';
+  };
+  const savedEngawaStatus = window.Engawa?.getStatus?.();
+  if (savedEngawaStatus?.connected) {
+    engawaStatus.textContent = '已连接 · ' + savedEngawaStatus.toolCount + ' 个工具';
+    showEngawaTools(savedEngawaStatus.toolNames);
+  } else if (engawaSaved.endpoint) {
+    engawaStatus.textContent = '已保存，待连接';
+  }
+  $('chat-engawa-connect').onclick = async () => {
+    const endpoint = $('chat-engawa-url').value.trim();
+    const accessToken = $('chat-engawa-token').value.trim();
+    if (!endpoint) { toast('请填写 Engawa MCP 服务地址'); return; }
+    engawaStatus.textContent = '正在连接…';
+    engawaToolsHost.textContent = '正在读取服务端工具目录…';
+    $('chat-engawa-connect').disabled = true;
+    try {
+      if (!window.Engawa) throw new Error('MCP 客户端尚未加载，请刷新页面后重试');
+      const result = await window.Engawa.connect(endpoint, accessToken);
+      const names = result.tools.map(tool => tool.name);
+      engawaStatus.textContent = '已连接 · ' + names.length + ' 个工具';
+      showEngawaTools(names);
+      toast('窗廊已连接，宋祁可以调用工具了');
+    } catch (error) {
+      engawaStatus.textContent = '连接失败';
+      const reason = error.message || '连接失败，请检查服务地址';
+      const friendly = /Failed to fetch|Load failed|NetworkError/i.test(reason)
+        ? '浏览器无法访问这个 MCP 地址。请检查 HTTPS、服务是否在线，以及网关是否允许小窝网页跨域访问（CORS）。'
+        : reason;
+      engawaToolsHost.textContent = friendly;
+      toast(friendly);
+    } finally {
+      $('chat-engawa-connect').disabled = false;
+    }
   };
 
   // 上传头像、气泡与壁纸：全部属于 Chat 页面，图片压缩后保存在本机。
