@@ -218,6 +218,15 @@
             <div class="home-photo-wall" id="h-photo-wall"></div>
           </section>
 
+          <section class="home-record" aria-label="留声片刻">
+            <div class="record-copy">
+              <span class="home-eyebrow">A QUIET MOMENT</span>
+              <h2>把日子，轻轻放慢。</h2>
+              <p>有些瞬间不必说出口，也值得被好好收藏。</p>
+            </div>
+            <div class="record-disc" aria-hidden="true"><span></span></div>
+          </section>
+
           <section class="home-note">
             <span class="home-note-mark">“</span>
             <p id="h-note-text"></p>
