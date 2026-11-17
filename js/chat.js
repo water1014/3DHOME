@@ -772,6 +772,7 @@ async function aiReply(text) {
         }
       }));
       if (!calls.length) break;
+      if (toolRound === 5) throw new Error('窗廊工具调用次数达到本轮上限，请继续追问以完成探索。');
       if (calls.some(call => !call.id || !call.function.name)) throw new Error('模型返回的工具调用格式不完整，请检查 API 兼容性。');
       if (!engawaTools.length || !window.Engawa?.isConnected?.()) {
         throw new Error('模型请求调用工具，但窗廊 MCP 尚未连接。请先在「更多 → AI 连接 → 窗廊 MCP」中连接服务。');
@@ -805,7 +806,6 @@ async function aiReply(text) {
       if (reasoning) answer.reasoningSummary = reasoning;
       const updated = replyMessages(); if(updated[msgIdx])updated[msgIdx]=answer;
       saveReplyMessages(updated); paint();
-      if (toolRound === 5) throw new Error('窗廊工具调用次数达到本轮上限，请继续追问以完成探索。');
     }
     if (!reply.trim() && !Object.keys(toolMap).length) throw new Error('接口已连接，但没有返回文字内容。请确认模型支持 Chat Completions。');
     if (!answer) ensureAnswer();
