@@ -14,16 +14,20 @@ const pages = {
 let cur = '';
 
 function go(name) {
-  if (!pages[name]) return;
-  if (cur === name) return;
-  if (cur === 'home') window.Home?.stopClock();
-  pages[cur]?.classList.remove('on');
-  tabs.forEach(t => { if (t.dataset.go === cur) t.classList.remove('active'); });
+  if (!Object.prototype.hasOwnProperty.call(pages, name) || !pages[name]) return;
+  if (cur === 'home' && name !== 'home') window.Home?.stopClock();
+
+  // 每次切页都校准全部页面，确保首页 / 聊天 / 记忆严格一一对应，
+  // 不依赖上一次 cur 状态，也不允许两个页面同时保持显示。
+  Object.entries(pages).forEach(([key, page]) => {
+    if (page) page.classList.toggle('on', key === name);
+  });
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.go === name));
+  D.querySelectorAll('#side-drawer [data-go]').forEach(t => {
+    t.classList.toggle('on', t.dataset.go === name);
+  });
 
   cur = name;
-  pages[cur].classList.add('on');
-  tabs.forEach(t => { if (t.dataset.go === cur) t.classList.add('active'); });
-
   if (cur === 'home') window.Home?.startClock();
 }
 window.go = go;
