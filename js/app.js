@@ -30,7 +30,6 @@ window.go = go;
 
 // ── 占位页（记忆 / 日常 / 阅读） ──
 const PLACEHOLDER = {
-  mem:   { en: 'MEMORY', zh: '记忆', desc: '共同记忆的时间轴，正在整理旧时光。' },
   daily: { en: 'DAILY',  zh: '日常', desc: '便签墙与每一天的小确幸，筹备中。' },
   read:  { en: 'READ',   zh: '阅读', desc: '一起读的书单与进度，即将上线。' },
 };
@@ -94,6 +93,7 @@ function init() {
   window.Home?.build();
   window.Chat?.build();
   window.Mine?.build();
+  window.Memory?.build();
   Object.keys(PLACEHOLDER).forEach(buildPlaceholder);
 
   tabs.forEach(t => t.addEventListener('click', () => go(t.dataset.go)));
