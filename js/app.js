@@ -85,6 +85,14 @@ function initSide() {
     };
   });
 
+  drawer.querySelectorAll('[data-daily-go]').forEach(item => {
+    item.onclick = () => {
+      window.Daily?.select(item.dataset.dailyGo);
+      drawer.querySelectorAll('[data-daily-go]').forEach(link => link.classList.toggle('active', link === item));
+      close();
+    };
+  });
+
   // 深色模式
   const sw = $('sd-switch');
   const syncTheme = () => sw.classList.toggle('on', D.documentElement.classList.contains('dark'));
