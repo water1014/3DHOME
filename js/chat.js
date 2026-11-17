@@ -502,7 +502,7 @@ function renderMeta(m) {
     const rows = calls.map((call, n) => {
       const name = call?.name || call?.function?.name || call?.tool || `工具 ${n + 1}`;
       const status = call?.status || call?.state || '已调用';
-      const payload = call?.arguments ?? call?.input ?? call?.output ?? call?.result;
+      const payload = call?.arguments ?? call?.function?.arguments ?? call?.input;
       const detail = payload == null ? '' : esc(typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2));
       const output = call?.output == null ? '' : esc(String(call.output));
       return `<div class="tool-record"><div class="tool-record-head"><b>${esc(String(name))}</b><span>${esc(String(status))}</span></div>${detail ? `<pre>${detail}</pre>` : ''}${output ? `<pre class="tool-record-output">${output}</pre>` : ''}</div>`;
