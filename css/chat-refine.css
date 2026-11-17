@@ -1087,3 +1087,111 @@ html.dark #pg-chat .chat-pref-head button {background:#394351;color:#dce4ee}
 @media (prefers-reduced-motion:reduce) {
   #pg-chat .chat-pref,#pg-chat .chat-pref-backdrop {transition:none}
 }
+
+
+/* Composer sits close to the conversation; don't lift it with a second oversized footer. */
+#pg-chat .input-bar {
+  margin-bottom:calc(var(--tabbar-h) + .28rem);
+  padding:.32rem max(.85rem,var(--page-pad)) .28rem;
+  border-top:0;
+  background:transparent;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+html.dark #pg-chat .input-bar {background:transparent}
+
+/* Make the side drawer feel like part of the same quiet silver-blue chat surface. */
+#pg-chat .chat-pref {
+  width:min(82vw,19.5rem);
+  padding:calc(.65rem + env(safe-area-inset-top)) .78rem calc(.8rem + env(safe-area-inset-bottom));
+  border:1px solid color-mix(in srgb,var(--ink-3) 15%,var(--line));
+  border-right:0;
+  border-radius:1.05rem 0 0 1.05rem;
+  background:color-mix(in srgb,var(--page-bg) 94%,#dce5ef 6%);
+  color:var(--ink);
+  box-shadow:-8px 0 28px rgba(42,57,74,.10);
+}
+html.dark #pg-chat .chat-pref {
+  background:color-mix(in srgb,var(--page-bg) 94%,#536274 6%);
+  border-color:rgba(205,218,234,.13);
+  box-shadow:-8px 0 28px rgba(0,0,0,.24);
+}
+#pg-chat .chat-pref-head {
+  margin:calc(-.65rem - env(safe-area-inset-top)) -.78rem .7rem;
+  padding:calc(.9rem + env(safe-area-inset-top)) .9rem .68rem;
+  background:color-mix(in srgb,var(--page-bg) 96%,#e2eaf2 4%);
+  border-bottom:1px solid color-mix(in srgb,var(--ink-3) 10%,transparent);
+}
+html.dark #pg-chat .chat-pref-head {
+  background:color-mix(in srgb,var(--page-bg) 96%,#536274 4%);
+  border-color:rgba(205,218,234,.1);
+}
+#pg-chat .chat-pref-head b {font-size:.84rem;letter-spacing:.025em}
+#pg-chat .chat-pref-head small {font-size:.54rem;color:var(--ink-3)}
+#pg-chat .chat-pref-head button {
+  width:1.85rem;height:1.85rem;
+  background:color-mix(in srgb,var(--page-bg) 88%,#cbd7e5 12%);
+  color:var(--ink-2);
+}
+html.dark #pg-chat .chat-pref-head button {
+  background:rgba(218,229,242,.08);
+  color:var(--ink-2);
+}
+#pg-chat .chat-pref-group {
+  gap:.38rem;
+  padding:.15rem .1rem .45rem;
+}
+#pg-chat .chat-pref-group + .chat-pref-group {
+  margin-top:.18rem;
+  padding-top:.58rem;
+  border-top:1px solid color-mix(in srgb,var(--ink-3) 12%,transparent);
+}
+#pg-chat .chat-pref-label {
+  color:var(--ink-3);
+  font-size:.5rem;
+  letter-spacing:.11em;
+}
+#pg-chat .chat-pref-group button {
+  min-height:2.15rem;
+  padding:.42rem .72rem;
+  border-radius:.72rem;
+  background:color-mix(in srgb,var(--page-bg) 88%,#dbe4ee 12%);
+  border:1px solid color-mix(in srgb,var(--ink-3) 12%,transparent);
+  color:var(--ink-2);
+  font-size:.65rem;
+}
+#pg-chat .chat-pref-group button.on {
+  background:var(--dark);
+  border-color:var(--dark);
+  color:var(--on-dark);
+}
+html.dark #pg-chat .chat-pref-group button {
+  background:rgba(218,229,242,.065);
+  border-color:rgba(218,229,242,.1);
+  color:var(--ink-2);
+}
+html.dark #pg-chat .chat-pref-group button.on {
+  background:#c3d0df;
+  border-color:#c3d0df;
+  color:#26313d;
+}
+#pg-chat .chat-pref-fold {
+  margin-top:.48rem;
+  border-radius:.78rem;
+  background:color-mix(in srgb,var(--page-bg) 94%,#dbe4ee 6%);
+  border-color:color-mix(in srgb,var(--ink-3) 12%,transparent);
+}
+html.dark #pg-chat .chat-pref-fold {
+  background:rgba(218,229,242,.035);
+  border-color:rgba(218,229,242,.1);
+}
+#pg-chat .chat-pref-fold > summary {min-height:3rem;padding:.5rem .58rem}
+#pg-chat .chat-pref-fold-icon {
+  background:color-mix(in srgb,var(--page-bg) 80%,#cbd8e6 20%);
+  color:var(--ink-2);
+}
+html.dark #pg-chat .chat-pref-fold-icon {background:rgba(218,229,242,.09);color:#cbd8e6}
+#pg-chat .chat-pref-fold > summary b {color:var(--ink)}
+#pg-chat .chat-pref-fold > summary small {color:var(--ink-3)}
+#pg-chat .chat-pref-fold .chat-pref-section {border-color:color-mix(in srgb,var(--ink-3) 12%,transparent)}
+#pg-chat .chat-pref-note {color:var(--ink-3)}
