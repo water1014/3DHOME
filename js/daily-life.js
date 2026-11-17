@@ -50,7 +50,7 @@
   function firstMonth(date) { return new Date(date.getFullYear(),date.getMonth(),1); }
   function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function dateLabel(value) { const d=parse(value); return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日'; }
-  function todayLabel(value) { const d=parse(value); return WEEK[(d.getDay()+6)%7]+'曜日'; }
+  function todayLabel(value) { const d=parse(value); return '星期'+WEEK[(d.getDay()+6)%7]; }
   function weekDates(value) {
     const d=parse(value), start=new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7));
     return Array.from({length:7},(_,i)=>{const x=new Date(start);x.setDate(start.getDate()+i);return iso(x);});
@@ -60,14 +60,14 @@
     const start=new Date(first.getFullYear(),first.getMonth(),1-offset);
     return Array.from({length:42},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return iso(d);});
   }
-  function monthMarkup() {
+  function dayHasRecords(day) { return !!day && ((day.todos||[]).length>0 || (day.events||[]).length>0 || Object.values(day.meals||{}).some(value=>String(value||'').trim()) || !!(day.mood && (day.mood.value || day.mood.note))); }\n  function monthMarkup() {
     const month=iso(firstMonth(cursor)).slice(0,7), today=iso(new Date());
     const cells=monthGrid().map(date=>{
-      const day=getDay(date), d=parse(date), count=day.events.length+day.todos.length;
+      const day=data.days[date] || {events:[],todos:[]}, d=parse(date), count=(day.events||[]).length+(day.todos||[]).length;
       const cls=['dh-day',d.getMonth()!==cursor.getMonth()?'outside':'',date===selected?'selected':'',date===today?'today':''].filter(Boolean).join(' ');
       return '<button type="button" class="'+cls+'" data-date="'+date+'" aria-pressed="'+(date===selected)+'"><span>'+d.getDate()+'</span><i>'+(count?'·'.repeat(Math.min(count,3)):'')+'</i></button>';
     }).join('');
-    const count=Object.keys(data.days).filter(date=>date.startsWith(month)).length;
+    const count=Object.keys(data.days).filter(date=>date.startsWith(month) && dayHasRecords(data.days[date])).length;
     return '<section class="dh-calendar"><div class="dh-monthbar"><button type="button" data-month="-1" aria-label="上个月">‹</button><h3>'+cursor.getFullYear()+'年 '+(cursor.getMonth()+1)+'月</h3><button type="button" data-month="1" aria-label="下个月">›</button><button type="button" class="dh-today" data-today>今天</button></div><div class="dh-month-meta"><span>'+month.replace('-',' / ')+'</span><span>'+count+' 天有记录</span></div><div class="dh-grid">'+WEEK.map(x=>'<span class="dh-week">'+x+'</span>').join('')+cells+'</div></section>';
   }
   function timetableMarkup() {
@@ -97,7 +97,7 @@
   function render() {
     const day=getDay(selected), d=parse(selected), today=iso(new Date());
     const done=day.todos.filter(x=>x.done).length;
-    return '<section class="daily-hub" id="daily-hub"><div class="dh-today-head"><div><span class="dh-en">TODAY / OUR LITTLE LIFE</span><h2>'+dateLabel(selected)+'</h2><p>'+todayLabel(selected)+' · '+(selected===today?'今天':selected===today?'今天':'查看这一天')+'</p></div><div class="dh-weather"><span>WEATHER</span><b>天气待接入</b><small>连接天气服务后显示</small></div></div><div class="dh-progress"><span>今日完成</span><b>'+done+' / '+day.todos.length+'</b><i><em style="width:'+(day.todos.length?Math.round(done/day.todos.length*100):0)+'%"></em></i></div>'+timetableMarkup()+countdownMarkup()+todosMarkup(day)+mealsMarkup(day)+moodMarkup(day)+eventsMarkup(day)+monthMarkup()+'<p class="dh-footnote">把普通的一天，也认真地收进生活里。</p></section>';
+    return '<section class="daily-hub" id="daily-hub"><div class="dh-today-head"><div><span class="dh-en">TODAY / OUR LITTLE LIFE</span><h2>'+dateLabel(selected)+'</h2><p>'+todayLabel(selected)+' · '+(selected===today?'今天':'查看这一天')+'</p></div><div class="dh-weather"><span>WEATHER</span><b>天气待接入</b><small>连接天气服务后显示</small></div></div><div class="dh-progress"><span>今日完成</span><b>'+done+' / '+day.todos.length+'</b><i><em style="width:'+(day.todos.length?Math.round(done/day.todos.length*100):0)+'%"></em></i></div>'+timetableMarkup()+countdownMarkup()+todosMarkup(day)+mealsMarkup(day)+moodMarkup(day)+eventsMarkup(day)+monthMarkup()+'<p class="dh-footnote">把普通的一天，也认真地收进生活里。</p></section>';
   }
   function refresh() { const root=$('daily-hub'); if(!root)return; root.outerHTML=render(); bind(); }
   function addItem(kind) {
