@@ -1233,7 +1233,6 @@ html.dark #pg-chat .input-card {
 /* Keep the composer visually fixed while giving the scroll area a real clearance tail. */
 #pg-chat {
   position:relative;
-  display:flex;
   flex-direction:column;
   min-height:0;
   height:100%;
