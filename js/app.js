@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════
    app.js · 路由 / 侧栏 / 初始化
-   主页面：home mem chat daily（+ mine 走侧栏）
+   主页面：home mem chat daily settings
    ══════════════════════════════════════════════ */
 
 (function() {
@@ -8,7 +8,7 @@ const D = document, $ = D.getElementById.bind(D);
 const tabs = D.querySelectorAll('.tab-item');
 const pages = {
   home: $('pg-home'), mem: $('pg-mem'), chat: $('pg-chat'),
-  daily: $('pg-daily'), mine: $('pg-mine'), settings: $('pg-settings'),
+  daily: $('pg-daily'), settings: $('pg-settings'),
 };
 
 let cur = '';
@@ -52,7 +52,6 @@ function initSide() {
         return;
       }
       drawer.querySelectorAll('.sd-item').forEach(i => i.classList.toggle('on', i === item));
-      if (name === 'mine') { window.Mine?.build(); }
       if (name === 'settings') { window.Settings?.build(); }
       go(name);
       close();
@@ -130,10 +129,10 @@ function startSafeArea(target) {
 }
 
 function init() {
-  window.Mine?.applyTheme();
+  if (XW.S.theme === 'dark') D.documentElement.classList.add('dark');
+  else D.documentElement.classList.remove('dark');
   window.Home?.build();
   window.Chat?.build();
-  window.Mine?.build();
   window.Settings?.build();
   window.Memory?.build();
   window.Daily?.build();

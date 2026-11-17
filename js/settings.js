@@ -102,7 +102,8 @@
   function bind() {
     $('set-theme').onclick = () => {
       S.theme = S.theme === 'dark' ? 'light' : 'dark';
-      save('theme'); window.Mine?.applyTheme();
+      save('theme');
+      D.documentElement.classList.toggle('dark', S.theme === 'dark');
       $('set-theme').classList.toggle('on', S.theme === 'dark');
       $('sd-switch')?.classList.toggle('on', S.theme === 'dark');
     };
