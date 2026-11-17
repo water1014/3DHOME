@@ -1230,10 +1230,10 @@ html.dark #pg-chat .input-card {
 }
 
 
-/* Make the message viewport the only scroll container.
-   Keep its flex basis at zero so it receives all remaining height and can scroll
-   fully to the last message, right above the composer. */
+/* Keep the composer at a predictable viewport position above the floating tab bar.
+   The message list scrolls independently and reserves room for the overlaid composer. */
 #pg-chat {
+  position:relative;
   display:flex;
   flex-direction:column;
   min-height:0;
@@ -1249,22 +1249,22 @@ html.dark #pg-chat .input-card {
   overflow-y:auto;
   overscroll-behavior-y:contain;
   -webkit-overflow-scrolling:touch;
-  padding-bottom:1rem;
-  scroll-padding-bottom:1rem;
+  padding-bottom:6.5rem;
+  scroll-padding-bottom:6.5rem;
 }
 #pg-chat .typing,
 #pg-chat .reply-bar {
   flex:0 0 auto;
 }
 #pg-chat .input-bar {
-  position:relative;
-  inset:auto;
+  position:absolute;
   z-index:12;
-  display:block;
-  flex:0 0 auto;
+  left:0;
+  right:0;
+  bottom:calc(var(--tabbar-h) + .55rem + env(safe-area-inset-bottom));
   width:100%;
-  margin:0 0 calc(var(--tabbar-h) + .7rem + env(safe-area-inset-bottom));
-  padding:.3rem max(.85rem,var(--page-pad)) .35rem;
+  margin:0;
+  padding:.28rem max(.85rem,var(--page-pad)) .28rem;
   border:0;
   background:transparent;
   -webkit-backdrop-filter:none;
