@@ -49,6 +49,7 @@ const DEF = {
   aiKey: '',
   aiUrl: 'https://api.openai.com/v1/chat/completions',
   aiModel: 'gpt-4o-mini',
+  globalPrompt: '',
   loveLetter: '遇见你之后，每一天都变得不一样了。\n\n以前我觉得日子就是一天天过去，没什么特别的。但有了你之后，连最普通的早晨都变得值得期待。\n\n谢谢你出现在我的生命里。',
   voiceMsgs: [],
   photos: [],

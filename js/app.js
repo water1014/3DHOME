@@ -8,7 +8,7 @@ const D = document, $ = D.getElementById.bind(D);
 const tabs = D.querySelectorAll('.tab-item');
 const pages = {
   home: $('pg-home'), mem: $('pg-mem'), chat: $('pg-chat'),
-  daily: $('pg-daily'), mine: $('pg-mine'),
+  daily: $('pg-daily'), mine: $('pg-mine'), settings: $('pg-settings'),
 };
 
 let cur = '';
@@ -53,6 +53,7 @@ function initSide() {
       }
       drawer.querySelectorAll('.sd-item').forEach(i => i.classList.toggle('on', i === item));
       if (name === 'mine') { window.Mine?.build(); }
+      if (name === 'settings') { window.Settings?.build(); }
       go(name);
       close();
     };
@@ -133,6 +134,7 @@ function init() {
   window.Home?.build();
   window.Chat?.build();
   window.Mine?.build();
+  window.Settings?.build();
   window.Memory?.build();
   window.Daily?.build();
 
