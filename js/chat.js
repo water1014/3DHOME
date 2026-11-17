@@ -763,8 +763,16 @@ async function aiReply(text) {
         }
       }
 
-      const calls = Object.values(toolMap);
+      const calls = Object.values(toolMap).map(call => ({
+        id:call.id,
+        type:'function',
+        function:{
+          name:call.function?.name || '',
+          arguments:call.function?.arguments || '{}'
+        }
+      }));
       if (!calls.length) break;
+      if (calls.some(call => !call.id || !call.function.name)) throw new Error('模型返回的工具调用格式不完整，请检查 API 兼容性。');
       if (!engawaTools.length || !window.Engawa?.isConnected?.()) {
         throw new Error('模型请求调用工具，但窗廊 MCP 尚未连接。请先在「更多 → AI 连接 → 窗廊 MCP」中连接服务。');
       }
