@@ -788,3 +788,43 @@ html.dark .side-drawer .sd-ava {
   border-color: rgba(255,255,255,.16) !important;
   box-shadow: 0 3px 10px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.12) !important;
 }
+
+/* Home chat entry: give the shortcut the same translucent letter-paper finish. */
+#pg-home .home-chat-entry {
+  box-sizing: border-box;
+  min-height: 3.45rem;
+  margin: -.12rem 0 .95rem;
+  padding: .58rem .78rem;
+  border: 1px solid rgba(255,255,255,.72);
+  border-bottom: 1px solid rgba(255,255,255,.72);
+  border-radius: .42rem;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 1.32rem, rgba(90,90,90,.038) 1.32rem calc(1.32rem + 1px)),
+    linear-gradient(112deg, rgba(255,255,255,.48), rgba(255,255,255,.17));
+  -webkit-backdrop-filter: blur(18px) saturate(1.06);
+  backdrop-filter: blur(18px) saturate(1.06);
+  box-shadow: 0 3px 12px rgba(20,20,25,.028), inset 0 1px 0 rgba(255,255,255,.78);
+}
+#pg-home .home-chat-entry .hce-icon {
+  border: 1px solid rgba(255,255,255,.7);
+  background: rgba(255,255,255,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+}
+#pg-home .home-chat-entry:active {
+  opacity: .82;
+  transform: translateY(1px);
+  background: linear-gradient(112deg, rgba(255,255,255,.58), rgba(255,255,255,.24));
+}
+html.dark #pg-home .home-chat-entry {
+  border-color: rgba(255,255,255,.14);
+  border-bottom-color: rgba(255,255,255,.14);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 1.32rem, rgba(255,255,255,.028) 1.32rem calc(1.32rem + 1px)),
+    linear-gradient(112deg, rgba(255,255,255,.075), rgba(255,255,255,.025));
+  box-shadow: 0 3px 12px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.08);
+}
+html.dark #pg-home .home-chat-entry .hce-icon {
+  border-color: rgba(255,255,255,.14);
+  background: rgba(255,255,255,.055);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09);
+}
