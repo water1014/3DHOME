@@ -83,7 +83,7 @@
     const selected=new Set(Array.isArray(selectedIds)?selectedIds:[]);
     if(!selected.size)return {system:'',depth:[],matched:[]};
     const messages=(Array.isArray(history)?history:[]).map(m=>String(m?.content??m?.text??'')).filter(Boolean);
-    const scan=messages.slice(-20).join('\\n');
+    const scan=messages.slice(-20).join('\n');
     const contains=(text,term,whole)=>{if(!term)return false;let at=text.indexOf(term);while(at>=0){const before=at?text[at-1]:'';const after=text[at+term.length]||'';const word=c=>!!c&&/[A-Za-z0-9_\u0080-\uFFFF]/.test(c);if(!whole||(!word(before)&&!word(after)))return true;at=text.indexOf(term,at+1);}return false;};
     const matched=[];
     books.filter(b=>selected.has(b.id)).forEach(book=>(book.entries||[]).forEach((entry,index)=>{
@@ -100,8 +100,8 @@
       matched.push({book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??raw.insertorder??0),depth:Math.max(0,Number(raw.depth??0)),order:Number(raw.order??raw.insertion_order??100),uid:entry.id});
     }));
     matched.sort((a,b)=>a.order-b.order);
-    const system=matched.filter(x=>x.position!==4).map(x=>'【'+x.book+' / '+x.title+'】\\n'+x.content).join('\\n\\n');
-    const depth=matched.filter(x=>x.position===4).map(x=>({depth:x.depth,order:x.order,text:'【'+x.book+' / '+x.title+'】\\n'+x.content}));
+    const system=matched.filter(x=>x.position!==4).map(x=>'【'+x.book+' / '+x.title+'】\n'+x.content).join('\n\n');
+    const depth=matched.filter(x=>x.position===4).map(x=>({depth:x.depth,order:x.order,text:'【'+x.book+' / '+x.title+'】\n'+x.content}));
     return {system,depth,matched:matched.map(x=>({book:x.book,title:x.title}))};
   }
   function mount(){
