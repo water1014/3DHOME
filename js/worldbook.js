@@ -202,20 +202,20 @@
     $('wb-import')?.addEventListener('click',()=>$('wb-file')?.click());
     $('wb-file')?.addEventListener('change',async ev=>{
       const file=ev.target.files?.[0];if(!file)return;
-      try{const data=JSON.parse(await file.text());const book=unpack(data,file.name);books.unshift(book);if(persist()){activeId=book.id;query='';window.Daily?.showCurrent();window.UI?.toast?.('世界书导入成功');}}
+      try{const data=JSON.parse(await file.text());const book=unpack(data,file.name);books.unshift(book);if(persist()){activeId=book.id;query='';window.Daily?.showCurrent();window.Chat?.refreshWorldbooks?.();window.UI?.toast?.('世界书导入成功');}}
       catch(e){window.UI?.toast?.(e.message||'导入失败，请检查 JSON 文件');}
       ev.target.value='';
     });
     $('wb-create')?.addEventListener('click',()=>{
       const name=prompt('给这本世界书取个名字');if(!name?.trim())return;
       const book={id:id(),name:name.trim(),description:'',entries:[],sourceFormat:'xiaowo',sourceRoot:{name:name.trim(),entries:{}}};
-      books.unshift(book);if(persist()){activeId=book.id;query='';window.Daily?.showCurrent();}
+      books.unshift(book);if(persist()){activeId=book.id;query='';window.Daily?.showCurrent();window.Chat?.refreshWorldbooks?.();}
     });
     $('wb-search')?.addEventListener('input',e=>{const pos=e.target.selectionStart;query=e.target.value;const y=document.querySelector('.daily-page')?.scrollTop||0;window.Daily?.showCurrent();const input=$('wb-search');input?.focus();input?.setSelectionRange(pos,pos);const page=document.querySelector('.daily-page');if(page)page.scrollTop=y;});
     document.querySelectorAll('[data-open-book]').forEach(el=>el.addEventListener('click',()=>{activeId=el.dataset.openBook;query='';window.Daily?.showCurrent();}));
     $('wb-back')?.addEventListener('click',()=>{activeId=null;query='';window.Daily?.showCurrent();});
     $('wb-export')?.addEventListener('click',()=>{const b=activeBook();if(b)exportBook(b);});
-    $('wb-delete-book')?.addEventListener('click',()=>{const b=activeBook();if(!b||!confirm('确定删除这本世界书吗？删除后无法恢复。'))return;books=books.filter(x=>x.id!==b.id);activeId=null;persist();window.Daily?.showCurrent();});
+    $('wb-delete-book')?.addEventListener('click',()=>{const b=activeBook();if(!b||!confirm('确定删除这本世界书吗？删除后无法恢复。'))return;books=books.filter(x=>x.id!==b.id);activeId=null;persist();window.Daily?.showCurrent();window.Chat?.refreshWorldbooks?.();});
     $('wb-add-entry')?.addEventListener('click',()=>{
       const b=activeBook();if(!b)return;
       const entry={id:id(),enabled:true,raw:{uid:Date.now(),comment:'新条目',key:[],keysecondary:[],content:'',constant:false,selective:true,selectiveLogic:0,order:100,position:0,disable:false}};
