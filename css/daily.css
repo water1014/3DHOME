@@ -1,13 +1,12 @@
-/* Daily section shell and nested sidebar navigation */
+/* Daily section shell and always-visible sidebar subnavigation */
+.sd-nav { overflow-y:auto; min-height:0; scrollbar-width:none; }
+.sd-nav::-webkit-scrollbar { display:none; }
 .sd-daily-wrap { display:flex; flex-direction:column; }
 .sd-daily-toggle { position:relative; }
-.sd-chevron { margin-left:auto; color:var(--ink-3); font-size:.85rem; transition:transform .22s; }
-.sd-daily-toggle[aria-expanded="true"] .sd-chevron { transform:rotate(180deg); }
- .sd-daily-group {
-  display:flex; flex-direction:column; max-height:0; opacity:0; overflow:hidden;
-  padding-left:1.65rem; transition:max-height .28s ease, opacity .2s ease;
+.sd-daily-group {
+  display:flex; flex-direction:column; max-height:none; opacity:1; overflow:visible;
+  padding:0 0 .35rem 1.65rem;
 }
-.sd-daily-group.expanded { max-height:24rem; opacity:1; }
 .sd-subitem {
   width:100%; min-height:2.25rem; padding:.42rem .65rem;
   border:0; border-left:1px solid var(--line); border-radius:0;
