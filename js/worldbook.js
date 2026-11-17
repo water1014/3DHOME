@@ -78,6 +78,32 @@
     const blob=new Blob([JSON.stringify(root,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(book.name||'worldbook').replace(/[\\/:*?"<>|]/g,'_')+'.json';a.click();URL.revokeObjectURL(url);
   }
+
+  function buildInjection(history, selectedIds){
+    const selected=new Set(Array.isArray(selectedIds)?selectedIds:[]);
+    if(!selected.size)return {system:'',depth:[],matched:[]};
+    const messages=(Array.isArray(history)?history:[]).map(m=>String(m?.content??m?.text??'')).filter(Boolean);
+    const scan=messages.slice(-20).join('\n');
+    const contains=(text,term,whole)=>{if(!term)return false;let at=text.indexOf(term);while(at>=0){const before=at?text[at-1]:'';const after=text[at+term.length]||'';const word=c=>!!c&&/[A-Za-z0-9_\u0080-\uFFFF]/.test(c);if(!whole||(!word(before)&&!word(after)))return true;at=text.indexOf(term,at+1);}return false;};
+    const matched=[];
+    books.filter(b=>selected.has(b.id)).forEach(book=>(book.entries||[]).forEach((entry,index)=>{
+      const raw=entry.raw||{};
+      if(entry.enabled===false||raw.disable||!String(raw.content||'').trim())return;
+      const primary=(Array.isArray(raw.key)?raw.key:String(raw.key??raw.keys??'').split(',')).map(v=>String(v||'').trim()).filter(Boolean);
+      const secondary=(Array.isArray(raw.keysecondary)?raw.keysecondary:String(raw.keysecondary??'').split(',')).map(v=>String(v||'').trim()).filter(Boolean);
+      const sensitive=!!raw.caseSensitive,whole=!!raw.matchWholeWords,source=sensitive?scan:scan.toLocaleLowerCase();
+      const test=term=>contains(source,sensitive?term:term.toLocaleLowerCase(),whole);
+      const primaryHit=primary.length?primary.some(test):false;let hit=!!raw.constant||primaryHit;
+      if(hit&&raw.selective&&secondary.length){const found=secondary.map(test),logic=Number(raw.selectiveLogic||0);if(logic===1)hit=found.every(Boolean);else if(logic===2)hit=!found.some(Boolean);else if(logic===3)hit=!found.every(Boolean);else hit=found.some(Boolean);}
+      if(!hit)return;
+      if(raw.useProbability){const probability=Math.max(0,Math.min(100,Number(raw.probability??100)));if(Math.random()*100>=probability)return;}
+      matched.push({book:book.name,title:titleOf(raw,index),content:String(raw.content),position:Number(raw.position??raw.insertorder??0),depth:Math.max(0,Number(raw.depth??0)),order:Number(raw.order??raw.insertion_order??100),uid:entry.id});
+    }));
+    matched.sort((a,b)=>a.order-b.order);
+    const system=matched.filter(x=>x.position!==4).map(x=>'【'+x.book+' / '+x.title+'】\n'+x.content).join('\n\n');
+    const depth=matched.filter(x=>x.position===4).map(x=>({depth:x.depth,order:x.order,text:'【'+x.book+' / '+x.title+'】\n'+x.content}));
+    return {system,depth,matched:matched.map(x=>({book:x.book,title:x.title}))};
+  }
   function mount(){
     const $=id=>document.getElementById(id);
     $('wb-import')?.addEventListener('click',()=>$('wb-file')?.click());
@@ -116,5 +142,5 @@
       persist();window.UI?.toast?.('条目已保存');window.Daily?.showCurrent();
     }));
   }
-  window.Worldbook={render,mount};
+  window.Worldbook={render,mount,listBooks:()=>books.map(b=>({id:b.id,name:b.name,count:(b.entries||[]).length})),buildInjection};
 })();
