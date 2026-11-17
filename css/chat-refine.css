@@ -900,3 +900,30 @@ html.dark #pg-chat .input-card:focus-within {
   border-color:rgba(169,187,208,.3);
   box-shadow:0 4px 16px rgba(0,0,0,.2);
 }
+
+
+/* Pin the wallpaper to the Chat viewport itself.
+   Android browsers often ignore background-attachment: fixed on scroll containers. */
+#pg-chat {
+  isolation:isolate;
+}
+#pg-chat::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:var(--chat-wallpaper-image,none);
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+#pg-chat > * {
+  position:relative;
+  z-index:1;
+}
+#pg-chat .chat-body {
+  background-image:none !important;
+  background-color:transparent !important;
+  background-attachment:initial !important;
+}
