@@ -927,3 +927,81 @@ html.dark #pg-chat .input-card:focus-within {
   background-color:transparent !important;
   background-attachment:initial !important;
 }
+
+
+/* A calmer More drawer: quick controls first, detailed settings tucked away. */
+#pg-chat .chat-pref {
+  position:absolute;
+  top:calc(4.15rem + env(safe-area-inset-top) + .35rem);
+  right:max(.7rem,var(--page-pad));
+  width:min(22rem,calc(100vw - 1.4rem));
+  max-height:min(72vh,38rem);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:.82rem;
+  border:1px solid rgba(119,137,158,.2);
+  border-radius:1.05rem;
+  background:#f8f9fb;
+  color:#344052;
+  box-shadow:0 16px 42px rgba(31,45,62,.16);
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+#pg-chat .chat-pref::-webkit-scrollbar {display:none}
+html.dark #pg-chat .chat-pref {background:#252b34;color:#e8edf4;border-color:rgba(215,226,240,.14)}
+#pg-chat .chat-pref-group {gap:.35rem}
+#pg-chat .chat-pref-group + .chat-pref-group {margin-top:.72rem;padding-top:.72rem}
+#pg-chat .chat-pref-label {font-size:.49rem;letter-spacing:.12em}
+#pg-chat .chat-pref-group button {
+  min-height:2rem;
+  flex:1 1 auto;
+  padding:.42rem .58rem;
+  border-radius:.62rem;
+  background:#edf0f4;
+  border-color:rgba(103,122,145,.13);
+  color:#526176;
+  font-size:.66rem;
+}
+#pg-chat .chat-pref-group button.on {background:#52657c;color:#fff;border-color:#52657c}
+html.dark #pg-chat .chat-pref-group button {background:#343d49;color:#dce4ee;border-color:rgba(220,230,242,.1)}
+html.dark #pg-chat .chat-pref-group button.on {background:#aebed1;color:#202833;border-color:#aebed1}
+#pg-chat .chat-pref-fold {
+  margin-top:.48rem;
+  border:1px solid rgba(112,130,151,.15);
+  border-radius:.78rem;
+  background:rgba(255,255,255,.72);
+  overflow:hidden;
+}
+html.dark #pg-chat .chat-pref-fold {background:rgba(255,255,255,.035);border-color:rgba(220,230,242,.11)}
+#pg-chat .chat-pref-fold > summary {
+  display:flex;
+  align-items:center;
+  gap:.58rem;
+  min-height:3.15rem;
+  padding:.55rem .65rem;
+  list-style:none;
+  cursor:pointer;
+}
+#pg-chat .chat-pref-fold > summary::-webkit-details-marker {display:none}
+#pg-chat .chat-pref-fold > summary > span:nth-child(2) {display:flex;flex:1;flex-direction:column;gap:.14rem}
+#pg-chat .chat-pref-fold > summary b {font:.69rem var(--serif);font-weight:600;color:#3d4a5b}
+#pg-chat .chat-pref-fold > summary small {font:.48rem var(--serif);color:#8793a2}
+#pg-chat .chat-pref-fold > summary > i {font-style:normal;color:#8793a2;transition:transform .18s}
+#pg-chat .chat-pref-fold[open] > summary > i {transform:rotate(180deg)}
+#pg-chat .chat-pref-fold-icon {
+  display:grid;place-items:center;flex:0 0 1.8rem;height:1.8rem;
+  border-radius:.58rem;background:#e9eef4;color:#657991;font-size:.9rem;
+}
+html.dark #pg-chat .chat-pref-fold > summary b {color:#e2e9f1}
+html.dark #pg-chat .chat-pref-fold > summary small {color:#a1adbc}
+html.dark #pg-chat .chat-pref-fold-icon {background:#3a4655;color:#c5d3e3}
+#pg-chat .chat-pref-fold .chat-pref-section {
+  margin:.05rem .65rem .65rem;
+  padding:.55rem 0 0;
+  border-top:1px solid rgba(112,130,151,.14);
+}
+#pg-chat .chat-pref-note {font-size:.52rem;line-height:1.55;padding:.05rem .18rem}
+#pg-chat .chat-pref-action {min-height:2.7rem}
+#pg-chat .chat-pref-fold .chat-appearance-row {grid-template-columns:minmax(0,1fr) auto auto;gap:.22rem}
+#pg-chat .chat-pref-fold .chat-appearance-row button {padding:.38rem .48rem}
+html.dark #pg-chat .chat-pref-action {background:#343d49;color:#e5ebf2}
