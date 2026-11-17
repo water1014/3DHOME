@@ -20,9 +20,10 @@ function tickClock() {
     const now = new Date();
     el.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   }
+  clearTimeout(raf);
   raf = setTimeout(tickClock, 5000);
 }
-function startClock() { tickClock(); }
+function startClock() { clearTimeout(raf); tickClock(); }
 function stopClock() { clearTimeout(raf); }
 
 function compressImg(file, maxW, maxH, quality) {
@@ -85,7 +86,9 @@ function renderInfo() {
 
   const w = weatherNow();
   const hWeather = $('h-weather');
-  if (hWeather) hWeather.textContent = `${w.temp}°`;
+  if (hWeather) hWeather.textContent = `${w.icon === 'sun' ? '☼' : '◦'} ${w.temp}°`;
+  const hTime = $('h-time');
+  if (hTime) hTime.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
   const hGreet = $('h-greet');
   if (hGreet) hGreet.innerHTML = `${greetWord(now.getHours())} · <i>${fmtWeek(now)} ${String(now.getMonth()+1)}月${now.getDate()}日</i>`;
