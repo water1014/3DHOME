@@ -1,8 +1,8 @@
 /* Settings page · compact, calm and mobile-first */
 .settings-page {
-  box-sizing:border-box; width:100%; height:100%; overflow-y:auto;
-  padding:calc(3.65rem + env(safe-area-inset-top)) clamp(1rem,4vw,2rem) calc(2.2rem + env(safe-area-inset-bottom));
-  color:var(--ink); scrollbar-width:none; overscroll-behavior:contain;
+  box-sizing:border-box; display:flex; flex-direction:column; width:100%; height:100%; min-height:0; overflow:hidden;
+  padding:calc(3.65rem + env(safe-area-inset-top)) clamp(1rem,4vw,2rem) calc(.8rem + env(safe-area-inset-bottom));
+  color:var(--ink); overscroll-behavior:contain;
 }
 .settings-page::-webkit-scrollbar { display:none; }
 .settings-head,.settings-section,.settings-footer { width:100%; max-width:46rem; margin-left:auto; margin-right:auto; min-width:0; }
@@ -12,10 +12,17 @@
 .settings-title-row h1 { margin:0; font-family:'Noto Serif SC',var(--serif); font-size:1.65rem; line-height:1.35; font-weight:500; letter-spacing:.12em; }
 .settings-title-row span { font:1rem 'Cormorant Garamond',var(--serif); color:var(--ink-3); letter-spacing:.14em; }
 .settings-head p { margin:.35rem 0 0; color:var(--ink-3); font-size:.68rem; letter-spacing:.035em; line-height:1.65; }
-.settings-section { margin-top:1.05rem; }
+
+.settings-viewport { flex:1 1 auto; min-height:0; width:100%; max-width:46rem; margin:.25rem auto 0; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
+.settings-viewport::-webkit-scrollbar { display:none; }
+.settings-track { display:flex; width:500%; height:100%; }
+.settings-section.settings-panel { flex:0 0 20%; box-sizing:border-box; width:20%; max-width:none; height:100%; margin:0; padding:.95rem 0 .8rem; overflow-x:hidden; overflow-y:auto; scrollbar-width:none; overscroll-behavior-y:contain; scroll-snap-align:start; }
+.settings-panel::-webkit-scrollbar { display:none; }
+.settings-panel .settings-section-head,.settings-panel .settings-card { width:100%; max-width:46rem; margin-left:auto; margin-right:auto; }
+
 
 .settings-jump {
-  position:sticky; top:.35rem; z-index:5; display:flex; gap:.32rem;
+  position:relative; flex:0 0 auto; z-index:5; display:flex; gap:.32rem;
   width:100%; max-width:46rem; margin:.72rem auto .15rem; padding:.35rem;
   overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain;
   border:1px solid var(--card-border); border-radius:.78rem;
@@ -31,7 +38,7 @@
 .settings-jump button.is-active {
   border-color:var(--line); background:var(--dark); color:var(--on-dark);
 }
-.settings-section[id] { scroll-margin-top:4.2rem; }
+
 
 .settings-section-head { display:flex; align-items:center; gap:.65rem; margin:0 0 .48rem; padding-left:.12rem; }
 .settings-section-head>span { flex:0 0 auto; font:.55rem var(--mono); color:var(--ink-3); letter-spacing:.12em; }
@@ -71,19 +78,9 @@
 #pg-settings { flex-direction:column; }
 .settings-row .switch { flex:0 0 auto; border:0; padding:0; appearance:none; -webkit-appearance:none; }
 
-@media (min-width:700px) {
-  .settings-page { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-content:start; column-gap:1.15rem; row-gap:0; }
-  .settings-head,.settings-footer { grid-column:1/-1; }
-  .settings-section { margin-top:1.2rem; }
-  .settings-jump { justify-content:center; }
-  .settings-section:nth-of-type(n+3) { grid-column:1/-1; }
-  .settings-section:nth-of-type(3) .settings-card { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:1.1rem; }
-  .settings-section:nth-of-type(3) .settings-field:first-child { grid-column:1/-1; }
-  .settings-section:nth-of-type(3) .settings-api-state,.settings-section:nth-of-type(3) .settings-actions,.settings-section:nth-of-type(3) .settings-note { grid-column:1/-1; }
-  .settings-section:nth-of-type(2) .settings-card { min-height:100%; }
-}
 @media (max-width:360px) {
   .settings-page { padding-left:.85rem; padding-right:.85rem; }
+  .settings-viewport { margin-top:.2rem; }
   .settings-card { padding-left:.72rem; padding-right:.72rem; }
   .settings-title-row h1 { font-size:1.5rem; }
   .settings-value { font-size:.54rem; }
