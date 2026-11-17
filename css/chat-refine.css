@@ -1230,7 +1230,7 @@ html.dark #pg-chat .input-card {
 }
 
 
-/* Chat viewport: preserve every message's natural height so the full history can scroll. */
+/* Keep the composer visually fixed while giving the scroll area a real clearance tail. */
 #pg-chat {
   position:relative;
   display:flex;
@@ -1250,8 +1250,15 @@ html.dark #pg-chat .input-card {
   overflow-y:auto;
   overscroll-behavior-y:contain;
   -webkit-overflow-scrolling:touch;
-  padding-bottom:9rem;
-  scroll-padding-bottom:9rem;
+  padding-bottom:1rem;
+  scroll-padding-bottom:1rem;
+}
+#pg-chat .chat-body::after {
+  content:"";
+  display:block;
+  flex:0 0 calc(12rem + env(safe-area-inset-bottom));
+  width:100%;
+  pointer-events:none;
 }
 #pg-chat .chat-body > * {
   flex-shrink:0;
