@@ -134,7 +134,7 @@
       let hit=!!raw.constant||primaryHit;
       const sticky=Math.max(0,Number(raw.sticky)||0);
       if(!hit&&sticky>0){const recent=messages.slice(-(sticky+1)).join('\n');hit=primary.some(term=>testInText(term,recent,raw));}
-      if(hit&&raw.selective&&secondary.length){
+      if(!raw.constant&&hit&&raw.selective&&secondary.length){
         const found=secondary.map(test),logic=Number(raw.selectiveLogic||0);
         if(logic===1)hit=found.every(Boolean);
         else if(logic===2)hit=!found.some(Boolean);
