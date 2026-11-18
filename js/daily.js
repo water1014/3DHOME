@@ -1,11 +1,14 @@
 /* Daily navigation and section shell */
 (function () {
   const sections = {
+    accounting: { zh: '记账', en: 'EXPENSES', group: 'DAILY LIFE' },
+    ledger: { zh: '账本', en: 'LEDGER', group: 'DAILY LIFE' },
+    mood: { zh: '心情', en: 'MOOD', group: 'DAILY LIFE' },
     diary: { zh: '日记', en: 'DIARY', group: 'DAILY LIFE' },
     health: { zh: '健康', en: 'WELLNESS', group: 'DAILY LIFE' },
     cycle: { zh: '生理期', en: 'CYCLE', group: 'DAILY LIFE' },
     abyss: { zh: '深渊区', en: 'ABYSS', group: 'DAILY LIFE' },
-    games: { zh: '游戏', en: 'GAMES', group: 'DAILY LIFE' },
+    games: { zh: '游戏', en: 'GAMES', group: 'PLAY & CREATE' },
     calendar: { zh: '日历', en: 'CALENDAR', group: 'DAILY LIFE' },
     plans: { zh: '安排', en: 'PLANS', group: 'DAILY LIFE' },
     study: { zh: '学习', en: 'STUDY', group: 'DAILY LIFE' },
