@@ -88,11 +88,11 @@ html.dark .daily-hub .dh-moods button{background:rgba(255,255,255,.035)}
 .dh-wish-form button{min-height:2.45rem;border:1px solid var(--ink);border-radius:.58rem;background:var(--ink);color:var(--page-bg);font-size:1rem}
 .dh-wish-list{display:flex;flex-direction:column;gap:.12rem}
 .dh-wish-item{display:flex;align-items:center;gap:.48rem;min-height:2.45rem;padding:.38rem .15rem;border-top:1px solid var(--line);cursor:pointer}
-.dh-wish-item input{width:.95rem;height:.95rem;flex:0 0 auto;accent-color:#8799aa}
+.dh-wish-item input{width:.95rem;height:.95rem;flex:0 0 auto;accent-color:var(--ink-2)}
 .dh-wish-kind{flex:0 0 auto;min-width:2.4rem;padding:.17rem .32rem;border-radius:99px;text-align:center;font-size:.48rem}
-.dh-wish-kind.kind-go{background:rgba(128,158,181,.16);color:#718da5}
-.dh-wish-kind.kind-eat{background:rgba(206,169,116,.17);color:#a98555}
-.dh-wish-kind.kind-do{background:rgba(157,166,153,.18);color:#84917c}
+.dh-wish-kind.kind-go{background:rgba(80,80,80,.09);color:var(--ink-2)}
+.dh-wish-kind.kind-eat{background:rgba(80,80,80,.09);color:var(--ink-2)}
+.dh-wish-kind.kind-do{background:rgba(80,80,80,.09);color:var(--ink-2)}
 .dh-wish-text{flex:1;min-width:0;color:var(--ink-2);font-size:.62rem;line-height:1.5;overflow-wrap:anywhere}
 .dh-wish-item.done .dh-wish-text{text-decoration:line-through;color:var(--ink-3);opacity:.72}
 .dh-wish-item>button{flex:0 0 auto;width:1.5rem;height:1.5rem;border:0;background:transparent;color:var(--ink-3);font-size:.9rem}
@@ -102,18 +102,18 @@ html.dark .daily-hub .dh-moods button{background:rgba(255,255,255,.035)}
 @media(max-width:350px){.dh-wish-form{grid-template-columns:3.6rem minmax(0,1fr) 2rem}.dh-wish-kind{min-width:2.1rem}}
 
 
-/* Calendar refinement · Apple-inspired clarity with Xiaowo's monochrome + mist-blue palette */
+/* Calendar refinement · Apple-inspired hierarchy in strict monochrome */
 .daily-hub .dh-calendar{
   padding:1rem .92rem .9rem;
-  border:1px solid rgba(130,148,168,.2);
+  border:1px solid rgba(35,35,35,.10);
   border-radius:1.12rem;
-  background:linear-gradient(155deg,rgba(255,255,255,.82),rgba(246,248,251,.66));
-  box-shadow:0 8px 26px rgba(35,48,65,.055),inset 0 1px 0 rgba(255,255,255,.9);
+  background:linear-gradient(155deg,rgba(255,255,255,.88),rgba(242,242,244,.72));
+  box-shadow:0 8px 26px rgba(0,0,0,.055),inset 0 1px 0 rgba(255,255,255,.94);
 }
 html.dark .daily-hub .dh-calendar{
-  border-color:rgba(205,219,235,.13);
-  background:linear-gradient(155deg,rgba(42,47,55,.88),rgba(29,33,40,.82));
-  box-shadow:0 8px 26px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.045);
+  border-color:rgba(255,255,255,.12);
+  background:linear-gradient(155deg,rgba(43,43,46,.9),rgba(25,25,28,.86));
+  box-shadow:0 8px 26px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.05);
 }
 .daily-hub .dh-monthbar{gap:.42rem;margin-bottom:.12rem}
 .daily-hub .dh-monthbar h3{
@@ -123,15 +123,16 @@ html.dark .daily-hub .dh-calendar{
 }
 .daily-hub .dh-monthbar button{
   width:2rem;height:2rem;display:grid;place-items:center;
-  border:1px solid rgba(125,145,168,.17);border-radius:50%;
-  background:rgba(255,255,255,.58);color:#71849a;font-size:1.12rem;
+  border:1px solid var(--line);border-radius:50%;
+  background:rgba(255,255,255,.62);color:var(--ink-2);font-size:1.12rem;
   transition:background .18s,transform .18s,border-color .18s;
 }
+html.dark .daily-hub .dh-monthbar button{background:rgba(255,255,255,.045)}
 .daily-hub .dh-monthbar button:active{transform:scale(.92)}
 .daily-hub .dh-monthbar button.dh-today{
   width:auto;height:2rem;padding:0 .72rem;border-radius:99px;
-  border-color:rgba(112,143,174,.24);background:rgba(130,159,190,.13);
-  color:#6685a5;font-size:.62rem;font-weight:600;
+  border-color:var(--line-strong);background:var(--glass-strong);
+  color:var(--ink);font-size:.62rem;font-weight:600;
 }
 .daily-hub .dh-month-meta{
   margin:.22rem 0 .7rem;padding:0 .08rem;
@@ -140,10 +141,9 @@ html.dark .daily-hub .dh-calendar{
 }
 .daily-hub .dh-grid{gap:.22rem .12rem}
 .daily-hub .dh-week{
-  height:1.7rem;color:#8b98a7;
+  height:1.7rem;color:var(--ink-3);
   font:500 .58rem system-ui,-apple-system,sans-serif;
 }
-html.dark .daily-hub .dh-week{color:#929eac}
 .daily-hub .dh-day{
   position:relative;min-height:2.75rem;gap:.12rem;
   border:1px solid transparent;border-radius:.78rem;
@@ -155,25 +155,25 @@ html.dark .daily-hub .dh-week{color:#929eac}
   border-radius:50%;font:500 .72rem system-ui,-apple-system,sans-serif;
 }
 .daily-hub .dh-day i{
-  height:.26rem;color:#8299b1;font:600 .48rem system-ui,sans-serif;
+  height:.26rem;color:var(--ink-3);font:600 .48rem system-ui,sans-serif;
   letter-spacing:.08em;
 }
 .daily-hub .dh-day.outside{opacity:.28}
 .daily-hub .dh-day.today span{
-  color:#fff;background:#7898b8;font-weight:650;text-decoration:none;
+  color:#fff;background:#202020;font-weight:650;text-decoration:none;
 }
 .daily-hub .dh-day.selected{
-  border-color:rgba(117,148,180,.2);
-  background:rgba(127,157,188,.13);
+  border-color:var(--line-strong);
+  background:rgba(25,25,25,.065);
 }
-.daily-hub .dh-day.selected span{color:#52789e;font-weight:700}
-.daily-hub .dh-day.today.selected span{color:#fff;background:#7898b8}
-html.dark .daily-hub .dh-day.today span{background:#7898b8;color:#fff}
-html.dark .daily-hub .dh-day.selected{border-color:rgba(150,180,211,.2);background:rgba(130,160,192,.17)}
-html.dark .daily-hub .dh-day.selected span{color:#c6d9ec}
-html.dark .daily-hub .dh-day.today.selected span{color:#fff}
+.daily-hub .dh-day.selected span{color:var(--ink);font-weight:700}
+.daily-hub .dh-day.today.selected span{color:#fff;background:#202020}
+html.dark .daily-hub .dh-day.today span{background:#f0f0f0;color:#151515}
+html.dark .daily-hub .dh-day.selected{border-color:var(--line-strong);background:rgba(255,255,255,.09)}
+html.dark .daily-hub .dh-day.selected span{color:var(--ink)}
+html.dark .daily-hub .dh-day.today.selected span{color:#151515;background:#f0f0f0}
 .daily-hub .dh-monthbar button:focus-visible,
-.daily-hub .dh-day:focus-visible{outline:2px solid rgba(111,148,184,.55);outline-offset:2px}
+.daily-hub .dh-day:focus-visible{outline:2px solid var(--ink-2);outline-offset:2px}
 @media(max-width:360px){
   .daily-hub .dh-calendar{padding:.82rem .66rem .76rem}
   .daily-hub .dh-day{min-height:2.48rem}
