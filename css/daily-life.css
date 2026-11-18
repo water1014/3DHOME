@@ -179,3 +179,52 @@ html.dark .daily-hub .dh-day.today.selected span{color:#151515;background:#f0f0f
   .daily-hub .dh-day{min-height:2.48rem}
   .daily-hub .dh-day span{width:1.5rem;height:1.5rem;font-size:.67rem}
 }
+
+
+/* Weather · monochrome system cards */
+.weather-page{display:flex;flex-direction:column;gap:.85rem;padding-bottom:2rem}
+.weather-intro{padding:.15rem .1rem .25rem}
+.weather-intro>span,.weather-current-head,.weather-forecast-head span{font:500 .52rem var(--mono);letter-spacing:.12em;color:var(--ink-3)}
+.weather-intro p{margin:.38rem 0 0;color:var(--ink-2);font-size:.68rem;line-height:1.7}
+.weather-location-card,.weather-current-card,.weather-forecast-card{border:1px solid var(--line);border-radius:1.05rem;background:var(--glass-strong);box-shadow:0 7px 22px rgba(0,0,0,.045),inset 0 1px 0 rgba(255,255,255,.7)}
+html.dark .weather-location-card,html.dark .weather-current-card,html.dark .weather-forecast-card{box-shadow:0 7px 22px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.035)}
+.weather-location-card{padding:.9rem}
+.weather-location-top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.75rem}
+.weather-location-top>div{display:flex;flex-direction:column;gap:.2rem;min-width:0}
+.weather-location-top span,.weather-metrics span{font-size:.55rem;color:var(--ink-3)}
+.weather-location-top b{font-size:.85rem;overflow-wrap:anywhere}
+.weather-location-top button,.weather-search button,.weather-refresh{min-height:2.2rem;padding:0 .75rem;border:1px solid var(--line-strong);border-radius:99px;background:var(--ink);color:var(--page-bg);font-size:.62rem}
+.weather-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.42rem}
+.weather-search input{min-width:0;height:2.55rem;padding:0 .75rem;border:1px solid var(--line);border-radius:.72rem;background:var(--bg);color:var(--ink);font:inherit;font-size:.68rem;outline:none}
+.weather-search input:focus{border-color:var(--line-strong)}
+.weather-status{min-height:1rem;margin:.55rem 0 0;color:var(--ink-3);font-size:.55rem;line-height:1.5}
+.weather-refresh{align-self:flex-end;min-height:1.85rem;background:transparent;color:var(--ink-2);font-size:.56rem}
+.weather-current-card{padding:1rem}
+.weather-current-head{display:flex;justify-content:space-between;gap:.5rem}
+.weather-main{display:flex;align-items:center;justify-content:space-between;padding:1rem .1rem}
+.weather-main>div{display:flex;flex-direction:column;gap:.18rem}
+.weather-temp{font:300 4.2rem/1 var(--sans);letter-spacing:-.08em}
+.weather-temp sup{font-size:2rem;vertical-align:top}
+.weather-main b{font-size:.8rem}
+.weather-main small{font-size:.58rem;color:var(--ink-3)}
+.weather-icon{font-size:3.2rem;filter:grayscale(1)}
+.weather-metrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);padding-top:.75rem}
+.weather-metrics>div{display:flex;flex-direction:column;gap:.25rem}
+.weather-metrics b{font-size:.72rem;font-weight:600}
+.weather-placeholder{min-height:9rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;text-align:center;color:var(--ink-2)}
+.weather-placeholder>span{font-size:2rem;color:var(--ink-3)}
+.weather-placeholder b{font-size:.75rem}
+.weather-placeholder small{font-size:.57rem;color:var(--ink-3)}
+.weather-forecast-card{padding:.9rem}
+.weather-forecast-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.weather-forecast-head b{font-size:.76rem}
+.weather-days{display:flex;flex-direction:column}
+.weather-day{display:grid;grid-template-columns:3.3rem 1.8rem minmax(0,1fr) auto auto;align-items:center;gap:.3rem;min-height:3.15rem;border-top:1px solid var(--line)}
+.weather-day>div{display:flex;flex-direction:column;gap:.12rem}
+.weather-day b{font-size:.62rem}
+.weather-day small,.weather-day em{font-size:.5rem;color:var(--ink-3);font-style:normal}
+.weather-day>span{font-size:1.1rem;filter:grayscale(1)}
+.weather-day strong{font-size:.58rem;white-space:nowrap}
+.weather-day strong i{font-style:normal;color:var(--ink-3);font-weight:400}
+.weather-source{text-align:center;color:var(--ink-3);font-size:.5rem}
+@media(max-width:360px){.weather-day{grid-template-columns:2.8rem 1.4rem minmax(0,1fr) auto;gap:.2rem}.weather-day em{display:none}.weather-temp{font-size:3.8rem}}
