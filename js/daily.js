@@ -226,11 +226,6 @@
       }, error => {
         setStatus(error.code === 1 ? '定位权限未开启，请搜索城市。' : '暂时无法定位，请手动搜索城市。');
       }, {enableHighAccuracy:false,timeout:10000,maximumAge:600000});
-    }, {once:true});
-    $('weather-locate')?.addEventListener('click', () => {
-      const button = $('weather-locate');
-      if (button) button.disabled = true;
-      setTimeout(() => { if (button) button.disabled = false; }, 1200);
     });
     const refresh = document.createElement('button');
     refresh.type = 'button'; refresh.className = 'weather-refresh'; refresh.textContent = '刷新天气';
