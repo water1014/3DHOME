@@ -316,3 +316,50 @@ html.dark .weather-location-card,html.dark .weather-current-card,html.dark .weat
 .health-empty{padding:1.4rem .4rem;text-align:center;color:var(--ink-3);font-size:.6rem}
 .health-privacy-note{text-align:center;color:var(--ink-3);font-size:.5rem;line-height:1.7}
 @media(max-width:360px){.health-metric-grid{gap:.4rem}.health-metric-grid label{padding:.5rem}}
+
+
+/* Cycle journal · quiet monochrome iOS grouping */
+.cycle-page{display:flex;flex-direction:column;gap:.82rem;padding-bottom:2rem}
+.cycle-intro>span{font:.5rem var(--mono);letter-spacing:.13em;color:var(--ink-3)}
+.cycle-intro p{margin:.38rem 0 0;color:var(--ink-2);font-size:.66rem;line-height:1.7}
+.cycle-overview-card,.cycle-entry-card,.cycle-history-card{padding:.9rem;border:1px solid var(--line);border-radius:1rem;background:var(--glass-strong);box-shadow:var(--card-shadow);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.cycle-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.cycle-card-head>div{display:flex;flex-direction:column;gap:.2rem}
+.cycle-card-head b{font-size:.78rem;font-weight:600;color:var(--ink)}
+.cycle-card-head small{font:.46rem var(--mono);letter-spacing:.12em;color:var(--ink-3)}
+.cycle-card-head>span{font-size:.58rem;color:var(--ink-3)}
+.cycle-overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.cycle-overview-grid>div{display:flex;flex-direction:column;gap:.3rem;padding:.65rem;border:1px solid var(--line);border-radius:.72rem;background:var(--bg)}
+.cycle-overview-grid small{font-size:.53rem;color:var(--ink-3)}
+.cycle-overview-grid strong{font-size:1.1rem;font-weight:550;color:var(--ink)}
+.cycle-overview-grid .cycle-next{grid-column:1/-1}
+.cycle-overview-grid .cycle-next strong{font-size:1.35rem}
+.cycle-estimate-note{margin:.65rem .1rem 0;color:var(--ink-3);font-size:.53rem;line-height:1.6}
+.cycle-field{display:flex;align-items:center;justify-content:space-between;gap:.55rem;padding:.62rem 0;border-top:1px solid var(--line)}
+.cycle-field>span,.cycle-preferences label>span{color:var(--ink-2);font-size:.59rem}
+.cycle-field>span small,.cycle-preferences label>span small{display:block;margin-top:.15rem;color:var(--ink-3);font-size:.49rem}
+.cycle-field input{max-width:10rem;padding:.38rem .45rem;border:1px solid var(--line);border-radius:.55rem;background:var(--bg);color:var(--ink);font:inherit;font-size:.58rem}
+.cycle-preferences{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin:.55rem 0}
+.cycle-preferences label{display:flex;flex-direction:column;gap:.4rem;padding:.62rem;border:1px solid var(--line);border-radius:.7rem;background:var(--bg)}
+.cycle-preferences label>div{display:flex;align-items:center;gap:.25rem}
+.cycle-preferences input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:500 1.1rem var(--sans)}
+.cycle-preferences i{font-style:normal;color:var(--ink-3);font-size:.55rem}
+.cycle-field.cycle-symptoms{display:block}
+.cycle-symptoms>span{display:block;margin-bottom:.4rem}
+.cycle-symptoms textarea{width:100%;min-height:4.5rem;padding:.6rem;border:1px solid var(--line);border-radius:.7rem;background:var(--bg);color:var(--ink);font:inherit;font-size:.61rem;line-height:1.6}
+.cycle-form-actions{display:flex;gap:.5rem;margin-top:.75rem}
+.cycle-save,.cycle-reset{min-height:2.5rem;padding:.45rem .8rem;border-radius:.7rem;font:inherit;font-size:.62rem}
+.cycle-save{flex:1;border:0;background:var(--ink);color:var(--page-bg);font-weight:600}
+.cycle-reset{border:1px solid var(--line);background:transparent;color:var(--ink-2)}
+.cycle-history{display:flex;flex-direction:column}
+.cycle-entry{padding:.72rem .05rem;border-top:1px solid var(--line)}
+.cycle-entry-top{display:flex;align-items:center;justify-content:space-between}
+.cycle-entry-top>div{display:flex;flex-direction:column;gap:.18rem}
+.cycle-entry-top b{font:.62rem var(--mono);color:var(--ink)}
+.cycle-entry-top small{font-size:.52rem;color:var(--ink-3)}
+.cycle-entry-top button{border:0;background:transparent;color:var(--ink-3);font-size:1.1rem;padding:.15rem .3rem}
+.cycle-duration-tag{display:inline-block;margin-top:.4rem;padding:.25rem .45rem;border:1px solid var(--line);border-radius:99px;color:var(--ink-2);font-size:.51rem}
+.cycle-entry p{margin:.4rem 0 0;color:var(--ink-2);font-size:.59rem;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.cycle-empty{padding:1.4rem .4rem;text-align:center;color:var(--ink-3);font-size:.6rem}
+.cycle-privacy-note{text-align:center;color:var(--ink-3);font-size:.5rem;line-height:1.7}
+@media(max-width:360px){.cycle-preferences{gap:.4rem}.cycle-preferences label{padding:.5rem}}
