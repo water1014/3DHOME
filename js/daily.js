@@ -123,7 +123,7 @@
   const CYCLE_KEY = 'xw_cycle_records_v1';
   const CYCLE_PREF_KEY = 'xw_cycle_preferences_v1';
   function cycleRead() {
-    try { const rows=JSON.parse(localStorage.getItem(CYCLE_KEY)||'[]'); return Array.isArray(rows)?rows.filter(x=>x&&/^\\d{4}-\\d{2}-\\d{2}$/.test(x.start)):[]; }
+    try { const rows=JSON.parse(localStorage.getItem(CYCLE_KEY)||'[]'); return Array.isArray(rows)?rows.filter(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(x.start)):[]; }
     catch (_) { return []; }
   }
   function cyclePrefs() {
