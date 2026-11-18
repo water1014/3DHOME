@@ -2,7 +2,7 @@
 (function () {
   const sections = {
     accounting: { zh: '记账', en: 'EXPENSES', group: 'DAILY LIFE' },
-    ledger: { zh: '账本', en: 'LEDGER', group: 'DAILY LIFE' },
+    weather: { zh: '天气', en: 'WEATHER', group: 'DAILY LIFE' },
     mood: { zh: '心情', en: 'MOOD', group: 'DAILY LIFE' },
     diary: { zh: '日记', en: 'DIARY', group: 'DAILY LIFE' },
     health: { zh: '健康', en: 'WELLNESS', group: 'DAILY LIFE' },
