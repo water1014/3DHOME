@@ -39,6 +39,7 @@
     const calendar = current === 'calendar';
     const weather = current === 'weather';
     const accounting = current === 'accounting';
+    const health = current === 'health';
     page.innerHTML = `
       <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : windows ? 'engawa-page' : ''}">
         <header class="daily-heading">
@@ -46,7 +47,7 @@
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('today') || '') : weather ? renderWeather() : accounting ? renderAccounting() : beauty ? `
+        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('today') || '') : weather ? renderWeather() : accounting ? renderAccounting() : health ? renderHealth() : beauty ? `
           <section class="beautify-content" aria-label="美化设置">
             <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
             <section class="beautify-block">
@@ -106,12 +107,92 @@
     if (calendar) window.DailyLife?.mount();
     if (weather) bindWeather();
     if (accounting) bindAccounting();
+    if (health) bindHealth();
     document.querySelectorAll('[data-daily-go]').forEach(link => {
       link.classList.toggle('active', link.dataset.dailyGo === current);
       link.setAttribute('aria-current', link.dataset.dailyGo === current ? 'page' : 'false');
     });
   }
 
+
+
+  // Private, device-local wellness notes. This is a journal, not a diagnostic tool.
+  const HEALTH_KEY = 'xw_health_records_v1';
+  function healthRead() {
+    try { const rows=JSON.parse(localStorage.getItem(HEALTH_KEY)||'[]'); return Array.isArray(rows)?rows.filter(x=>x&&typeof x.date==='string'):[]; }
+    catch (_) { return []; }
+  }
+  function healthWrite(rows) {
+    try { localStorage.setItem(HEALTH_KEY,JSON.stringify(rows)); return true; }
+    catch (_) { UI.toast('保存失败，请检查设备存储空间'); return false; }
+  }
+  function renderHealth() {
+    const today=new Date().toISOString().slice(0,10);
+    return `
+      <section class="health-page">
+        <div class="health-intro"><span>YOUR WELLNESS JOURNAL</span><p>轻轻记录身体状态，不必追求完美，只是多一点了解自己。</p></div>
+        <section class="health-today-card">
+          <div class="health-card-head"><div><b>今日记录</b><small>DAILY CHECK-IN</small></div><span>◷</span></div>
+          <form id="health-form">
+            <label class="health-date-field"><span>记录日期</span><input id="health-date" type="date" value="${today}" required></label>
+            <div class="health-metric-grid">
+              <label><span>饮水量 <small>毫升</small></span><input id="health-water" type="number" min="0" max="20000" step="50" inputmode="numeric" placeholder="例如 1500"></label>
+              <label><span>睡眠时长 <small>小时</small></span><input id="health-sleep" type="number" min="0" max="24" step=".1" inputmode="decimal" placeholder="例如 7.5"></label>
+              <label><span>活动时长 <small>分钟</small></span><input id="health-activity" type="number" min="0" max="1440" step="5" inputmode="numeric" placeholder="例如 30"></label>
+              <label><span>体重 <small>千克，可不填</small></span><input id="health-weight" type="number" min="0" max="1000" step=".1" inputmode="decimal" placeholder="选填"></label>
+            </div>
+            <label class="health-note-field"><span>身体感受 / 备注</span><textarea id="health-note" rows="3" maxlength="500" placeholder="今天身体感觉怎么样？有什么想记下来的……"></textarea></label>
+            <div class="health-form-actions"><button type="submit" class="health-save">保存今天的记录</button><button type="button" id="health-clear" class="health-clear">清空表单</button></div>
+          </form>
+        </section>
+        <section class="health-history-card">
+          <div class="health-card-head"><div><b>记录回顾</b><small>YOUR RECENT NOTES</small></div><span id="health-count">0 条</span></div>
+          <div id="health-history" class="health-history"><div class="health-empty">还没有记录。想记的时候，再来这里就好。</div></div>
+        </section>
+        <p class="health-privacy-note">这些内容仅保存在当前设备的浏览器中，不会上传到云端。它们用于个人记录，不构成医疗建议。</p>
+      </section>`;
+  }
+  function bindHealth() {
+    const $=id=>document.getElementById(id), form=$('health-form');
+    const fields=['water','sleep','activity','weight','note'];
+    const date=$('health-date'), history=$('health-history');
+    const clear=()=>{ fields.forEach(k=>{const el=$('health-'+k);if(el)el.value='';}); };
+    const renderRows=()=>{
+      const rows=healthRead().sort((a,b)=>b.date.localeCompare(a.date));
+      $('health-count').textContent=rows.length+' 条';
+      if(!rows.length){history.innerHTML='<div class="health-empty">还没有记录。想记的时候，再来这里就好。</div>';return;}
+      history.innerHTML=rows.slice(0,30).map(x=>{
+        const metrics=[x.water?x.water+' ml 饮水':'',x.sleep?x.sleep+' 小时睡眠':'',x.activity?x.activity+' 分钟活动':'',x.weight?x.weight+' kg':''].filter(Boolean);
+        return '<article class="health-entry"><div class="health-entry-top"><b>'+weatherEsc(x.date)+'</b><button type="button" data-health-delete="'+weatherEsc(x.date)+'" aria-label="删除记录">×</button></div>'+(metrics.length?'<div class="health-entry-metrics">'+metrics.map(v=>'<span>'+weatherEsc(v)+'</span>').join('')+'</div>':'')+(x.note?'<p>'+weatherEsc(x.note)+'</p>':'<p class="health-entry-muted">没有添加备注</p>')+'</article>';
+      }).join('');
+      history.querySelectorAll('[data-health-delete]').forEach(btn=>btn.addEventListener('click',()=>{
+        if(!confirm('确定删除这一天的健康记录吗？'))return;
+        if(healthWrite(healthRead().filter(x=>x.date!==btn.dataset.healthDelete)))renderRows();
+      }));
+    };
+    const existing=healthRead().find(x=>x.date===date.value);
+    if(existing){fields.forEach(k=>{if($( 'health-'+k))$('health-'+k).value=existing[k]??'';});}
+    date.addEventListener('change',()=>{
+      clear(); const row=healthRead().find(x=>x.date===date.value);
+      if(row)fields.forEach(k=>{if($('health-'+k))$('health-'+k).value=row[k]??'';});
+    });
+    form.addEventListener('submit',e=>{
+      e.preventDefault();
+      const row={date:date.value};
+      for(const key of fields){
+        const value=$('health-'+key).value.trim();
+        if(key==='note'){row.note=value;continue;}
+        if(value===''){row[key]='';continue;}
+        const n=Number(value), max={water:20000,sleep:24,activity:1440,weight:1000}[key];
+        if(!Number.isFinite(n)||n<0||n>max){UI.toast('请检查'+({water:'饮水量',sleep:'睡眠时长',activity:'活动时长',weight:'体重'}[key])+'的数值');return;}
+        row[key]=n;
+      }
+      const rows=healthRead().filter(x=>x.date!==row.date); rows.push(row);
+      if(healthWrite(rows)){renderRows();UI.toast('这一天的记录已保存');}
+    });
+    $('health-clear').addEventListener('click',clear);
+    renderRows();
+  }
 
   // Local-first bookkeeping. Existing records are never cleared by rendering.
   const ACCOUNTING_KEY = 'xw_accounting_records_v1';
