@@ -104,3 +104,117 @@
 .settings-card { border-radius: var(--surface-radius, 1.15rem); }
 
 
+
+
+/* System navigation refinement · monochrome, calm, and readable */
+.side-drawer{
+  background:rgba(250,250,250,.94);
+  color:#191919;
+  border-right:1px solid rgba(20,20,20,.10);
+  box-shadow:14px 0 42px rgba(0,0,0,.12);
+  -webkit-backdrop-filter:blur(22px) saturate(1.02);
+  backdrop-filter:blur(22px) saturate(1.02);
+}
+html.dark .side-drawer{
+  background:rgba(25,25,27,.96);
+  color:#f1f1f1;
+  border-right-color:rgba(255,255,255,.11);
+  box-shadow:14px 0 42px rgba(0,0,0,.38);
+}
+.side-drawer .sd-ava{
+  background:linear-gradient(145deg,#fff,#e6e6e6);
+  border:1px solid rgba(0,0,0,.10);
+  color:#333;
+  box-shadow:0 3px 12px rgba(0,0,0,.07);
+}
+html.dark .side-drawer .sd-ava{
+  background:linear-gradient(145deg,#414145,#29292c);
+  border-color:rgba(255,255,255,.12);
+  color:#eee;
+}
+.side-drawer .sd-names,.side-drawer .sd-item{color:var(--ink)}
+.side-drawer .micro,.side-drawer .sd-en{color:var(--ink-3)}
+.side-drawer .sd-item .ic{color:var(--ink-2)}
+.side-drawer .sd-item:hover{background:rgba(0,0,0,.045)}
+.side-drawer .sd-item.on{
+  background:rgba(0,0,0,.075);
+  color:var(--ink);
+}
+.side-drawer .sd-item.on .ic{color:var(--ink)}
+html.dark .side-drawer .sd-item:hover{background:rgba(255,255,255,.055)}
+html.dark .side-drawer .sd-item.on{background:rgba(255,255,255,.09);color:var(--ink)}
+.side-drawer .sd-head,.side-drawer .sd-foot{border-color:var(--line)}
+.sd-nav{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:.12rem}
+.sd-nav::-webkit-scrollbar{display:none}
+.sd-section{gap:.1rem;padding:.16rem 0 .68rem}
+.sd-section + .sd-section{border-top:1px solid var(--line);padding-top:.68rem}
+.sd-section-title{color:var(--ink-3);font-size:.5rem;letter-spacing:.14em}
+.sd-section-title span{color:var(--ink-3)}
+.sd-subitem{
+  min-height:2.25rem;
+  border-left:1px solid var(--line);
+  color:var(--ink-2);
+  padding-left:2.35rem;
+  border-radius:0 .55rem .55rem 0;
+}
+.sd-subitem:hover{background:rgba(0,0,0,.045);color:var(--ink)}
+.sd-subitem.active{
+  border-left:2px solid var(--ink);
+  background:rgba(0,0,0,.065);
+  color:var(--ink);
+}
+html.dark .sd-subitem:hover{background:rgba(255,255,255,.05)}
+html.dark .sd-subitem.active{background:rgba(255,255,255,.085);border-left-color:var(--ink);color:var(--ink)}
+.side-drawer .sd-foot .sd-item{min-height:2.65rem}
+
+/* iOS-like segmented navigation for settings, without introducing accent colors */
+.settings-jump{
+  gap:.18rem;
+  padding:.24rem;
+  border:1px solid var(--line);
+  border-radius:.78rem;
+  background:rgba(128,128,128,.085);
+  box-shadow:none;
+  -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(18px);
+}
+.settings-jump button{
+  flex:1 0 auto;
+  min-height:2.15rem;
+  padding:.4rem .7rem;
+  border-radius:.58rem;
+  color:var(--ink-2);
+  transition:background .2s,color .2s,box-shadow .2s,transform .18s;
+}
+.settings-jump button:active{transform:scale(.97)}
+.settings-jump button.is-active{
+  border-color:rgba(0,0,0,.07);
+  background:#fff;
+  color:#171717;
+  box-shadow:0 1px 3px rgba(0,0,0,.10),0 2px 7px rgba(0,0,0,.045);
+}
+html.dark .settings-jump button.is-active{
+  border-color:rgba(255,255,255,.10);
+  background:#444448;
+  color:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.settings-card{
+  overflow:hidden;
+  border-radius:.95rem;
+  background:rgba(255,255,255,.48);
+  box-shadow:0 4px 18px rgba(0,0,0,.035),inset 0 1px 0 rgba(255,255,255,.72);
+}
+html.dark .settings-card{
+  background:rgba(255,255,255,.035);
+  box-shadow:0 5px 20px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.045);
+}
+.settings-row{min-height:3.55rem}
+.settings-field input,.settings-card textarea,.settings-select-field select{
+  border-radius:.62rem;
+}
+.settings-panel{scrollbar-gutter:stable}
+@media(max-width:360px){
+  .side-drawer{width:min(17rem,86vw);padding-left:.82rem;padding-right:.82rem}
+  .settings-jump button{padding-left:.58rem;padding-right:.58rem;font-size:.6rem}
+}
