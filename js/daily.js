@@ -37,6 +37,7 @@
     const worldbook = current === 'worldbook';
     const windows = current === 'windows';
     const calendar = current === 'calendar';
+    const weather = current === 'weather';
     page.innerHTML = `
       <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : windows ? 'engawa-page' : ''}">
         <header class="daily-heading">
@@ -44,7 +45,7 @@
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('today') || '') : beauty ? `
+        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('today') || '') : weather ? renderWeather() : beauty ? `
           <section class="beautify-content" aria-label="美化设置">
             <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
             <section class="beautify-block">
@@ -102,11 +103,141 @@
     if (windows) bindWindows();
     if (current === 'diary') bindDiary();
     if (calendar) window.DailyLife?.mount();
+    if (weather) bindWeather();
     document.querySelectorAll('[data-daily-go]').forEach(link => {
       link.classList.toggle('active', link.dataset.dailyGo === current);
       link.setAttribute('aria-current', link.dataset.dailyGo === current ? 'page' : 'false');
     });
   }
+
+  // Weather page: Open-Meteo provides current conditions and a five-day outlook.
+  const WEATHER_KEY = 'xw_weather_location_v1';
+  const weatherCode = code => {
+    const map = {
+      0:['晴朗','☀️'],1:['大致晴朗','🌤️'],2:['局部多云','⛅'],3:['阴天','☁️'],
+      45:['有雾','🌫️'],48:['雾凇','🌫️'],51:['毛毛雨','🌦️'],53:['小雨','🌦️'],
+      55:['较强毛毛雨','🌧️'],56:['冻毛毛雨','🌧️'],57:['强冻毛毛雨','🌧️'],
+      61:['小雨','🌧️'],63:['中雨','🌧️'],65:['大雨','🌧️'],66:['冻雨','🌧️'],67:['强冻雨','🌧️'],
+      71:['小雪','🌨️'],73:['中雪','🌨️'],75:['大雪','❄️'],77:['雪粒','🌨️'],
+      80:['阵雨','🌦️'],81:['较强阵雨','🌧️'],82:['强阵雨','⛈️'],
+      85:['阵雪','🌨️'],86:['强阵雪','❄️'],95:['雷雨','⛈️'],96:['雷雨伴冰雹','⛈️'],99:['强雷雨伴冰雹','⛈️']
+    };
+    return map[Number(code)] || ['天气情况','🌡️'];
+  };
+  function weatherEsc(value) {
+    return String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function renderWeather() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(WEATHER_KEY) || 'null'); } catch (_) {}
+    return `
+      <section class="weather-page">
+        <div class="weather-intro"><span>WEATHER / RIGHT NOW</span><p>看看窗外的天气，也安排好今天的出门时间。</p></div>
+        <section class="weather-location-card">
+          <div class="weather-location-top"><div><span>当前地点</span><b id="weather-place">${saved?.name ? weatherEsc(saved.name) : '还没有选择地点'}</b></div><button type="button" id="weather-locate" aria-label="定位当前位置">⌖ 定位</button></div>
+          <div class="weather-search"><input id="weather-city-input" type="search" maxlength="80" placeholder="搜索城市，例如：南京、米兰" autocomplete="off"><button type="button" id="weather-city-search">搜索</button></div>
+          <p class="weather-status" id="weather-status" role="status">输入城市名称，或使用定位获取天气。</p>
+        </section>
+        <section class="weather-current-card" id="weather-current" aria-live="polite">
+          <div class="weather-placeholder"><span>☁</span><b>等待天气数据</b><small>选择地点后，这里会显示实时天气。</small></div>
+        </section>
+        <section class="weather-forecast-card" id="weather-forecast" hidden></section>
+        <p class="weather-source">天气数据来自 Open-Meteo · 自动按当地时区显示</p>
+      </section>`;
+  }
+  function bindWeather() {
+    const $ = id => document.getElementById(id);
+    const status = $('weather-status');
+    const search = $('weather-city-search');
+    const input = $('weather-city-input');
+    const setStatus = message => { if (status) status.textContent = message; };
+    const saveLocation = value => {
+      try { localStorage.setItem(WEATHER_KEY, JSON.stringify(value)); } catch (_) {}
+      const place = $('weather-place');
+      if (place) place.textContent = value.name;
+    };
+    const showWeather = async location => {
+      setStatus('正在获取天气数据…');
+      const current = $('weather-current'), forecast = $('weather-forecast');
+      if (current) current.innerHTML = '<div class="weather-placeholder"><span>◌</span><b>天气正在更新</b><small>正在连接天气服务…</small></div>';
+      try {
+        const params = new URLSearchParams({
+          latitude: location.latitude, longitude: location.longitude,
+          current: 'temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m',
+          daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
+          timezone: 'auto', forecast_days: '5'
+        });
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?' + params.toString());
+        if (!response.ok) throw new Error('天气服务暂时不可用，请稍后重试。');
+        const data = await response.json();
+        if (!data.current || !data.daily) throw new Error('没有取得完整天气数据。');
+        const now = data.current, [desc,icon] = weatherCode(now.weather_code);
+        const time = now.time ? now.time.replace('T',' ') : '';
+        if (current) current.innerHTML = `
+          <div class="weather-current-head"><span>NOW / ${weatherEsc(time)}</span><span>${Number(now.is_day) ? '白天' : '夜间'}</span></div>
+          <div class="weather-main"><div><div class="weather-temp">${Math.round(now.temperature_2m)}<sup>°</sup></div><b>${desc}</b><small>体感 ${Math.round(now.apparent_temperature)}°</small></div><span class="weather-icon">${icon}</span></div>
+          <div class="weather-metrics"><div><span>湿度</span><b>${Math.round(now.relative_humidity_2m)}%</b></div><div><span>风速</span><b>${Math.round(now.wind_speed_10m)} km/h</b></div><div><span>降水</span><b>${Number(now.precipitation || 0).toFixed(1)} mm</b></div></div>`;
+        if (forecast) {
+          const days = data.daily.time.map((date,i) => {
+            const [label,emoji] = weatherCode(data.daily.weather_code[i]);
+            const dateObj = new Date(date + 'T12:00:00');
+            const dayName = i === 0 ? '今天' : new Intl.DateTimeFormat('zh-CN',{weekday:'short'}).format(dateObj);
+            return `<article class="weather-day"><div><b>${dayName}</b><small>${date.slice(5).replace('-',' / ')}</small></div><span>${emoji}</span><small>${label}</small><strong>${Math.round(data.daily.temperature_2m_max[i])}° <i>/</i> ${Math.round(data.daily.temperature_2m_min[i])}°</strong><em>${data.daily.precipitation_probability_max?.[i] ?? 0}%</em></article>`;
+          }).join('');
+          forecast.innerHTML = '<div class="weather-forecast-head"><b>未来五天</b><span>5-DAY FORECAST</span></div><div class="weather-days">' + days + '</div>';
+          forecast.hidden = false;
+        }
+        setStatus('已更新 · ' + (time || '当地时间'));
+      } catch (error) {
+        setStatus(error.message || '天气加载失败，请检查网络后重试。');
+        if (current) current.innerHTML = '<div class="weather-placeholder"><span>☁</span><b>暂时无法取得天气</b><small>请检查网络连接，或重新选择地点。</small></div>';
+        if (forecast) forecast.hidden = true;
+      }
+    };
+    const searchCity = async () => {
+      const query = input?.value.trim();
+      if (!query) { setStatus('先输入一个城市名称吧。'); return; }
+      setStatus('正在查找城市…');
+      try {
+        const url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(query) + '&count=1&language=zh&format=json';
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('城市搜索暂时不可用。');
+        const data = await response.json(), place = data.results?.[0];
+        if (!place) { setStatus('没有找到这个地点，试试更完整的城市名称。'); return; }
+        const name = [place.name,place.admin1,place.country].filter((v,i,a)=>v && a.indexOf(v)===i).join(' · ');
+        const location = {name,latitude:place.latitude,longitude:place.longitude};
+        saveLocation(location); await showWeather(location);
+      } catch (error) { setStatus(error.message || '城市搜索失败，请稍后重试。'); }
+    };
+    search?.addEventListener('click', searchCity);
+    input?.addEventListener('keydown', event => { if (event.key === 'Enter') searchCity(); });
+    $('weather-locate')?.addEventListener('click', () => {
+      if (!navigator.geolocation) { setStatus('当前浏览器不支持定位，请直接搜索城市。'); return; }
+      setStatus('正在请求定位权限…');
+      navigator.geolocation.getCurrentPosition(async position => {
+        const location = {name:'我的当前位置',latitude:position.coords.latitude,longitude:position.coords.longitude};
+        try {
+          const url = 'https://geocoding-api.open-meteo.com/v1/reverse?latitude='+location.latitude+'&longitude='+location.longitude+'&language=zh&format=json';
+          const response = await fetch(url), data = response.ok ? await response.json() : {};
+          const place = data.results?.[0];
+          if (place) location.name = [place.name,place.admin1,place.country].filter(Boolean).join(' · ');
+        } catch (_) {}
+        saveLocation(location); await showWeather(location);
+      }, error => {
+        setStatus(error.code === 1 ? '定位权限未开启，请搜索城市。' : '暂时无法定位，请手动搜索城市。');
+      }, {enableHighAccuracy:false,timeout:10000,maximumAge:600000});
+    });
+    const refresh = document.createElement('button');
+    refresh.type = 'button'; refresh.className = 'weather-refresh'; refresh.textContent = '刷新天气';
+    refresh.addEventListener('click', () => {
+      let location = null; try { location = JSON.parse(localStorage.getItem(WEATHER_KEY)||'null'); } catch (_) {}
+      if (location) showWeather(location); else setStatus('请先定位或搜索城市。');
+    });
+    $('weather-current')?.before(refresh);
+    let saved = null; try { saved = JSON.parse(localStorage.getItem(WEATHER_KEY)||'null'); } catch (_) {}
+    if (saved?.latitude != null && saved?.longitude != null) showWeather(saved);
+  }
+
   function renderWindows() {
     const panels = {
       tonight: {
