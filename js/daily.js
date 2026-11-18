@@ -38,6 +38,7 @@
     const windows = current === 'windows';
     const calendar = current === 'calendar';
     const weather = current === 'weather';
+    const accounting = current === 'accounting';
     page.innerHTML = `
       <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : windows ? 'engawa-page' : ''}">
         <header class="daily-heading">
@@ -45,7 +46,7 @@
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('today') || '') : weather ? renderWeather() : beauty ? `
+        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('today') || '') : weather ? renderWeather() : accounting ? renderAccounting() : beauty ? `
           <section class="beautify-content" aria-label="美化设置">
             <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
             <section class="beautify-block">
@@ -104,10 +105,125 @@
     if (current === 'diary') bindDiary();
     if (calendar) window.DailyLife?.mount();
     if (weather) bindWeather();
+    if (accounting) bindAccounting();
     document.querySelectorAll('[data-daily-go]').forEach(link => {
       link.classList.toggle('active', link.dataset.dailyGo === current);
       link.setAttribute('aria-current', link.dataset.dailyGo === current ? 'page' : 'false');
     });
+  }
+
+
+  // Local-first bookkeeping. Existing records are never cleared by rendering.
+  const ACCOUNTING_KEY = 'xw_accounting_records_v1';
+  const accountingCategories = {
+    expense: ['餐饮','购物','交通','居住','娱乐','医疗','学习','其他'],
+    income: ['工资','兼职','礼金','理财','退款','其他']
+  };
+  function accountingRead() {
+    try {
+      const rows = JSON.parse(localStorage.getItem(ACCOUNTING_KEY) || '[]');
+      return Array.isArray(rows) ? rows.filter(x => x && typeof x.id === 'string' && Number.isFinite(Number(x.amount))) : [];
+    } catch (_) { return []; }
+  }
+  function accountingWrite(rows) {
+    try { localStorage.setItem(ACCOUNTING_KEY, JSON.stringify(rows)); return true; }
+    catch (_) { UI.toast('保存失败，可能是本机存储空间不足'); return false; }
+  }
+  const money = value => Number(value || 0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  function renderAccounting() {
+    const month = new Date().toISOString().slice(0,7);
+    return `
+      <section class="accounting-page">
+        <div class="accounting-intro"><span>YOUR MONEY, CLEARLY</span><p>把每一笔收支记下来，慢慢看清生活的流向。</p></div>
+        <section class="accounting-summary">
+          <div class="accounting-summary-top"><span>本月结余</span><input id="accounting-month" type="month" value="${month}" aria-label="选择月份"></div>
+          <strong id="accounting-balance">¥0.00</strong>
+          <div class="accounting-totals"><div><small>收入</small><b id="accounting-income">¥0.00</b></div><div><small>支出</small><b id="accounting-expense">¥0.00</b></div></div>
+        </section>
+        <section class="accounting-form-card">
+          <div class="accounting-section-head"><div><b>记一笔</b><small>NEW TRANSACTION</small></div><span>＋</span></div>
+          <div class="accounting-type-switch" role="group" aria-label="收支类型">
+            <button type="button" class="active" data-account-type="expense" aria-pressed="true">支出</button>
+            <button type="button" data-account-type="income" aria-pressed="false">收入</button>
+          </div>
+          <form id="accounting-form">
+            <label class="accounting-amount-field"><span>金额</span><div><i>¥</i><input id="accounting-amount" type="number" inputmode="decimal" min="0.01" max="999999999" step="0.01" placeholder="0.00" required></div></label>
+            <div class="accounting-fields">
+              <label><span>分类</span><select id="accounting-category"></select></label>
+              <label><span>日期</span><input id="accounting-date" type="date" value="${new Date().toISOString().slice(0,10)}" required></label>
+            </div>
+            <label class="accounting-note-field"><span>备注</span><input id="accounting-note" maxlength="100" placeholder="这笔钱花在哪里了？"></label>
+            <button class="accounting-submit" type="submit" id="accounting-submit">保存记录</button>
+          </form>
+        </section>
+        <section class="accounting-records-card">
+          <div class="accounting-section-head"><div><b>收支明细</b><small>TRANSACTION HISTORY</small></div><span id="accounting-count">0 笔</span></div>
+          <div class="accounting-filter"><button type="button" class="active" data-account-filter="all">全部</button><button type="button" data-account-filter="expense">支出</button><button type="button" data-account-filter="income">收入</button></div>
+          <div id="accounting-record-list" class="accounting-record-list"><div class="accounting-empty">还没有记录，先记下第一笔吧。</div></div>
+        </section>
+        <p class="accounting-footnote">记录仅保存在当前设备浏览器中。更换设备或清理网站数据前，请先做好备份。</p>
+      </section>`;
+  }
+  function bindAccounting() {
+    const $ = id => document.getElementById(id);
+    const form = $('accounting-form'), typeButtons = Array.from(document.querySelectorAll('[data-account-type]'));
+    const filterButtons = Array.from(document.querySelectorAll('[data-account-filter]'));
+    let type = 'expense', filter = 'all', editingId = '';
+    const category = $('accounting-category');
+    const fillCategories = () => {
+      if (!category) return;
+      category.innerHTML = accountingCategories[type].map(x => '<option value="'+weatherEsc(x)+'">'+weatherEsc(x)+'</option>').join('');
+      typeButtons.forEach(b => {
+        const active = b.dataset.accountType === type;
+        b.classList.toggle('active',active); b.setAttribute('aria-pressed',String(active));
+      });
+    };
+    const monthValue = () => $('accounting-month')?.value || new Date().toISOString().slice(0,7);
+    const renderRows = () => {
+      const rows = accountingRead(), month = monthValue();
+      const monthly = rows.filter(x => String(x.date || '').startsWith(month));
+      const income = monthly.filter(x=>x.type==='income').reduce((s,x)=>s+Number(x.amount),0);
+      const expense = monthly.filter(x=>x.type==='expense').reduce((s,x)=>s+Number(x.amount),0);
+      $('accounting-income').textContent = '¥'+money(income);
+      $('accounting-expense').textContent = '¥'+money(expense);
+      $('accounting-balance').textContent = (income-expense<0?'-':'')+'¥'+money(Math.abs(income-expense));
+      const visible = monthly.filter(x=>filter==='all'||x.type===filter).sort((a,b)=>(b.date||'').localeCompare(a.date||'') || (b.createdAt||0)-(a.createdAt||0));
+      $('accounting-count').textContent = visible.length+' 笔';
+      const list = $('accounting-record-list');
+      if (!visible.length) { list.innerHTML='<div class="accounting-empty">这个月份还没有'+(filter==='all'?'记录':filter==='income'?'收入':'支出')+'。</div>'; return; }
+      list.innerHTML = visible.map(x => `
+        <article class="accounting-record" data-account-record="${weatherEsc(x.id)}">
+          <span class="accounting-record-icon">${x.type==='income'?'↙':'↗'}</span>
+          <div class="accounting-record-main"><b>${weatherEsc(x.category||'其他')}</b><small>${weatherEsc(x.date||'')}${x.note?' · '+weatherEsc(x.note):''}</small></div>
+          <strong class="${x.type}">${x.type==='income'?'+':'−'}¥${money(x.amount)}</strong>
+          <button type="button" data-account-delete="${weatherEsc(x.id)}" aria-label="删除记录">×</button>
+        </article>`).join('');
+      list.querySelectorAll('[data-account-delete]').forEach(button=>button.addEventListener('click',()=>{
+        const id=button.dataset.accountDelete;
+        if (!confirm('确定删除这笔记录吗？')) return;
+        if(accountingWrite(accountingRead().filter(x=>x.id!==id))) renderRows();
+      }));
+    };
+    typeButtons.forEach(button=>button.addEventListener('click',()=>{type=button.dataset.accountType;fillCategories();}));
+    filterButtons.forEach(button=>button.addEventListener('click',()=>{
+      filter=button.dataset.accountFilter;
+      filterButtons.forEach(b=>b.classList.toggle('active',b===button));
+      renderRows();
+    }));
+    $('accounting-month')?.addEventListener('change',renderRows);
+    form?.addEventListener('submit',event=>{
+      event.preventDefault();
+      const amount=Number($('accounting-amount').value);
+      if(!Number.isFinite(amount)||amount<=0){UI.toast('请输入大于 0 的金额');return;}
+      const rows=accountingRead(), now=Date.now();
+      const record={id:editingId||('acct_'+now+'_'+Math.random().toString(36).slice(2,8)),type,amount:Math.round(amount*100)/100,category:category.value,date:$('accounting-date').value,note:$('accounting-note').value.trim(),createdAt:now};
+      rows.push(record);
+      if(accountingWrite(rows)){
+        form.reset(); $('accounting-date').value=new Date().toISOString().slice(0,10);
+        editingId=''; fillCategories(); renderRows(); UI.toast('这一笔已经记下啦');
+      }
+    });
+    fillCategories(); renderRows();
   }
 
   // Weather page: Open-Meteo provides current conditions and a five-day outlook.
