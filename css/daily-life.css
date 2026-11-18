@@ -384,3 +384,46 @@ html.dark .weather-location-card,html.dark .weather-current-card,html.dark .weat
 .calendar-focus .dh-panel{margin-top:0}
 .calendar-focus .dh-count-list article{min-height:3.25rem}
 @media(max-width:360px){.dh-calendar-day{padding:.78rem .72rem}.dh-calendar-day-head h2{font-size:1rem}}
+
+
+/* Plans page · shared calendar data, monochrome iOS grouped layout */
+.plans-focus{gap:.78rem}
+.dh-plan-overview{display:flex;align-items:center;justify-content:space-between;gap:.7rem;padding:.9rem;border:1px solid var(--line);border-radius:1rem;background:var(--glass-strong);box-shadow:var(--card-shadow);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.dh-plan-overview>div{display:flex;flex-direction:column;gap:.25rem;min-width:0}
+.dh-plan-overview>div>b{color:var(--ink);font:600 1.03rem system-ui,-apple-system,sans-serif}
+.dh-plan-overview>div>small{color:var(--ink-3);font-size:.54rem}
+.dh-plan-overview>label{display:flex;flex-direction:column;gap:.28rem;color:var(--ink-3);font-size:.5rem;flex:0 0 8.5rem}
+.dh-plan-overview input{width:100%;min-width:0;min-height:2.25rem;padding:.35rem .45rem;border:1px solid var(--line);border-radius:.58rem;background:var(--glass);color:var(--ink);font:.57rem system-ui,sans-serif}
+.dh-plan-quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.4rem}
+.dh-plan-quick button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;min-height:4.1rem;padding:.5rem .15rem;border:1px solid var(--line);border-radius:.78rem;background:var(--glass);color:var(--ink-2);font:inherit}
+.dh-plan-quick button:active{transform:scale(.96)}
+.dh-plan-quick button>b{display:grid;place-items:center;width:1.45rem;height:1.45rem;border-radius:50%;background:var(--ink);color:var(--page);font-size:.9rem;font-weight:400}
+.dh-plan-quick button>span{font-size:.53rem}
+.dh-plan-range{color:var(--ink-3);font-size:.5rem}
+.dh-plan-date{padding:.62rem 0;border-top:1px solid var(--line)}
+.dh-plan-date>header{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.25rem}
+.dh-plan-date>header>div{display:flex;flex-direction:column;gap:.15rem}
+.dh-plan-date>header b{color:var(--ink);font-size:.66rem;font-weight:600}
+.dh-plan-date>header small{color:var(--ink-3);font-size:.5rem}
+.dh-plan-items{display:flex;flex-direction:column}
+.dh-plan-item{display:flex;align-items:center;gap:.55rem;min-height:2.7rem;padding:.38rem .12rem;border-top:1px solid var(--line)}
+.dh-plan-item>time{flex:0 0 3.1rem;color:var(--ink-3);font:.52rem var(--mono)}
+.dh-plan-item>span{display:flex;flex:1;min-width:0;flex-direction:column;gap:.14rem}
+.dh-plan-item b{color:var(--ink);font-size:.6rem;font-weight:550;overflow-wrap:anywhere}
+.dh-plan-item small{color:var(--ink-3);font-size:.49rem}
+.dh-plan-item>button{border:0;background:transparent;color:var(--ink-3);font-size:1rem;padding:.25rem .35rem}
+.dh-plan-todo input{width:1rem;height:1rem;accent-color:var(--ink);flex:0 0 auto}
+.dh-plan-todo.done b{text-decoration:line-through;color:var(--ink-3)}
+.dh-plan-none{color:var(--ink-3);font-size:.5rem;padding:.4rem 0}
+.dh-plan-week{display:flex;flex-direction:column}
+.dh-plan-week-row{display:grid;grid-template-columns:3.2rem minmax(0,1fr);gap:.55rem;padding:.58rem 0;border-top:1px solid var(--line)}
+.dh-plan-weekday{padding-top:.25rem;color:var(--ink-2);font-size:.57rem;font-weight:600}
+.dh-plan-week-items{display:flex;flex-direction:column;gap:.32rem}
+.dh-plan-week-items>div{display:flex;align-items:center;gap:.45rem;min-height:1.8rem}
+.dh-plan-week-items time{width:2.8rem;flex:0 0 auto;color:var(--ink-3);font:.5rem var(--mono)}
+.dh-plan-week-items span{display:flex;flex:1;min-width:0;flex-direction:column;gap:.1rem}
+.dh-plan-week-items b{color:var(--ink);font-size:.58rem;font-weight:550}
+.dh-plan-week-items small{color:var(--ink-3);font-size:.48rem}
+.dh-plan-week-items button{border:0;background:transparent;color:var(--ink-3);font-size:.95rem;padding:.2rem .35rem}
+.dh-plan-hint{margin:.55rem 0 0;color:var(--ink-3);font-size:.49rem;line-height:1.6}
+@media(max-width:360px){.dh-plan-overview{align-items:flex-start;flex-direction:column}.dh-plan-overview>label{width:100%;flex-basis:auto}.dh-plan-quick{gap:.25rem}.dh-plan-quick button{min-height:3.7rem}}
