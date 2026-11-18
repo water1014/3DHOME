@@ -37,6 +37,7 @@
     const worldbook = current === 'worldbook';
     const windows = current === 'windows';
     const calendar = current === 'calendar';
+    const plans = current === 'plans';
     const weather = current === 'weather';
     const accounting = current === 'accounting';
     const health = current === 'health';
@@ -48,7 +49,7 @@
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('calendar') || '') : weather ? renderWeather() : accounting ? renderAccounting() : health ? renderHealth() : cycle ? renderCycle() : beauty ? `
+        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('calendar') || '') : plans ? (window.DailyLife?.render('plans') || '') : weather ? renderWeather() : accounting ? renderAccounting() : health ? renderHealth() : cycle ? renderCycle() : beauty ? `
           <section class="beautify-content" aria-label="美化设置">
             <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
             <section class="beautify-block">
@@ -105,7 +106,7 @@
     if (worldbook) window.Worldbook?.mount();
     if (windows) bindWindows();
     if (current === 'diary') bindDiary();
-    if (calendar) window.DailyLife?.mount();
+    if (calendar || plans) window.DailyLife?.mount();
     if (weather) bindWeather();
     if (accounting) bindAccounting();
     if (health) bindHealth();
