@@ -6,7 +6,7 @@
     mood: { zh: '心情', en: 'MOOD', group: 'DAILY LIFE' },
     diary: { zh: '日记', en: 'DIARY', group: 'DAILY LIFE' },
     health: { zh: '健康', en: 'WELLNESS', group: 'DAILY LIFE' },
-    cycle: { zh: '生理期', en: 'CYCLE', group: 'DAILY LIFE' },
+    cycle: { zh: '经期', en: 'CYCLE', group: 'DAILY LIFE' },
     abyss: { zh: '深渊区', en: 'ABYSS', group: 'DAILY LIFE' },
     games: { zh: '游戏', en: 'GAMES', group: 'PLAY & CREATE' },
     calendar: { zh: '日历', en: 'CALENDAR', group: 'DAILY LIFE' },
@@ -40,6 +40,7 @@
     const weather = current === 'weather';
     const accounting = current === 'accounting';
     const health = current === 'health';
+    const cycle = current === 'cycle';
     page.innerHTML = `
       <main class="daily-page ${beauty ? 'beautify-page' : worldbook ? 'worldbook-page' : windows ? 'engawa-page' : ''}">
         <header class="daily-heading">
@@ -47,7 +48,7 @@
           <div class="daily-heading-row"><h1>${item.zh}</h1><span class="daily-number">XIAOWO <i>/ SPACE</i></span></div>
           <div class="daily-rule"></div><div class="daily-section-en">${item.en}</div>
         </header>
-        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('today') || '') : weather ? renderWeather() : accounting ? renderAccounting() : health ? renderHealth() : beauty ? `
+        ${worldbook ? (window.Worldbook?.render() || '') : windows ? renderWindows() : current === 'diary' ? renderDiary() : calendar ? (window.DailyLife?.render('today') || '') : weather ? renderWeather() : accounting ? renderAccounting() : health ? renderHealth() : cycle ? renderCycle() : beauty ? `
           <section class="beautify-content" aria-label="美化设置">
             <div class="beautify-intro"><span class="beautify-overline">PERSONALIZE YOUR SPACE</span><p>把小窝的每一处，调整成喜欢的模样。</p></div>
             <section class="beautify-block">
@@ -108,6 +109,7 @@
     if (weather) bindWeather();
     if (accounting) bindAccounting();
     if (health) bindHealth();
+    if (cycle) bindCycle();
     document.querySelectorAll('[data-daily-go]').forEach(link => {
       link.classList.toggle('active', link.dataset.dailyGo === current);
       link.setAttribute('aria-current', link.dataset.dailyGo === current ? 'page' : 'false');
@@ -115,6 +117,103 @@
   }
 
 
+
+
+  // Menstrual-cycle diary. All entries remain on this device.
+  const CYCLE_KEY = 'xw_cycle_records_v1';
+  const CYCLE_PREF_KEY = 'xw_cycle_preferences_v1';
+  function cycleRead() {
+    try { const rows=JSON.parse(localStorage.getItem(CYCLE_KEY)||'[]'); return Array.isArray(rows)?rows.filter(x=>x&&/^\\d{4}-\\d{2}-\\d{2}$/.test(x.start)):[]; }
+    catch (_) { return []; }
+  }
+  function cyclePrefs() {
+    try { const p=JSON.parse(localStorage.getItem(CYCLE_PREF_KEY)||'{}'); return {length:Math.min(45,Math.max(21,Number(p.length)||28)),duration:Math.min(10,Math.max(2,Number(p.duration)||5))}; }
+    catch (_) { return {length:28,duration:5}; }
+  }
+  function cycleSave(rows) {
+    try { localStorage.setItem(CYCLE_KEY,JSON.stringify(rows)); return true; }
+    catch (_) { UI.toast('保存失败，请检查设备存储空间'); return false; }
+  }
+  function renderCycle() {
+    const today=new Date().toISOString().slice(0,10), prefs=cyclePrefs();
+    return `
+      <section class="cycle-page">
+        <div class="cycle-intro"><span>YOUR CYCLE JOURNAL</span><p>记录自己的节奏，预测只是参考，一切以实际感受为准。</p></div>
+        <section class="cycle-overview-card">
+          <div class="cycle-card-head"><div><b>周期概览</b><small>CYCLE OVERVIEW</small></div><span>◷</span></div>
+          <div class="cycle-overview-grid">
+            <div><small>平均周期</small><strong id="cycle-average">${prefs.length} 天</strong></div>
+            <div><small>经期时长</small><strong id="cycle-duration">${prefs.duration} 天</strong></div>
+            <div class="cycle-next"><small>预计下次开始</small><strong id="cycle-next">记录后显示</strong></div>
+          </div>
+          <p id="cycle-estimate-note" class="cycle-estimate-note">记录至少一次经期开始日期后，即可查看估算。</p>
+        </section>
+        <section class="cycle-entry-card">
+          <div class="cycle-card-head"><div><b>记录经期</b><small>PERIOD ENTRY</small></div><span>＋</span></div>
+          <form id="cycle-form">
+            <label class="cycle-field"><span>开始日期</span><input id="cycle-start" type="date" value="${today}" required></label>
+            <label class="cycle-field"><span>结束日期 <small>可稍后补充</small></span><input id="cycle-end" type="date"></label>
+            <div class="cycle-preferences">
+              <label><span>周期长度 <small>21 至 45 天</small></span><div><input id="cycle-length" type="number" min="21" max="45" value="${prefs.length}"><i>天</i></div></label>
+              <label><span>经期时长 <small>2 至 10 天</small></span><div><input id="cycle-duration-input" type="number" min="2" max="10" value="${prefs.duration}"><i>天</i></div></label>
+            </div>
+            <label class="cycle-field cycle-symptoms"><span>身体感受 / 症状</span><textarea id="cycle-note" rows="3" maxlength="500" placeholder="例如：腹部不适、疲惫、情绪变化……"></textarea></label>
+            <div class="cycle-form-actions"><button type="submit" class="cycle-save">保存记录</button><button type="button" id="cycle-reset" class="cycle-reset">清空</button></div>
+          </form>
+        </section>
+        <section class="cycle-history-card">
+          <div class="cycle-card-head"><div><b>周期记录</b><small>PERIOD HISTORY</small></div><span id="cycle-count">0 次</span></div>
+          <div id="cycle-history" class="cycle-history"><div class="cycle-empty">还没有经期记录，想记录时再来就好。</div></div>
+        </section>
+        <p class="cycle-privacy-note">记录仅保存在当前设备浏览器中。周期预测可能存在偏差，不用于避孕或诊断；如有持续异常或不适，请咨询专业医护人员。</p>
+      </section>`;
+  }
+  function bindCycle() {
+    const $=id=>document.getElementById(id), form=$('cycle-form');
+    const start=$('cycle-start'), end=$('cycle-end'), history=$('cycle-history');
+    const savePrefs=()=>{
+      const length=Number($('cycle-length').value), duration=Number($('cycle-duration-input').value);
+      if(!Number.isInteger(length)||length<21||length>45||!Number.isInteger(duration)||duration<2||duration>10){UI.toast('请检查周期长度和经期时长');return false;}
+      try{localStorage.setItem(CYCLE_PREF_KEY,JSON.stringify({length,duration}));return true;}
+      catch(_){UI.toast('设置保存失败');return false;}
+    };
+    const renderRows=()=>{
+      const rows=cycleRead().sort((a,b)=>a.start.localeCompare(b.start));
+      $('cycle-count').textContent=rows.length+' 次';
+      const prefs=cyclePrefs(), starts=rows.map(x=>x.start);
+      let average=prefs.length;
+      if(starts.length>1){
+        const gaps=[];
+        for(let i=1;i<starts.length;i++){const days=Math.round((Date.parse(starts[i]+'T00:00:00')-Date.parse(starts[i-1]+'T00:00:00'))/86400000);if(days>=15&&days<=60)gaps.push(days);}
+        if(gaps.length)average=Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length);
+      }
+      $('cycle-average').textContent=average+' 天';
+      $('cycle-duration').textContent=prefs.duration+' 天';
+      const last=starts[starts.length-1], next=last?new Date(Date.parse(last+'T00:00:00')+average*86400000):null;
+      $('cycle-next').textContent=next?next.toLocaleDateString('zh-CN',{month:'long',day:'numeric'}):'记录后显示';
+      $('cycle-estimate-note').textContent=last?'根据最近记录估算，实际周期可能提前或延后。':'记录至少一次经期开始日期后，即可查看估算。';
+      if(!rows.length){history.innerHTML='<div class="cycle-empty">还没有经期记录，想记录时再来就好。</div>';return;}
+      history.innerHTML=rows.slice().reverse().slice(0,24).map(x=>{
+        const duration=x.end?Math.max(1,Math.round((Date.parse(x.end+'T00:00:00')-Date.parse(x.start+'T00:00:00'))/86400000)+1):null;
+        return '<article class="cycle-entry"><div class="cycle-entry-top"><div><b>'+weatherEsc(x.start)+'</b><small>'+(x.end?'至 '+weatherEsc(x.end):'结束日期未填写')+'</small></div><button type="button" data-cycle-delete="'+weatherEsc(x.start)+'" aria-label="删除记录">×</button></div>'+(duration?'<span class="cycle-duration-tag">'+duration+' 天</span>':'')+(x.note?'<p>'+weatherEsc(x.note)+'</p>':'')+'</article>';
+      }).join('');
+      history.querySelectorAll('[data-cycle-delete]').forEach(btn=>btn.addEventListener('click',()=>{
+        if(!confirm('确定删除这次经期记录吗？'))return;
+        if(cycleSave(cycleRead().filter(x=>x.start!==btn.dataset.cycleDelete)))renderRows();
+      }));
+    };
+    form.addEventListener('submit',e=>{
+      e.preventDefault();
+      if(!savePrefs())return;
+      if(end.value&&end.value<start.value){UI.toast('结束日期不能早于开始日期');return;}
+      if(end.value&&Math.round((Date.parse(end.value+'T00:00:00')-Date.parse(start.value+'T00:00:00'))/86400000)>20){UI.toast('请检查结束日期');return;}
+      const rows=cycleRead().filter(x=>x.start!==start.value);
+      rows.push({start:start.value,end:end.value,note:$('cycle-note').value.trim()});
+      if(cycleSave(rows)){renderRows();form.reset();start.value=new Date().toISOString().slice(0,10);const p=cyclePrefs();$('cycle-length').value=p.length;$('cycle-duration-input').value=p.duration;UI.toast('经期记录已保存');}
+    });
+    $('cycle-reset').addEventListener('click',()=>{form.reset();start.value=new Date().toISOString().slice(0,10);const p=cyclePrefs();$('cycle-length').value=p.length;$('cycle-duration-input').value=p.duration;});
+    renderRows();
+  }
 
   // Private, device-local wellness notes. This is a journal, not a diagnostic tool.
   const HEALTH_KEY = 'xw_health_records_v1';
