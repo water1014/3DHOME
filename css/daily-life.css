@@ -228,3 +228,51 @@ html.dark .weather-location-card,html.dark .weather-current-card,html.dark .weat
 .weather-day strong i{font-style:normal;color:var(--ink-3);font-weight:400}
 .weather-source{text-align:center;color:var(--ink-3);font-size:.5rem}
 @media(max-width:360px){.weather-day{grid-template-columns:2.8rem 1.4rem minmax(0,1fr) auto;gap:.2rem}.weather-day em{display:none}.weather-temp{font-size:3.8rem}}
+
+
+/* Accounting · iOS-style grouped monochrome bookkeeping */
+.accounting-page{display:flex;flex-direction:column;gap:.82rem;padding-bottom:2rem}
+.accounting-intro>span{font:500 .52rem var(--mono);letter-spacing:.13em;color:var(--ink-3)}
+.accounting-intro p{margin:.38rem 0 0;color:var(--ink-2);font-size:.66rem;line-height:1.7}
+.accounting-summary,.accounting-form-card,.accounting-records-card{border:1px solid var(--line);border-radius:1rem;background:var(--glass-strong);box-shadow:var(--card-shadow);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.accounting-summary{padding:1rem}
+.accounting-summary-top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;color:var(--ink-3);font-size:.59rem}
+.accounting-summary-top input{max-width:9rem;padding:.35rem .45rem;border:1px solid var(--line);border-radius:.55rem;background:var(--bg);color:var(--ink);font:inherit;font-size:.58rem}
+.accounting-summary>strong{display:block;margin:.7rem 0 1rem;color:var(--ink);font:300 2.45rem/1.1 var(--sans);letter-spacing:-.06em}
+.accounting-totals{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;padding-top:.75rem;border-top:1px solid var(--line)}
+.accounting-totals>div{display:flex;flex-direction:column;gap:.3rem}
+.accounting-totals small{font-size:.55rem;color:var(--ink-3)}
+.accounting-totals b{font-size:.78rem;font-weight:600;color:var(--ink-2)}
+.accounting-form-card,.accounting-records-card{padding:.9rem}
+.accounting-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem}
+.accounting-section-head>div{display:flex;flex-direction:column;gap:.2rem}
+.accounting-section-head b{font-size:.77rem;font-weight:600;color:var(--ink)}
+.accounting-section-head small{font: .46rem var(--mono);letter-spacing:.12em;color:var(--ink-3)}
+.accounting-section-head>span{font-size:.58rem;color:var(--ink-3)}
+.accounting-type-switch,.accounting-filter{display:flex;gap:.25rem;padding:.2rem;border-radius:.7rem;background:var(--track)}
+.accounting-type-switch button,.accounting-filter button{flex:1;min-height:2rem;border:0;border-radius:.52rem;background:transparent;color:var(--ink-3);font:inherit;font-size:.61rem}
+.accounting-type-switch button.active,.accounting-filter button.active{background:var(--glass-strong);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.accounting-amount-field{display:block;margin:.8rem 0}
+.accounting-amount-field>span,.accounting-fields label>span,.accounting-note-field>span{display:block;margin-bottom:.32rem;color:var(--ink-3);font-size:.56rem}
+.accounting-amount-field>div{display:flex;align-items:center;gap:.35rem;border-bottom:1px solid var(--line-strong);padding:.15rem 0 .45rem}
+.accounting-amount-field i{font-style:normal;font-size:1.25rem;color:var(--ink-3)}
+.accounting-amount-field input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:300 2rem var(--sans);letter-spacing:-.04em}
+.accounting-fields{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
+.accounting-fields label,.accounting-note-field{min-width:0}
+.accounting-fields select,.accounting-fields input,.accounting-note-field input{width:100%;min-width:0;height:2.45rem;padding:0 .58rem;border:1px solid var(--line);border-radius:.65rem;background:var(--bg);color:var(--ink);font:inherit;font-size:.61rem}
+.accounting-note-field{display:block;margin-top:.7rem}
+.accounting-submit{width:100%;min-height:2.55rem;margin-top:.85rem;border:0;border-radius:.72rem;background:var(--ink);color:var(--page-bg);font:inherit;font-size:.66rem;font-weight:600}
+.accounting-filter{margin-bottom:.45rem}
+.accounting-filter button{min-height:1.8rem}
+.accounting-record-list{display:flex;flex-direction:column}
+.accounting-record{display:flex;align-items:center;gap:.55rem;min-width:0;padding:.68rem .05rem;border-top:1px solid var(--line)}
+.accounting-record-icon{display:grid;place-items:center;width:2rem;height:2rem;flex:0 0 auto;border:1px solid var(--line);border-radius:50%;color:var(--ink-2);font-size:.9rem}
+.accounting-record-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:.18rem}
+.accounting-record-main b{font-size:.64rem;font-weight:550;color:var(--ink)}
+.accounting-record-main small{overflow:hidden;color:var(--ink-3);font-size:.51rem;text-overflow:ellipsis;white-space:nowrap}
+.accounting-record>strong{font-size:.65rem;white-space:nowrap;color:var(--ink)}
+.accounting-record>strong.income{color:var(--ink)}
+.accounting-record>button{border:0;background:transparent;color:var(--ink-3);font-size:1.1rem;padding:.25rem}
+.accounting-empty{padding:1.4rem .5rem;text-align:center;color:var(--ink-3);font-size:.6rem}
+.accounting-footnote{text-align:center;color:var(--ink-3);font-size:.5rem;line-height:1.6}
+@media(max-width:360px){.accounting-fields{grid-template-columns:1fr}.accounting-summary>strong{font-size:2.1rem}}
