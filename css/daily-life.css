@@ -276,3 +276,43 @@ html.dark .weather-location-card,html.dark .weather-current-card,html.dark .weat
 .accounting-empty{padding:1.4rem .5rem;text-align:center;color:var(--ink-3);font-size:.6rem}
 .accounting-footnote{text-align:center;color:var(--ink-3);font-size:.5rem;line-height:1.6}
 @media(max-width:360px){.accounting-fields{grid-template-columns:1fr}.accounting-summary>strong{font-size:2.1rem}}
+
+
+/* Health journal · monochrome iOS grouped layout */
+.health-page{display:flex;flex-direction:column;gap:.82rem;padding-bottom:2rem}
+.health-intro>span{font:.5rem var(--mono);letter-spacing:.13em;color:var(--ink-3)}
+.health-intro p{margin:.38rem 0 0;color:var(--ink-2);font-size:.66rem;line-height:1.7}
+.health-today-card,.health-history-card{padding:.9rem;border:1px solid var(--line);border-radius:1rem;background:var(--glass-strong);box-shadow:var(--card-shadow);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.health-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.health-card-head>div{display:flex;flex-direction:column;gap:.2rem}
+.health-card-head b{font-size:.78rem;font-weight:600;color:var(--ink)}
+.health-card-head small{font:.46rem var(--mono);letter-spacing:.12em;color:var(--ink-3)}
+.health-card-head>span{font-size:.58rem;color:var(--ink-3)}
+.health-date-field{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.65rem 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.health-date-field span,.health-metric-grid label>span,.health-note-field>span{font-size:.59rem;color:var(--ink-2)}
+.health-date-field input{max-width:9.5rem;padding:.35rem .45rem;border:1px solid var(--line);border-radius:.55rem;background:var(--bg);color:var(--ink);font:inherit;font-size:.58rem}
+.health-metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin:.75rem 0}
+.health-metric-grid label{display:flex;flex-direction:column;gap:.35rem;min-width:0;padding:.62rem;border:1px solid var(--line);border-radius:.72rem;background:var(--bg)}
+.health-metric-grid label>span{display:flex;justify-content:space-between;gap:.3rem}
+.health-metric-grid label>span small{color:var(--ink-3);font-size:.49rem}
+.health-metric-grid input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:500 1.15rem var(--sans)}
+.health-metric-grid input::placeholder{color:var(--ink-3);font-size:.65rem;font-weight:400}
+.health-note-field{display:block}
+.health-note-field>span{display:block;margin-bottom:.35rem}
+.health-note-field textarea{width:100%;min-height:5rem;padding:.65rem;border:1px solid var(--line);border-radius:.7rem;resize:vertical;background:var(--bg);color:var(--ink);font:inherit;font-size:.62rem;line-height:1.6}
+.health-form-actions{display:flex;gap:.5rem;margin-top:.75rem}
+.health-save,.health-clear{min-height:2.5rem;padding:.45rem .8rem;border-radius:.7rem;font:inherit;font-size:.62rem}
+.health-save{flex:1;border:0;background:var(--ink);color:var(--page-bg);font-weight:600}
+.health-clear{border:1px solid var(--line);background:transparent;color:var(--ink-2)}
+.health-history{display:flex;flex-direction:column}
+.health-entry{padding:.72rem .05rem;border-top:1px solid var(--line)}
+.health-entry-top{display:flex;align-items:center;justify-content:space-between}
+.health-entry-top b{font:.62rem var(--mono);color:var(--ink)}
+.health-entry-top button{border:0;background:transparent;color:var(--ink-3);font-size:1.1rem;padding:.15rem .3rem}
+.health-entry-metrics{display:flex;flex-wrap:wrap;gap:.3rem;margin:.42rem 0}
+.health-entry-metrics span{padding:.28rem .45rem;border:1px solid var(--line);border-radius:99px;color:var(--ink-2);font-size:.51rem}
+.health-entry p{margin:.35rem 0 0;color:var(--ink-2);font-size:.6rem;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.health-entry p.health-entry-muted{color:var(--ink-3)}
+.health-empty{padding:1.4rem .4rem;text-align:center;color:var(--ink-3);font-size:.6rem}
+.health-privacy-note{text-align:center;color:var(--ink-3);font-size:.5rem;line-height:1.7}
+@media(max-width:360px){.health-metric-grid{gap:.4rem}.health-metric-grid label{padding:.5rem}}
