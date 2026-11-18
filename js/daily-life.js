@@ -122,6 +122,27 @@
     const events=eventsForDate(selected);
     return '<section class="dh-panel"><div class="dh-panel-head"><div><span class="dh-en">ON THIS DAY</span><h3>日程与纪念日</h3></div><button type="button" class="dh-text-btn" data-add="event">＋ 添加</button></div>'+(events.length?'<div class="dh-event-list">'+events.map(x=>'<article><time>'+(x.time?esc(x.time):'全天')+'</time><div><b>'+esc(x.title)+'</b><small class="dh-event-meta">'+esc(x.category||'日程')+(x.repeatYearly?' · 每年重复':'')+(x.note?' · '+esc(x.note):'')+'</small></div><button type="button" data-remove-event="'+esc(x.id)+'" data-event-source="'+esc(x.sourceDate||selected)+'" aria-label="删除日程">×</button></article>').join('')+'</div>':'<p class="dh-muted dh-small">这一天还没有约定或纪念日</p>')+'</section>';
   }
+  function plansTimetableMarkup() {
+    return '<section class="dh-panel"><div class="dh-panel-head"><div><span class="dh-en">WEEKLY ROUTINE</span><h3>每周固定安排</h3></div><button type="button" class="dh-text-btn" data-add="class">＋ 添加</button></div><div class="dh-plan-week">'+WEEK.map((label,index)=>{
+      const items=data.timetable.filter(item=>Number(item.weekday)===index).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+      return '<div class="dh-plan-week-row"><span class="dh-plan-weekday">周'+label+'</span><div class="dh-plan-week-items">'+(items.length?items.map(item=>'<div><time>'+esc(item.time||'未设时间')+'</time><span><b>'+esc(item.title)+'</b>'+(item.place?'<small>'+esc(item.place)+'</small>':'')+'</span><button type="button" data-remove-class="'+esc(item.id)+'" aria-label="删除固定安排">×</button></div>').join(''):'<small class="dh-plan-none">暂无固定安排</small>')+'</div></div>';
+    }).join('')+'</div><p class="dh-plan-hint">固定安排按星期重复显示，修改或删除后会同步到日历。</p></section>';
+  }
+  function plansAgendaMarkup() {
+    const start=parse(selected), dates=Array.from({length:14},(_,index)=>{const d=new Date(start);d.setDate(start.getDate()+index);return iso(d);});
+    const rows=dates.map(date=>{
+      const day=data.days[date]||{todos:[]}, events=eventsForDate(date), todos=day.todos||[];
+      if(!events.length&&!todos.length)return '';
+      return '<article class="dh-plan-date"><header><div><b>'+dateLabel(date)+'</b><small>'+todayLabel(date)+(date===iso(new Date())?' · 今天':'')+'</small></div><button type="button" class="dh-text-btn" data-plan-select="'+date+'">查看这天</button></header>'+
+        (events.length?'<div class="dh-plan-items">'+events.map(event=>'<div class="dh-plan-item"><time>'+(event.time?esc(event.time):'全天')+'</time><span><b>'+esc(event.title)+'</b><small>'+esc(event.category||'日程')+(event.repeatYearly?' · 每年重复':'')+'</small></span><button type="button" data-remove-event="'+esc(event.id)+'" data-event-source="'+esc(event.sourceDate||date)+'" aria-label="删除日程">×</button></div>').join('')+'</div>':'')+
+        (todos.length?'<div class="dh-plan-items">'+todos.map(todo=>'<label class="dh-plan-item dh-plan-todo '+(todo.done?'done':'')+'"><input type="checkbox" data-plan-todo="'+esc(todo.id)+'" data-plan-day="'+date+'" '+(todo.done?'checked':'')+'><span><b>'+esc(todo.text)+'</b><small>待办事项</small></span><button type="button" data-plan-remove-todo="'+esc(todo.id)+'" data-plan-day="'+date+'" aria-label="删除待办">×</button></label>').join('')+'</div>':'')+'</article>';
+    }).join('');
+    return '<section class="dh-panel"><div class="dh-panel-head"><div><span class="dh-en">NEXT 14 DAYS</span><h3>近期计划</h3></div><span class="dh-plan-range">从所选日期起</span></div>'+(rows||'<p class="dh-muted dh-small">接下来两周还没有安排。可以先添加一件小事。</p>')+'</section>';
+  }
+  function plansMarkup() {
+    const day=getDay(selected), open=day.todos.filter(item=>!item.done).length;
+    return '<section class="daily-hub plans-focus" id="daily-hub"><div class="dh-calendar-intro"><span class="dh-en">MAKE ROOM FOR WHAT MATTERS</span><h2>安排</h2><p>把固定节奏和眼前要做的事，放在同一个地方。</p></div><section class="dh-plan-overview"><div><span class="dh-en">START FROM</span><b>'+dateLabel(selected)+'</b><small>'+todayLabel(selected)+' · 当天还有 '+open+' 项待办未完成</small></div><label>查看起始日期<input type="date" data-plan-date value="'+selected+'"></label></section><section class="dh-plan-quick"><button type="button" data-add="todo"><b>＋</b><span>添加待办</span></button><button type="button" data-add="event"><b>＋</b><span>添加日程</span></button><button type="button" data-add="class"><b>＋</b><span>固定安排</span></button><button type="button" data-add="countdown"><b>＋</b><span>倒数日</span></button></section>'+plansAgendaMarkup()+plansTimetableMarkup()+countdownMarkup()+'<p class="dh-footnote">计划可以调整，生活不必赶路。</p></section>';
+  }
   function calendarDayMarkup(day) {
     const done=day.todos.filter(item=>item.done).length;
     const dateCount=eventsForDate(selected).length+day.todos.length+data.countdowns.filter(item=>item.date===selected).length;
@@ -131,6 +152,7 @@
     if(mode) viewMode=mode;
     const day=getDay(selected), today=iso(new Date());
     if(viewMode==='calendar') return '<section class="daily-hub calendar-focus" id="daily-hub"><div class="dh-calendar-intro"><span class="dh-en">YOUR TIME, YOUR STORY</span><h2>日历</h2><p>把重要的日子、每天的小事，都放在时间里。</p></div>'+monthMarkup()+calendarDayMarkup(day)+countdownMarkup()+'<p class="dh-footnote">每一天都值得被好好记下。</p></section>';
+    if(viewMode==='plans') return plansMarkup();
     const done=day.todos.filter(x=>x.done).length;
     return '<section class="daily-hub" id="daily-hub"><div class="dh-today-head"><div><span class="dh-en">TODAY / OUR LITTLE LIFE</span><h2>'+dateLabel(selected)+'</h2><p>'+todayLabel(selected)+' · '+(selected===today?'今天':'查看这一天')+'</p></div><div class="dh-weather"><span>WEATHER</span><b>天气待接入</b><small>连接天气服务后显示</small></div></div><div class="dh-progress"><span>今日完成</span><b>'+done+' / '+day.todos.length+'</b><i><em style="width:'+(day.todos.length?Math.round(done/day.todos.length*100):0)+'%"></em></i></div>'+timetableMarkup()+countdownMarkup()+todosMarkup(day)+mealsMarkup(day)+moodMarkup(day)+eventsMarkup(day)+monthMarkup()+wishlistMarkup()+'<p class="dh-footnote">把普通的一天，也认真地收进生活里。</p></section>';
   }
@@ -178,6 +200,10 @@
 
     root.querySelectorAll('[data-date]').forEach(btn=>btn.onclick=()=>{selected=btn.dataset.date;cursor=firstMonth(parse(selected));refresh();});
     root.querySelectorAll('[data-month]').forEach(btn=>btn.onclick=()=>{cursor=new Date(cursor.getFullYear(),cursor.getMonth()+Number(btn.dataset.month),1);refresh();});
+    const planDate=root.querySelector('[data-plan-date]'); if(planDate)planDate.onchange=()=>{if(/^\d{4}-\d{2}-\d{2}$/.test(planDate.value)){selected=planDate.value;cursor=firstMonth(parse(selected));refresh();}};
+    root.querySelectorAll('[data-plan-select]').forEach(btn=>btn.onclick=()=>{selected=btn.dataset.planSelect;cursor=firstMonth(parse(selected));refresh();});
+    root.querySelectorAll('[data-plan-todo]').forEach(input=>input.onchange=()=>{const day=getDay(input.dataset.planDay),item=day.todos.find(todo=>todo.id===input.dataset.planTodo);if(item){item.done=input.checked;if(persist())refresh();}});
+    root.querySelectorAll('[data-plan-remove-todo]').forEach(btn=>btn.onclick=()=>{const day=getDay(btn.dataset.planDay);day.todos=day.todos.filter(todo=>todo.id!==btn.dataset.planRemoveTodo);if(persist())refresh();});
     const today=root.querySelector('[data-today]'); if(today)today.onclick=()=>{selected=iso(new Date());cursor=firstMonth(new Date());refresh();};
     root.querySelectorAll('[data-add]').forEach(btn=>btn.onclick=()=>addItem(btn.dataset.add));
     root.querySelectorAll('[data-todo]').forEach(input=>input.onchange=()=>{const item=getDay(selected).todos.find(x=>x.id===input.dataset.todo);if(item){item.done=input.checked;if(persist())refresh();}});
