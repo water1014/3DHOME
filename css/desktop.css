@@ -1,8 +1,7 @@
-/* ══════════════════════════════════
-   desktop.css · 首页桌面式布局
-   widget 拼贴：天数 / 月历 / 正在播放 / 访客 + 图标格
-   颜色一律用 tokens 里的变量，不在这里写死色值
-   ══════════════════════════════════ */
+/* desktop.css · 首页桌面式布局
+   widget 拼贴 + 图标桌面 + App 全屏打开
+   desk-3：图标铺满 23 个 + app-mode（隐藏 dock、出返回键）
+   颜色一律用 tokens 变量，不写死色值 */
 
 .desk .fe-body.dz-wrap {
   display: grid;
@@ -28,7 +27,6 @@
 .dz-wrap > .fe-letter,
 .dz-icons { grid-column: 1 / -1; }
 
-/* 通用小标签 */
 .dz-k {
   display: block;
   font-family: var(--mono);
@@ -38,12 +36,10 @@
   color: var(--ink-3);
 }
 
-/* ── 天数卡 ── */
 .dz-days { text-align: center; }
 .dz-days .fp-avatars { margin-bottom: .5rem; }
 .dz-days .fp-days { font-size: 2.75rem; }
 
-/* ── 月历卡 ── */
 .dz-head {
   display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: .5rem;
@@ -91,7 +87,6 @@
   color: var(--ink-3);
 }
 
-/* ── 正在播放卡 ── */
 .dz-play { display: flex; align-items: center; gap: .7rem; }
 .dz-play .v-disc {
   position: relative;
@@ -141,7 +136,6 @@
 .dz-play .v-play .ic { width: .8rem; height: .8rem; }
 .dz-play .v-play:active { transform: scale(.94); }
 
-/* ── 访客卡 ── */
 .dz-guest p {
   margin-top: .34rem;
   font-size: .56rem;
@@ -149,26 +143,49 @@
   color: var(--ink-2);
 }
 
-/* ── 情书卡：收窄高度，别把整屏顶长 ── */
 .desk .fe-letter { margin: 0; }
 .desk .fe-letter .flip-inner { min-height: 6rem; }
 .desk .fe-letter .flip-front,
 .desk .fe-letter .flip-back { min-height: 6rem; }
 
-/* ── 图标格 ── */
 .dz-icons {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: .62rem .3rem;
-  padding: .5rem .2rem .2rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .82rem .3rem;
+  padding: .6rem .2rem .2rem;
 }
 .dz-app {
-  display: flex; flex-direction: column; align-items: center; gap: .26rem;
+  display: flex; flex-direction: column; align-items: center; gap: .28rem;
   border: 0; background: transparent; padding: 0;
   font: inherit;
   color: var(--ink-2);
   -webkit-tap-highlight-color: transparent;
 }
-.dz-app .ic { width: 1.26rem; height: 1.26rem; }
+.dz-app .ic { width: 1.34rem; height: 1.34rem; }
 .dz-app span { font-size: .5rem; letter-spacing: .03em; }
 .dz-app:active { transform: scale(.93); }
+
+/* App 打开态：dock 让开，顶部留一条给返回键 */
+body.app-mode .tabbar { display: none; }
+body.app-mode #pg-daily { padding-top: calc(2.9rem + env(safe-area-inset-top)); }
+
+#app-back {
+  position: fixed;
+  left: .9rem;
+  top: calc(.72rem + env(safe-area-inset-top));
+  z-index: 70;
+  width: 2.15rem;
+  height: 2.15rem;
+  display: none;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--page-bg) 76%, transparent);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+body.app-mode #app-back { display: grid; }
+#app-back svg { width: 1rem; height: 1rem; }
+#app-back:active { transform: scale(.92); }
