@@ -1,0 +1,174 @@
+/* ══════════════════════════════════
+   desktop.css · 首页桌面式布局
+   widget 拼贴：天数 / 月历 / 正在播放 / 访客 + 图标格
+   颜色一律用 tokens 里的变量，不在这里写死色值
+   ══════════════════════════════════ */
+
+.desk .fe-body.dz-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .56rem;
+  align-content: start;
+  padding: 0 .9rem .4rem;
+}
+
+.dz-card {
+  position: relative;
+  padding: .78rem .82rem;
+  border: 1px solid var(--line);
+  border-radius: .8rem;
+  background: color-mix(in srgb, var(--page-bg) 82%, transparent);
+  min-width: 0;
+}
+
+.dz-days,
+.dz-cal,
+.dz-play,
+.dz-guest,
+.dz-wrap > .fe-letter,
+.dz-icons { grid-column: 1 / -1; }
+
+/* 通用小标签 */
+.dz-k {
+  display: block;
+  font-family: var(--mono);
+  font-size: .42rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ── 天数卡 ── */
+.dz-days { text-align: center; }
+.dz-days .fp-avatars { margin-bottom: .5rem; }
+.dz-days .fp-days { font-size: 2.75rem; }
+
+/* ── 月历卡 ── */
+.dz-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: .5rem;
+}
+.dz-head b {
+  font-family: var(--mono);
+  font-size: .5rem;
+  letter-spacing: .12em;
+  color: var(--ink-2);
+}
+.dz-cal-week,
+.dz-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: .14rem;
+  text-align: center;
+}
+.dz-cal-week span {
+  padding-bottom: .26rem;
+  font-family: var(--mono);
+  font-size: .4rem;
+  color: var(--ink-3);
+}
+.dz-cal-day,
+.dz-cal-blank {
+  display: grid; place-items: center;
+  height: 1.46rem;
+  border-radius: .3rem;
+  font-family: var(--mono);
+  font-size: .52rem;
+  color: var(--ink-2);
+}
+.dz-cal-day.lv1 { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.dz-cal-day.lv2 { background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.dz-cal-day.lv3 { background: color-mix(in srgb, var(--ink) 28%, transparent); color: var(--on-dark); }
+.dz-cal-day.is-today {
+  box-shadow: inset 0 0 0 1px var(--ink-3);
+  color: var(--ink);
+  font-weight: 600;
+}
+.dz-note {
+  margin-top: .45rem;
+  font-size: .46rem;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+/* ── 正在播放卡 ── */
+.dz-play { display: flex; align-items: center; gap: .7rem; }
+.dz-play .v-disc {
+  position: relative;
+  flex: 0 0 auto;
+  width: 2.4rem; height: 2.4rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: grid; place-items: center;
+}
+.dz-play .v-disc.spin { animation: dz-spin 7s linear infinite; }
+@keyframes dz-spin { to { transform: rotate(360deg); } }
+.dz-play .v-ring {
+  position: absolute;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+.dz-play .v-ring:nth-child(1) { inset: .26rem; }
+.dz-play .v-ring:nth-child(2) { inset: .58rem; }
+.dz-play .v-core { width: .38rem; height: .38rem; border-radius: 50%; background: var(--ink); }
+.dz-play .v-info { flex: 1; min-width: 0; }
+.dz-play .v-label {
+  font-family: var(--mono);
+  font-size: .4rem;
+  letter-spacing: .16em;
+  color: var(--ink-3);
+}
+.dz-play .v-title {
+  margin-top: .12rem;
+  font-size: .74rem;
+  color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dz-play .v-artist {
+  margin-top: .06rem;
+  font-size: .52rem;
+  color: var(--ink-3);
+}
+.dz-play .v-play {
+  flex: 0 0 auto;
+  width: 1.85rem; height: 1.85rem;
+  display: grid; place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+}
+.dz-play .v-play .ic { width: .8rem; height: .8rem; }
+.dz-play .v-play:active { transform: scale(.94); }
+
+/* ── 访客卡 ── */
+.dz-guest p {
+  margin-top: .34rem;
+  font-size: .56rem;
+  line-height: 1.75;
+  color: var(--ink-2);
+}
+
+/* ── 情书卡：收窄高度，别把整屏顶长 ── */
+.desk .fe-letter { margin: 0; }
+.desk .fe-letter .flip-inner { min-height: 6rem; }
+.desk .fe-letter .flip-front,
+.desk .fe-letter .flip-back { min-height: 6rem; }
+
+/* ── 图标格 ── */
+.dz-icons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: .62rem .3rem;
+  padding: .5rem .2rem .2rem;
+}
+.dz-app {
+  display: flex; flex-direction: column; align-items: center; gap: .26rem;
+  border: 0; background: transparent; padding: 0;
+  font: inherit;
+  color: var(--ink-2);
+  -webkit-tap-highlight-color: transparent;
+}
+.dz-app .ic { width: 1.26rem; height: 1.26rem; }
+.dz-app span { font-size: .5rem; letter-spacing: .03em; }
+.dz-app:active { transform: scale(.93); }
