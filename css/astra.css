@@ -1,0 +1,108 @@
+/* ════════════════════════════════
+   astra.css · 首页排版语言（参考 ASTRA）
+   只换“排法”，不换配色与字体家族：
+   面包屑 / 左对齐 / 编号卡片 / 去装饰
+   想回到旧样子，把 index.html 里这一行 link 删掉即可。
+   ════════════════════════════════ */
+
+/* 1. 顶栏上一行面包屑：XIAOWO / HOME */
+.fe-home::before {
+  content: 'XIAOWO / HOME';
+  display: block; flex-shrink: 0;
+  padding: .95rem 1.15rem 0;
+  font-family: var(--mono);
+  font-size: .44rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.fe-hd { padding-top: .05rem; }
+
+/* 2. 档案卡：去掉玻璃片与居中，改成左对齐带底线的一段 */
+.fe-profile {
+  text-align: left;
+  padding: .95rem 0 .85rem;
+  margin-bottom: .85rem;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html.dark .fe-profile {
+  background: none;
+  border-color: var(--line);
+  box-shadow: none;
+}
+
+.fp-avatars {
+  justify-content: flex-start;
+  gap: .32rem;
+  margin-bottom: .55rem;
+}
+.fp-ava {
+  width: 1.95rem; height: 1.95rem;
+  font-size: .72rem;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.fp-names {
+  font-size: .86rem;
+  letter-spacing: .06em;
+  margin-bottom: .22rem;
+}
+
+.fp-days-wrap {
+  justify-content: flex-start;
+  gap: .28rem;
+  margin-bottom: .38rem;
+}
+.fp-days {
+  font-size: 2.55rem;
+  letter-spacing: -.03em;
+}
+.fp-days-label { font-size: .5rem; letter-spacing: .18em; }
+
+.fp-line { justify-content: flex-start; }
+
+/* 3. 快捷入口：胶囊行 → 编号卡网格（00/01/02/03 那套） */
+.fe-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .46rem;
+  padding: 0;
+  margin-bottom: .9rem;
+  counter-reset: fn;
+}
+.fn-pill {
+  counter-increment: fn;
+  justify-content: flex-start;
+  gap: .4rem;
+  padding: .58rem .62rem;
+  border-radius: .5rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.fn-pill::before {
+  content: '0' counter(fn);
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: .42rem;
+  letter-spacing: .14em;
+  color: var(--ink-3);
+}
+
+/* 4. 相册墙：把拍立得摆正（inline transform 必须用 important 才盖得住） */
+.ph-frame { transform: none !important; }
+
+/* 5. 入口卡统一成一个圆角级 */
+.home-chat-entry,
+.fe-letter,
+.fe-vinyl {
+  border-radius: .5rem;
+}
