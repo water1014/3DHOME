@@ -50,6 +50,7 @@
             <div class="settings-row">
               <div><b>当前字体</b><small>小窝默认字体组合</small></div><span class="settings-value">Noto Serif · Cormorant</span>
             </div>
+          </div>
         </section>
 
         <section class="settings-section settings-panel" id="settings-profile" data-settings-page="1">
