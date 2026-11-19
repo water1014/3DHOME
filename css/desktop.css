@@ -1,16 +1,41 @@
 /* desktop.css · 首页桌面式布局
-   widget 拼贴 + 图标桌面 + App 全屏打开
-   desk-3：图标铺满 23 个 + app-mode（隐藏 dock、出返回键）
+   desk-4：横向分页（每页 8 个图标）+ 分页点 + App 全屏打开态
    颜色一律用 tokens 变量，不写死色值 */
 
+/* ── 桌面分页容器：横向 scroll-snap ── */
 .desk .fe-body.dz-wrap {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .56rem;
-  align-content: start;
-  padding: 0 .9rem .4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding: 0;
+  gap: 0;
 }
+.desk .fe-body.dz-wrap::-webkit-scrollbar { display: none; }
 
+.dz-page {
+  flex: 0 0 100%;
+  width: 100%;
+  box-sizing: border-box;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  display: flex;
+  flex-direction: column;
+  gap: .56rem;
+  padding: 0 .9rem 3.4rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.dz-page::-webkit-scrollbar { display: none; }
+.dz-page--apps { padding-top: .5rem; justify-content: flex-start; }
+
+/* 卡片（在 flex 列里，宽度自适应） */
 .dz-card {
   position: relative;
   padding: .78rem .82rem;
@@ -18,14 +43,8 @@
   border-radius: .8rem;
   background: color-mix(in srgb, var(--page-bg) 82%, transparent);
   min-width: 0;
+  flex: 0 0 auto;
 }
-
-.dz-days,
-.dz-cal,
-.dz-play,
-.dz-guest,
-.dz-wrap > .fe-letter,
-.dz-icons { grid-column: 1 / -1; }
 
 .dz-k {
   display: block;
@@ -36,10 +55,12 @@
   color: var(--ink-3);
 }
 
+/* ── 天数卡 ── */
 .dz-days { text-align: center; }
 .dz-days .fp-avatars { margin-bottom: .5rem; }
 .dz-days .fp-days { font-size: 2.75rem; }
 
+/* ── 月历卡 ── */
 .dz-head {
   display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: .5rem;
@@ -87,6 +108,7 @@
   color: var(--ink-3);
 }
 
+/* ── 正在播放卡 ── */
 .dz-play { display: flex; align-items: center; gap: .7rem; }
 .dz-play .v-disc {
   position: relative;
@@ -136,6 +158,7 @@
 .dz-play .v-play .ic { width: .8rem; height: .8rem; }
 .dz-play .v-play:active { transform: scale(.94); }
 
+/* ── 访客卡 ── */
 .dz-guest p {
   margin-top: .34rem;
   font-size: .56rem;
@@ -143,29 +166,53 @@
   color: var(--ink-2);
 }
 
-.desk .fe-letter { margin: 0; }
+/* ── 情书卡 ── */
+.desk .fe-letter { margin: 0; flex: 0 0 auto; }
 .desk .fe-letter .flip-inner { min-height: 6rem; }
 .desk .fe-letter .flip-front,
 .desk .fe-letter .flip-back { min-height: 6rem; }
 
-.dz-icons {
+/* ── 图标格：4 列 x 2 行 = 一页 8 个 ── */
+.dz-page .dz-icons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: .82rem .3rem;
-  padding: .6rem .2rem .2rem;
+  grid-auto-rows: minmax(3.4rem, auto);
+  gap: .9rem .4rem;
+  padding: .55rem .2rem .2rem;
+  flex: 0 0 auto;
 }
 .dz-app {
-  display: flex; flex-direction: column; align-items: center; gap: .28rem;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: .3rem;
   border: 0; background: transparent; padding: 0;
   font: inherit;
   color: var(--ink-2);
   -webkit-tap-highlight-color: transparent;
 }
-.dz-app .ic { width: 1.34rem; height: 1.34rem; }
+.dz-app .ic { width: 1.4rem; height: 1.4rem; }
 .dz-app span { font-size: .5rem; letter-spacing: .03em; }
 .dz-app:active { transform: scale(.93); }
 
-/* App 打开态：dock 让开，顶部留一条给返回键 */
+/* ── 分页点 ── */
+.dz-dots {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(var(--tabbar-h) + 1.05rem);
+  z-index: 40;
+  display: flex; justify-content: center; gap: .32rem;
+  pointer-events: none;
+}
+.dz-dots span {
+  width: .26rem; height: .26rem; border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 20%, transparent);
+  transition: background .2s, transform .2s;
+}
+.dz-dots span.on {
+  background: color-mix(in srgb, var(--ink) 72%, transparent);
+  transform: scale(1.3);
+}
+body.app-mode .dz-dots { display: none; }
+
+/* ══════════ App 打开态 ══════════ */
 body.app-mode .tabbar { display: none; }
 body.app-mode #pg-daily { padding-top: calc(2.9rem + env(safe-area-inset-top)); }
 
