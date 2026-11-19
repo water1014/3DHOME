@@ -1,0 +1,38 @@
+/* dock.css · 底部 dock（小手机 / ASTRA 那套固定底栏）
+   base.css 里 .tabbar / .tab-item 的样式本来就写全了，
+   这里只补两件事：内容不被遮挡、以及更像手机底栏的细节。 */
+
+/* 1. 别让 dock 盖住页面内容。chat 页自己有预留（输入框锚在底栏之上），
+      所以不重复加。 */
+#pg-home.on,
+#pg-mem.on,
+#pg-daily.on,
+#pg-settings.on {
+  padding-bottom: calc(var(--tabbar-h) + .7rem);
+}
+
+/* 2. 用 button 建 dock，先把它重置成干净的一格 */
+.tab-item {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 3. 图标与英文小字收一点，更像手机底栏 */
+.tab-item { gap: .18rem; }
+.tab-item .ic { width: 1.28rem; height: 1.28rem; }
+.tab-item span { font-size: .46rem; letter-spacing: .08em; }
+
+/* 4. 浮起来的那一层 */
+.tabbar {
+  box-shadow:
+    var(--glass-shadow),
+    0 10px 30px rgba(20, 20, 25, .10);
+}
+html.dark .tabbar {
+  box-shadow:
+    var(--glass-shadow),
+    0 10px 30px rgba(0, 0, 0, .45);
+}

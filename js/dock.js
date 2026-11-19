@@ -1,0 +1,62 @@
+/* dock.js · 底部 dock ─────────────────────────────
+   base.css 里 .tabbar / .tab-item 的样式写全了，
+   app.js 里也有给 .tab-item 同步 active 的逻辑，
+   但 index.html 从来没建过这几个节点，所以一直是死代码。
+   这里把 dock 建出来，并且必须在 app.js 之前执行：
+   app.js 加载时 querySelectorAll('.tab-item') 才抓得到这五格。
+   侧边栏（左上汉堡 + 抽屉）完全不动，两套入口并存。
+   ─────────────────────────────────────────────── */
+(function () {
+  const D = document;
+  if (D.querySelector('.tabbar')) return;
+
+  const items = [
+    {
+      go: 'home', label: 'HOME',
+      paths: ['M3 11.5 12 4l9 7.5', 'M5.5 10.5V20h13v-9.5']
+    },
+    {
+      go: 'mem', label: 'MEMORY',
+      paths: ['M12 21s-7.5-4.9-9.5-9C1 8.5 3 4.5 7 4.5c2.2 0 3.7 1.2 5 3 1.3-1.8 2.8-3 5-3 4 0 6 4 4.5 7.5-2 4.1-9.5 9-9.5 9z']
+    },
+    {
+      go: 'chat', label: 'CHAT',
+      paths: ['M4 5h16v11H9l-5 4z']
+    },
+    {
+      go: 'daily', label: 'DAILY',
+      paths: ['M4 6h16v15H4z', 'M8 3v4M16 3v4M4 11h16']
+    },
+    {
+      go: 'settings', label: 'YOU',
+      paths: ['M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.7 2.94-.08-.02a1.7 1.7 0 0 0-1.74.48l-.06.06h-3.4l-.04-.08a1.7 1.7 0 0 0-1.5-1.02h-.1l-2.94-1.7.02-.08a1.7 1.7 0 0 0-.48-1.74l-.06-.06v-3.4l.08-.04a1.7 1.7 0 0 0 1.02-1.5v-.1l1.7-2.94.08.02a1.7 1.7 0 0 0 1.74-.48l.06-.06h3.4l.04.08a1.7 1.7 0 0 0 1.5 1.02h.1l2.94 1.7-.02.08a1.7 1.7 0 0 0 .48 1.74l.06.06z']
+    }
+  ];
+
+  const bar = D.createElement('nav');
+  bar.className = 'tabbar';
+  bar.setAttribute('aria-label', '主导航');
+  bar.innerHTML = items.map(item => {
+    const icon = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' +
+      item.paths.map(d => '<path d="' + d + '"/>').join('') + '</svg>';
+    return '<button type="button" class="tab-item' + (item.go === 'home' ? ' active' : '') +
+      '" data-go="' + item.go + '">' + icon + '<span>' + item.label + '</span></button>';
+  }).join('');
+
+  D.body.appendChild(bar);
+
+  bar.addEventListener('click', event => {
+    const item = event.target.closest('.tab-item');
+    if (!item) return;
+    const name = item.dataset.go;
+    if (typeof window.go === 'function') {
+      window.go(name);
+    } else {
+      // app.js 还没加载完时的兜底：先手动切页，等 app.js 接手
+      D.querySelectorAll('.pg').forEach(p => p.classList.toggle('on', p.id === 'pg-' + name));
+      bar.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t === item));
+    }
+  });
+
+  window.Dock = { el: bar };
+})();
