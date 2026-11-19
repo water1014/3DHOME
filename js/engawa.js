@@ -11,6 +11,13 @@
   let serverInfo = null;
   let requestId = 0;
 
+  function speakerName() {
+    try {
+      const name = window.XW?.S?.hisName;
+      return (typeof name === 'string' && name.trim()) ? name.trim() : 'TA';
+    } catch { return 'TA'; }
+  }
+
   function headers() {
     const value = {
       'Content-Type': 'application/json',
@@ -90,7 +97,7 @@
     if (!tools.some(tool => tool.name === name)) throw new Error('服务端未提供工具：' + name);
     const writeTools = ['shelf_add','shelf_remove','hobby_add','hobby_remove'];
     if (writeTools.includes(name)) {
-      const approved = window.confirm('宋祁想要修改窗廊的书架或爱好订阅：' + name + '\n' + JSON.stringify(args || {}, null, 2) + '\n\n是否允许这次修改？');
+      const approved = window.confirm(speakerName() + ' 想要修改窗廊的书架或爱好订阅：\n' + name + '\n' + JSON.stringify(args || {}, null, 2) + '\n\n是否允许这次修改？');
       if (!approved) return '用户没有授权这次修改，未执行任何更改。';
     }
     const result = await rpc('tools/call', { name, arguments: args || {} });
@@ -118,7 +125,7 @@
     connected = false;
     tools = [];
     sessionId = '';
-    initialized = false;
+    sessionInitialized = false;
   }
 
   window.Engawa = {
