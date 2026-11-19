@@ -4,7 +4,7 @@
    但 index.html 从来没建过这几个节点，所以一直是死代码。
    这里把 dock 建出来，并且必须在 app.js 之前执行：
    app.js 加载时 querySelectorAll('.tab-item') 才抓得到这五格。
-   侧边栏（左上汉堡 + 抽屉）完全不动，两套入口并存。
+   dock-2：dock 自己也支持左右滑 —— 手指落在 dock 上也能翻桌面页
    ─────────────────────────────────────────────── */
 (function () {
   const D = document;
@@ -52,11 +52,66 @@
     if (typeof window.go === 'function') {
       window.go(name);
     } else {
-      // app.js 还没加载完时的兜底：先手动切页，等 app.js 接手
       D.querySelectorAll('.pg').forEach(p => p.classList.toggle('on', p.id === 'pg-' + name));
       bar.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t === item));
     }
   });
+
+  /* ── dock 上左右滑 = 翻桌面页 ──
+     手指落在 dock 上时，横向滑动被 dock 吃掉了；
+     这里把横向位移转给桌面的横向滚动容器。 */
+  let swallowClick = false;
+  let start = null;
+
+  function desktopScroller() {
+    if (!D.querySelector('#pg-home.on')) return null;
+    return D.querySelector('#pg-home .dz-wrap');
+  }
+
+  bar.addEventListener('touchstart', event => {
+    if (!event.touches || event.touches.length !== 1) { start = null; return; }
+    const t = event.touches[0];
+    start = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+
+  bar.addEventListener('touchmove', event => {
+    if (!start) { swallowClick = false; return; }
+    const t = event.touches[0];
+    if (!t) return;
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) swallowClick = true;
+  }, { passive: true });
+
+  bar.addEventListener('touchend', event => {
+    if (!start || !event.changedTouches || event.changedTouches.length !== 1) {
+      start = null;
+      return;
+    }
+    const t = event.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    start = null;
+
+    const scroller = desktopScroller();
+    if (!scroller) { swallowClick = false; return; }
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+
+    event.preventDefault();
+    const width = Math.max(1, scroller.clientWidth);
+    const page = Math.round(scroller.scrollLeft / width);
+    const total = scroller.querySelectorAll('.dz-page').length || 1;
+    const next = Math.min(total - 1, Math.max(0, page + (dx < 0 ? 1 : -1)));
+    if (next !== page) scroller.scrollTo({ left: next * width, behavior: 'smooth' });
+  }, { passive: false });
+
+  /* 滑完之后不要把手抬起当成点击 dock */
+  bar.addEventListener('click', event => {
+    if (!swallowClick) return;
+    swallowClick = false;
+    event.preventDefault();
+    event.stopPropagation();
+  }, true);
 
   window.Dock = { el: bar };
 })();
