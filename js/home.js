@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════
    home.js · 首页（桌面式）
    widget 拼贴：天数 / 月历 / 正在播放 / 访客 + 图标格
+   desk-2：修 GUEST 把 hisWords 对象直接塞进 textContent 的问题
    ══════════════════════════════════════════════ */
 
 (function() {
@@ -128,6 +129,16 @@ function renderCalendar(now) {
   grid.innerHTML = cells.join('');
 }
 
+/* hisWords 存的是 [{ text, date }]，不是字符串，取值时必须兼容两种形状 */
+function pickHisWord(seed) {
+  const list = Array.isArray(S.hisWords) ? S.hisWords : [];
+  const usable = list
+    .map(item => typeof item === 'string' ? item : (item && typeof item.text === 'string' ? item.text : ''))
+    .filter(Boolean);
+  if (!usable.length) return '门没锁。来过的人，都会在灯下坐一会儿。';
+  return usable[Math.abs(seed) % usable.length];
+}
+
 function renderInfo() {
   const now = new Date();
   const love = new Date(S.loveDate || '2025-01-01');
@@ -163,12 +174,7 @@ function renderInfo() {
   renderCalendar(now);
 
   const guest = $('h-guest');
-  if (guest) {
-    const words = Array.isArray(S.hisWords) && S.hisWords.length
-      ? S.hisWords
-      : ['门没锁。来过的人，都会在灯下坐一会儿。'];
-    guest.textContent = words[now.getDate() % words.length];
-  }
+  if (guest) guest.textContent = pickHisWord(now.getDate());
 }
 
 function build() {
