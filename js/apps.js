@@ -1,10 +1,12 @@
-/* apps.js · 桌面图标 + App 全屏打开层
-   照 SullyOS 的范式：桌面就是一张 App 表，
-   点一个图标 → 那个 App 独占整屏 → 左上返回 → 回桌面。
-   不动 daily.js / home.js 内部逻辑，只补“隐藏 dock + 返回键 + 铺满图标”。 */
+/* apps.js · 桌面分页 + App 全屏打开层
+   照 SullyOS 的 launcher：
+   APPS_PER_PAGE = 8（4 列 x 2 行），横向 scroll-snap 翻页，
+   第一页 = 组件（widget）+ 8 个图标，后面页 = 纯图标页。
+   不重建 widget 节点，只移动它们，home.js 的事件绑定不会掉。 */
 (function () {
   const D = document;
   const $ = id => D.getElementById(id);
+  const PER_PAGE = 8;
 
   const APPS = [
     { key: 'chat', name: '聊天', page: true, p: ['M4 5h16v11H9l-5 4z'] },
@@ -37,14 +39,80 @@
       paths.map(d => '<path d="' + d + '"/>').join('') + '</svg>';
   }
 
-  function renderIcons() {
-    const host = D.querySelector('#pg-home .dz-icons');
-    if (!host || host.dataset.appsReady === '1') return;
-    host.innerHTML = APPS.map(app =>
+  function iconGrid(list) {
+    const grid = D.createElement('nav');
+    grid.className = 'dz-icons';
+    grid.setAttribute('aria-label', '应用');
+    grid.innerHTML = list.map(app =>
       '<button type="button" class="dz-app" data-app="' + app.key + '">' +
       iconSvg(app.p) + '<span>' + app.name + '</span></button>'
     ).join('');
-    host.dataset.appsReady = '1';
+    return grid;
+  }
+
+  /* 把首页拆成一页页：第一页保留 widget + 前 8 个图标 */
+  function buildPages() {
+    const wrap = D.querySelector('#pg-home .dz-wrap');
+    if (!wrap || wrap.dataset.paged === '1') return;
+
+    const oldIcons = wrap.querySelector('.dz-icons');
+    const widgets = Array.from(wrap.children).filter(el => el !== oldIcons);
+    if (oldIcons) oldIcons.remove();
+
+    const pages = [];
+    for (let i = 0; i < APPS.length; i += PER_PAGE) pages.push(APPS.slice(i, i + PER_PAGE));
+    if (!pages.length) pages.push([]);
+
+    const first = D.createElement('section');
+    first.className = 'dz-page';
+    widgets.forEach(el => first.appendChild(el));
+    first.appendChild(iconGrid(pages[0]));
+
+    const nodes = [first];
+    pages.slice(1).forEach(list => {
+      const page = D.createElement('section');
+      page.className = 'dz-page dz-page--apps';
+      page.appendChild(iconGrid(list));
+      nodes.push(page);
+    });
+
+    wrap.textContent = '';
+    nodes.forEach(node => wrap.appendChild(node));
+    wrap.dataset.paged = '1';
+
+    renderDots(nodes.length);
+    bindScroll();
+  }
+
+  function renderDots(count) {
+    const desk = D.querySelector('#pg-home .fe-home');
+    if (!desk) return;
+    let dots = $('dz-dots');
+    if (!dots) {
+      dots = D.createElement('div');
+      dots.id = 'dz-dots';
+      dots.className = 'dz-dots';
+      desk.appendChild(dots);
+    }
+    dots.innerHTML = Array.from({ length: count }, (_, i) =>
+      '<span' + (i === 0 ? ' class="on"' : '') + '></span>').join('');
+  }
+
+  function bindScroll() {
+    const wrap = D.querySelector('#pg-home .dz-wrap');
+    if (!wrap || wrap.__dotsBound) return;
+    wrap.__dotsBound = true;
+    let raf = 0;
+    wrap.addEventListener('scroll', () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const dots = $('dz-dots');
+        if (!dots) return;
+        const index = Math.round(wrap.scrollLeft / Math.max(1, wrap.clientWidth));
+        Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('on', i === index));
+      });
+    }, { passive: true });
   }
 
   function ensureBack() {
@@ -61,23 +129,19 @@
     D.body.appendChild(btn);
   }
 
-  function setAppMode(on) {
-    D.body.classList.toggle('app-mode', !!on);
-  }
-
   function openApp(key) {
     const app = APPS.find(item => item.key === key);
     if (!app) return;
     if (app.page) {
       if (key === 'settings') window.Settings?.build?.();
-      setAppMode(false);
+      D.body.classList.remove('app-mode');
       window.go?.(key);
       return;
     }
     if (typeof window.Daily?.select === 'function') {
       window.Daily.select(key);
       window.go?.('daily');
-      setAppMode(true);
+      D.body.classList.add('app-mode');
       return;
     }
     window.UI?.toast?.('这里还没开门');
@@ -100,7 +164,7 @@
     const original = Home.build;
     Home.build = function () {
       const result = original.apply(this, arguments);
-      try { renderIcons(); ensureBack(); } catch (err) { console.warn('[Apps]', err); }
+      try { buildPages(); ensureBack(); } catch (err) { console.warn('[Apps]', err); }
       return result;
     };
     Home.__appsPatched = true;
@@ -114,9 +178,9 @@
       if (++tries < 60) { setTimeout(boot, 100); return; }
       return;
     }
-    if ($('pg-home')?.children.length) renderIcons();
+    if (D.querySelector('#pg-home .dz-wrap')) buildPages();
   };
   boot();
 
-  window.Apps = { openApp, list: APPS, close: () => { setAppMode(false); window.go?.('home'); } };
+  window.Apps = { openApp, list: APPS, close: () => { D.body.classList.remove('app-mode'); window.go?.('home'); } };
 })();
