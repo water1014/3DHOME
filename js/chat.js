@@ -783,7 +783,19 @@ async function aiReply(text) {
       }
       const response = await fetch(S.aiUrl || 'https://api.openai.com/v1/chat/completions', {
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.aiKey},
+        headers:(() => {
+          const headers = {'Content-Type':'application/json'};
+          if (S.aiKey) headers.Authorization = 'Bearer ' + S.aiKey;
+          try {
+            const custom = JSON.parse(localStorage.getItem('xw_aiHeaders') || '{}');
+            if (custom && typeof custom === 'object' && !Array.isArray(custom)) {
+              Object.entries(custom).forEach(([key, value]) => {
+                if (key && typeof value === 'string' && !/^(host|origin|content-length|cookie|connection|referer|user-agent|sec-|access-control-)/i.test(key)) headers[key] = value;
+              });
+            }
+          } catch (error) { console.warn('[Chat] Invalid custom API headers:', error); }
+          return headers;
+        })(),
         signal:activeAIController.signal,
         body:JSON.stringify(requestBody)
       });
