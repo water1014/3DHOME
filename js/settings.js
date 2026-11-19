@@ -2,7 +2,8 @@
 (function () {
   const D = document, $ = D.getElementById.bind(D);
   const { S, save } = XW;
-  let built = false;\n  let openSectionHandler = null;
+  let built = false;
+  let openSectionHandler = null;
 
   function storageStats() {
     let bytes = 0, entries = 0;
