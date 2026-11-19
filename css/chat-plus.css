@@ -1,0 +1,13 @@
+/* Chat 补丁层样式
+   chat-refine.css 里已经有 .chat-worldbook-preview 的全套样式，
+   这里只补请求头输入框——原样式只覆盖了 input，没有 textarea。 */
+#pg-chat .chat-plus-headers { margin-top: .55rem; }
+#pg-chat .chat-ai-field textarea {
+  width: 100%; min-width: 0; padding: .48rem .55rem;
+  border: 1px solid var(--line); border-radius: .48rem; outline: 0;
+  background: rgba(128,128,128,.045); color: var(--ink);
+  font: .56rem/1.7 var(--mono);
+  min-height: 4.2rem; resize: vertical;
+}
+#pg-chat .chat-ai-field textarea:focus { border-color: var(--ink-3); }
+#pg-chat .chat-plus-headers .chat-ai-actions { margin-top: .35rem; }
